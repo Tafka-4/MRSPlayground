@@ -2,7 +2,6 @@
   "name": "mrsarchive-api",
   "version": "1.0.0",
   "description": "archive-api",
-  "main": "index.js",
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -20,14 +19,12 @@
   },
   "homepage": "https://github.com/Tafka-4/MRSPlayground#readme",
   "dependencies": {
-    "aws-sdk": "^2.1692.0",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "html-escaper": "^3.0.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.12.1",
-    "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.10.0",
     "redis": "^4.7.0",
     "sharp": "^0.34.1",
