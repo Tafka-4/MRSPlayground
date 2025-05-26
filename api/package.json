@@ -1,11 +1,12 @@
 {
   "name": "mrsarchive-api",
   "version": "1.0.0",
-  "description": "archive-api",
+  "description": "archive-api-gateway",
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node index.js",
+    "start": "node dist/index.js",
+    "dev": "ts-node-esm src/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -32,11 +33,13 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
-    "@types/express": "^5.0.0",
+    "@types/express": "^4.17.21",
     "@types/html-escaper": "^3.0.4",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/multer": "^1.4.12",
     "@types/multer-s3": "^3.0.3",
-    "@types/nodemailer": "^6.4.17"
+    "@types/nodemailer": "^6.4.17",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
   }
 }

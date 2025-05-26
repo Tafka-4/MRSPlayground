@@ -3,10 +3,27 @@ import { v4 as uuidv4 } from "uuid";
 import fs from "fs";
 import { createHmac } from "crypto";
 import { mongoose, redisClient } from "../utils/dbconnect/dbconnect.js";
-import User from "./userModel.js";
 import novelError from "../utils/error/novelError.js";
 import userError from "../utils/error/userError.js";
 dotenv.config();
+
+// User Service API 호출을 위한 헬퍼 함수
+const callUserService = async (endpoint: string, options: RequestInit = {}) => {
+    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-service:3001';
+    const response = await fetch(`${userServiceUrl}${endpoint}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        },
+        ...options
+    });
+    
+    if (!response.ok) {
+        throw new Error(`User Service error: ${response.status}`);
+    }
+    
+    return response.json();
+};
 
 export interface INovel extends mongoose.Document {
     novelId: string;
@@ -97,12 +114,18 @@ novelSchema.methods.favorite = async function (userId: string): Promise<void> {
         throw new novelError.NovelInteractionFailedError("Already favorited");
     }
     this.favoriteCount++;
-    const user = await User.findOne({ userid: userId });
-    if (!user) {
+    
+    // User Service를 통해 사용자의 favoriteNovels 업데이트
+    try {
+        await callUserService(`/api/users/add-favorite`, {
+            method: 'PUT',
+            body: JSON.stringify({ userid: userId, novelId: this.novelId })
+        });
+    } catch (error) {
+        console.error('Failed to update user favoriteNovels:', error);
         throw new userError.UserNotFoundError("User not found");
     }
-    user.favoriteNovels.push(this.novelId);
-    await user.save();
+    
     await this.save();
 };
 

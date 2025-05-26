@@ -1,35 +1,35 @@
-import Animation from './animation.js';
+import Animation from "./animation.js";
 
 class NoticeBox {
-    static activeNotices = []; // 활성화된 알림창 배열
-    constructor(message, type) {
+    static activeNotices = [];
+    constructor(message, type, displayImage = null) {
         this.id = Math.random().toString(36).substring(2, 15);
-        this.noticeBox = document.createElement('div');
-        this.noticeBox.innerHTML = this.#noticeBoxSegement(message, type, this.id);
-        this.noticeBox.style.cssText = this.#styleNoticeBox(type);
-        this.noticeBox.addEventListener('click', () => {
+        this.noticeBox = document.createElement("div");
+        this.message = message;
+        this.type = type;
+        this.displayImage = displayImage;
+        this.noticeBox.innerHTML = this.#noticeBoxSegement();
+        this.noticeBox.addEventListener("click", () => {
             this.#destroy();
         });
+        this.#styleNoticeBox(this.#getColorForType(this.type));
+        this.noticeBox.classList.add(`notice-box-${this.type}`);
+
         switch (type) {
-            case 'success':
-                this.noticeBox.classList.add('success')
-                this.animation = new Animation(this.noticeBox, 'easeInOut');
+            case "success":
+                this.animation = new Animation(this.noticeBox, "easeInOut");
                 break;
-            case 'warning':
-                this.noticeBox.classList.add('warning');
-                this.animation = new Animation(this.noticeBox, 'easeInOut');
+            case "warning":
+                this.animation = new Animation(this.noticeBox, "easeInOut");
                 break;
-            case 'error':
-                this.noticeBox.classList.add('error');
-                this.animation = new Animation(this.noticeBox, 'easeInOut');
+            case "error":
+                this.animation = new Animation(this.noticeBox, "easeInOut");
                 break;
             default:
-                this.noticeBox.classList.add('info');
-                this.animation = new Animation(this.noticeBox, 'easeInOut');
+                this.animation = new Animation(this.noticeBox, "easeInOut");
                 break;
         }
     }
-    
 
     show() {
         const noticeContainer = document.querySelector(".notice-container");
@@ -37,80 +37,96 @@ class NoticeBox {
         NoticeBox.activeNotices.push(this);
 
         NoticeBox.activeNotices.forEach((notice, index) => {
-            notice.noticeBox.style.bottom = `${10 + (index * 110)}px`;
+            notice.noticeBox.style.bottom = `${10 + index * 110}px`;
         });
         if (NoticeBox.activeNotices.length > 1) {
             const oldestNotice = NoticeBox.activeNotices.shift();
             oldestNotice.#destroy();
             NoticeBox.activeNotices.forEach((notice, index) => {
-                notice.noticeBox.style.bottom = `${10 + (index * 110)}px`;
+                notice.noticeBox.style.bottom = `${10 + index * 110}px`;
             });
         }
 
         const appearDuration = 200;
         const disappearDuration = 200;
-        const displayDuration = 2000;
+        const displayDuration = 3000;
 
-        this.animation.play(appearDuration, disappearDuration);
-        
+        this.animation.play(appearDuration, disappearDuration, displayDuration);
+
         setTimeout(() => {
             setTimeout(() => {
                 this.#destroy();
-            }, appearDuration + disappearDuration);
-        }, displayDuration);
-    }
-
-    #hideNotice() {
-        this.noticeBox.style.display = 'none';
+            }, displayDuration);
+        }, displayDuration + appearDuration + disappearDuration);
     }
 
     #destroy() {
         this.noticeBox.remove();
-        NoticeBox.activeNotices = NoticeBox.activeNotices.filter(notice => notice.id !== this.id);
+        NoticeBox.activeNotices = NoticeBox.activeNotices.filter(
+            (notice) => notice.id !== this.id
+        );
         NoticeBox.activeNotices.forEach((notice, index) => {
-            notice.noticeBox.style.bottom = `${10 + (index * 110)}px`;
+            notice.noticeBox.style.bottom = `${10 + index * 110}px`;
         });
     }
 
-    #styleNoticeBox(type) {
-        let backgroundColor;
-        switch (type) {
-            case 'success':
-                backgroundColor = '#4CAF50';
-                break;
-            case 'warning':
-                backgroundColor = '#FFC107';
-                break;
-            case 'error':
-                backgroundColor = '#F44336';
-                break;
-            default:
-                backgroundColor = '#fff';
-                break;
+    #styleNoticeBox(backgroundColor) {
+        const styleId = `notice-box-style-${this.type}`;
+        if (document.getElementById(styleId)) {
+            return;
         }
-        return `
-            position: fixed;
-            bottom: 10px;
-            right: 10px;    
-            width: 300px;
-            height: 100px;
-            background-color: ${backgroundColor};
-            border-radius: 10px;
-            box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
-            padding: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+
+        const styleElement = document.createElement("style");
+        styleElement.id = styleId;
+        styleElement.innerHTML = `
+            .notice-box-${this.type} {
+                position: fixed;
+                right: 10px;    
+                width: 300px;
+                height: 100px;
+                background-color: ${backgroundColor};
+                color: white;
+                border-radius: 10px;
+                box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+                padding: 10px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1;
+            }
         `;
+        document.head.appendChild(styleElement);
     }
 
-    #noticeBoxSegement(message, type, id) {
+    #getColorForType(type) {
+        switch (type) {
+            case "success":
+                return "#4CAF50";
+            case "warning":
+                return "#FFC107";
+            case "error":
+                return "#F44336";
+            default:
+                return "#007bff";
+        }
+    }
+
+    #noticeBoxSegement() {
         return `
-        <div class="notice-box-${type}" id="${id}">
-            <div class="message">${message}</div>
-            <div class="close">X</div>
+        <div class="notice-box-${this.type}" id="${this.id}">
+            <div class="notice-box-${this.type}-icon">
+                ${
+                    this.displayImage
+                        ? `<img src="${this.displayImage}" alt="displayImage" width="100px" height="100px">`
+                        : ""
+                }
+            </div>
+            <div class="notice-box-${this.type}-content">
+                ${this.type.toUpperCase()}<br>
+                ${this.message}
+            </div>
         </div>
-        `
+        `;
     }
 }
 

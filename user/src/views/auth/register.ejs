@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>회원가입</title>
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
+        <script src="/register.mjs" type="module"></script>
+        <link rel="stylesheet" href="/register.css" />
+    </head>
+    <body>
+        <div class="register-container">
+            <div class="register-form">
+                <div class="register-form-header">
+                    <h1 class="register-form-header-title">회원가입</h1>
+                    <span class="register-form-header-subtitle">
+                        이미 회원이신가요? |
+                        <a href="/login">로그인</a>
+                    </span>
+                </div>
+                <hr class="register-form-divider" />
+                <div class="register-form-body">
+                    <div class="register-form-body-input">
+                        <div class="register-form-body-input-wrapper">
+                            <input type="text" name="username" placeholder="아이디" />
+                            <span class="material-symbols-outlined">
+                                account_circle
+                            </span>
+                        </div>
+                        <div class="register-form-body-input-wrapper">
+                            <input type="text" name="nickname" placeholder="닉네임" />
+                            <span class="material-symbols-outlined">
+                                person
+                            </span>
+                        </div>
+                        <div class="register-form-body-input-wrapper">
+                            <input type="text" name="email" placeholder="이메일" />
+                            <span class="material-symbols-outlined">
+                                email
+                            </span>
+                        </div>
+                        <div class="email-verification-ui">
+                            <button type="button" id="send-pin-button">인증번호 받기</button>
+                            <div id="pin-input-container">
+                                <div class="pin-input-row">
+                                    <input type="text" name="pin" placeholder="인증번호 6자리" maxlength="6" />
+                                    <button type="button" id="verify-pin-button">인증 확인</button>
+                                </div>
+                                <div id="pin-timer-message"></div>
+                            </div>
+                        </div>
+                        <div class="register-form-body-input-wrapper">
+                            <input type="password" name="password" placeholder="비밀번호" />
+                            <span class="material-symbols-outlined">
+                                lock
+                            </span>
+                        </div>
+                        <div class="register-form-body-input-wrapper">
+                            <input type="password" name="passwordConfirm" placeholder="비밀번호 확인" />
+                            <span class="material-symbols-outlined">
+                                lock
+                            </span>
+                        </div>
+                        <div class="password-message-container">
+                            <div class="password-message-container-message"></div>
+                        </div>
+                    </div>
+                    <div class="register-form-body-button-container">
+                        <button id="register-form-body-button" />
+                        <label for="register-form-body-button">회원가입</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="notice-container" />
+    </body>
+</html>

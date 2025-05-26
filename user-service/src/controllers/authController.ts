@@ -1,20 +1,19 @@
 import { RequestHandler } from "express";
 import { randomBytes } from "crypto";
-import User from "../model/userModel.js";
-import { redisClient } from "../utils/dbconnect/dbconnect.js";
+import { User } from "../models/User.js";
+import { redisClient } from "../config/redis.js";
 import { sendMail } from "../utils/sendMail.js";
-import authError from "../utils/error/authError.js";
-import userError from "../utils/error/userError.js";
+import { AuthError, AuthEmailVerifyFailedError, AuthUserAlreadyAdminError, UserNotFoundError, UserNotValidPasswordError } from "../utils/errors.js";
 
 // login required
 export const sendVerificationEmail: RequestHandler = async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
-        throw new userError.UserNotFoundError("User not found");
+        throw new UserNotFoundError("User not found");
     }
     if (user.isVerified) {
-        throw new authError.AuthError("User already verified");
+        throw new AuthError("User already verified");
     }
     const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
     await redisClient.set(`${email}:verificationCode`, verificationCode, { EX: 60 * 10 });
@@ -42,18 +41,18 @@ export const verifyEmail: RequestHandler = async (req, res) => {
     const { email, verificationCode } = req.body;
     const verificationCodeFromRedis = await redisClient.get(`${email}:verificationCode`);
     if (verificationCodeFromRedis !== verificationCode) {
-        throw new authError.AuthEmailVerifyFailedError("Invalid verification code");
+        throw new AuthEmailVerifyFailedError("Invalid verification code");
     }
-    await User.findOneAndUpdate({ email }, { $set: { isVerified: true } });
+    await User.findOneAndUpdate({ email }, { isVerified: true });
     res.status(200).json({ message: "Email verified successfully" });
 }
 
 //login required
 export const changeEmail: RequestHandler = async (req, res) => {
     const { userid, newEmail } = req.body;
-    const user = await User.findOneAndUpdate({ userid }, { $set: { email: newEmail, isVerified: false } });
+    const user = await User.findOneAndUpdate({ userid }, { email: newEmail, isVerified: false });
     if (!user) {
-            throw new userError.UserNotFoundError("User not found or new email is the same as the current email");
+            throw new UserNotFoundError("User not found or new email is the same as the current email");
     }
     res.status(200).json({ message: "Email changed successfully" });
 }
@@ -63,12 +62,12 @@ export const changePassword: RequestHandler = async (req, res) => {
     const { userid, oldPassword, newPassword } = req.body;
     let user = await User.findOne({ userid });
     if (!user) {
-        throw new userError.UserNotFoundError("User not found");
+        throw new UserNotFoundError("User not found");
     }
     if (!(await user.comparePassword(oldPassword))) {
-        throw new userError.UserNotValidPasswordError("Invalid old password");
+        throw new UserNotValidPasswordError("Invalid old password");
     }
-    await User.updateOne({ userid }, { $set: { password: newPassword } });
+    await User.findOneAndUpdate({ userid }, { password: newPassword });
     res.status(200).json({ message: "Password changed successfully" });
 }
 
@@ -76,7 +75,7 @@ export const resetPasswordMailSend: RequestHandler = async (req, res) => {
     const { email } = req.body;
     const user = await User.findOne({ email });
     if (!user) {
-        throw new userError.UserNotFoundError("User not found");
+        throw new UserNotFoundError("User not found");
     }
     const newPassword = randomBytes(32).toString("hex");
     await redisClient.set(`${email}:newPassword`, newPassword, { EX: 60 * 5 });
@@ -105,12 +104,12 @@ export const resetPassword: RequestHandler = async (req, res) => {
         if (Number(passwordResetAuthRemain) === 0) {
             await redisClient.del(`${email}:newPassword`);
             await redisClient.del(`${email}:passwordResetAuthRemain`);
-            throw new authError.AuthError("Password reset authentication failed");
+            throw new AuthError("Password reset authentication failed");
         }
         await redisClient.set(`${email}:passwordResetAuthRemain`, Number(passwordResetAuthRemain) - 1, { EX: 60 * 5 });
-        throw new authError.AuthError("Invalid new password");
+        throw new AuthError("Invalid new password");
     }
-    await User.updateOne({ email }, { $set: { password: newPassword } });
+    await User.findOneAndUpdate({ email }, { password: newPassword });
     res.status(200).json({ message: "Password reset successfully" });
 }
 
@@ -119,11 +118,11 @@ export const setAdmin: RequestHandler = async (req, res) => {
     const { userid } = req.body;
     const user = await User.findOne({ userid });
     if (!user) {
-        throw new userError.UserNotFoundError("User not found");
+        throw new UserNotFoundError("User not found");
     }
     if (user.authority === "admin") {
-        throw new authError.AuthUserAlreadyAdminError("User is already an admin");
+        throw new AuthUserAlreadyAdminError("User is already an admin");
     }
-    await User.updateOne({ userid }, { $set: { authority: "admin" } });
+    await User.findOneAndUpdate({ userid }, { authority: "admin" });
     res.status(200).json({ message: "Admin set successfully" });
-}
+} 

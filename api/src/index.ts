@@ -1,8 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
 import { connectMongo, connectRedis } from "./utils/dbconnect/dbconnect.js";
-import userRouter from "./router/userRouter.js";
-import authRouter from "./router/authRouter.js";
 import novelRouter from "./router/novelRouter.js";
 import galleryRouter from "./router/galleryRouter.js";
 import postRouter from "./router/postRouter.js";
@@ -19,6 +17,9 @@ const app = express();
 connectMongo();
 connectRedis();
 
+// Trust proxy for Nginx
+app.set('trust proxy', true);
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: 104857600 }));
 app.use((req, res, next) => {
@@ -32,8 +33,7 @@ app.use((req, res, next) => {
 app.use(customErrorHandler);
 app.use(rateLimit);
 
-app.use("/user/v1", userRouter);
-app.use("/auth/v1", authRouter);
+// Main API routes (accessed via /api/* through Nginx)
 app.use("/novel/v1", novelRouter);
 app.use("/gallery/v1", galleryRouter);
 app.use("/post/v1", postRouter);
@@ -41,6 +41,42 @@ app.use("/comment/v1", commentRouter);
 app.use("/episode/v1", episodeRouter);
 app.use("/emoji/v1", emojiRouter);
 
-app.listen(3000, () => {
-    console.log("Server is running on port 3000");
+// Health check
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'OK', 
+        service: 'API Gateway',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
+
+// Root endpoint info
+app.get('/', (req, res) => {
+    res.status(200).json({
+        service: 'MRS Playground API Gateway',
+        version: '1.0.0',
+        endpoints: {
+            novel: '/novel/v1',
+            gallery: '/gallery/v1',
+            post: '/post/v1',
+            comment: '/comment/v1',
+            episode: '/episode/v1',
+            emoji: '/emoji/v1'
+        },
+        health: '/health'
+    });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+    res.status(404).json({
+        error: 'Endpoint not found',
+        path: req.originalUrl,
+        method: req.method
+    });
+});
+
+app.listen(5000, '0.0.0.0', () => {
+    console.log("API Gateway is running on port 5000");
 });

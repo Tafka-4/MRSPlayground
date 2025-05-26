@@ -14,6 +14,7 @@
         format('woff');
 }
 
+
 * {
     font-family: "ONE-Mobile-POP";
 }
@@ -27,7 +28,7 @@ body {
     background-color: rgb(240, 240, 240);
 }
 
-.title {
+.register-form-header-title {
     display: flex;
     box-sizing: border-box;
     justify-content: center;
@@ -35,20 +36,68 @@ body {
     color: rgb(10, 10, 10);
     font-size: 2.5rem;
     font-weight: 500;
+    margin-bottom: 0.25rem;
+}
+
+.register-form-header-subtitle {
+    display: flex;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    color: rgb(100, 100, 100);
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    font-weight: 300;
+}
+
+.register-form-header-subtitle a {
+    color: rgb(10, 10, 10);
+    text-decoration: none;
+    margin-left: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition-duration: 0.1s;
+}
+
+.register-form-header-subtitle a:hover {
+    color: rgb(50, 50, 50);
+}
+
+.register-form-divider {
+    width: 100%;
+    height: 1px;
+    background-color: rgb(100, 100, 100);
+    margin: 0.5rem 0;
+}
+
+.register-form-body {
+    display: flex;
+    box-sizing: border-box;
+    flex-direction: column;
     margin-bottom: 1rem;
 }
 
-.input-wrapper {
-    position: relative;
+.register-form-body-input {
+    display: flex;
+    box-sizing: border-box;
+    flex-direction: column;
     width: 100%;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem
 }
 
-.input-wrapper .material-symbols-outlined {
+.register-form-body-input-wrapper {
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    position: relative;
+}
+
+.register-form-body-input-wrapper .material-symbols-outlined {
     position: absolute;
     left: 0.7rem;
-    top: 48%;
-    transform: translateY(-50%);
+    top: 0.4rem;
     color: rgb(100, 100, 100);
     font-size: 1.5rem;
     font-weight: 20;
@@ -57,13 +106,12 @@ body {
 input {
     font-size: 1rem;
     font-weight: 400;
-    display: flex;
+    color: rgb(50, 50, 50);
     box-sizing: border-box;
-    position: relative;
     width: 100%;
     height: 2.15rem;
     margin: 0;
-    padding: 0.5rem 0.5rem 0.5rem 2.5rem;
+    padding: 0.5rem 0.5rem 0.5rem 3rem;
     outline: none;
     border: solid 1px rgb(100, 100, 100);
     border-radius: 0.5rem;
@@ -79,20 +127,13 @@ input::placeholder {
 
 input:focus {
     background: rgb(230, 230, 230);
-    color: rgb(10, 10, 10);
+    color: rgb(50, 50, 50);
     outline: none;
     transition-duration: 0.1s;
 }
 
 input:focus::placeholder {
     color: rgb(100, 100, 100);
-}
-
-input[name="username"] {
-    background-size: 1.5rem;
-    background-position: 0.5rem 0.5rem;
-    background-repeat: no-repeat;
-    margin-bottom: 0.5rem;
 }
 
 input[type="password"] {
@@ -108,148 +149,105 @@ input[type="password"]::placeholder {
     opacity: 1;
 }
 
-.visibility-container {
-    position: absolute;
-    right: 2.8rem;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
+.register-form-body-button-container {
+    display: flex;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
 }
 
-.visibility-container .material-symbols-outlined {
-    color: rgb(100, 100, 100);
-    width: 1.5rem;
-    height: 1.5rem;
-    font-size: 1.5rem;
-    font-weight: 20;
-    transition: color 0.2s ease;
-}
-
-.visibility-container .material-symbols-outlined:hover {
-    color: rgb(10, 10, 10);
-}
-
-#visibility-off {
-    display: none;
-}
-
-button {
+.register-form-body-button-container button {
     width: 100%;
     height: 2.15rem;
     border: none;
     border-radius: 0.5rem;
     background-color: rgb(10, 10, 10);
-    color: rgb(255, 255, 255);
+}
+
+.register-form-body-button-container label {
+    color: rgb(240, 240, 240);
     font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-}
-
-.util-container {
-    display: flex;
-    box-sizing: border-box;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: start;
-    margin: 0.5rem 0;
-}
-
-.util-container input[type="checkbox"] {
-    display: none;
-}
-
-.util-container input[type="checkbox"] + label {
-    cursor: pointer;
-}
-
-.util-container input[type="checkbox"] + label > span {
-    display: inline-block;
-}
-
-.util-container input[type="checkbox"] + label:before {
-    content: "";
-    display: flex;
-    width: 0.85rem;
-    height: 0.85rem;
-    margin-right: 0.25rem;
-    border: 2px solid #f47c7c;
-    border-radius: 0.2rem;
-    vertical-align: middle;
-}
-
-.util-container input[type="checkbox"]:checked + label:before {
-    content: "🗸";
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgb(255, 255, 255);
-    font-size: 0.85rem;
-    font-weight: 500;
-    background-color: #f47c7c;
-    border-color: #f47c7c;
-}
-
-.util-container .remember-me-container {
-    display: flex;
-    box-sizing: border-box;
-    align-items: center;
-    margin-right: 0.5rem;
-    margin-bottom: 0.5rem;
-    color: rgb(100, 100, 100);
-    font-size: 0.85rem;
     font-weight: 400;
 }
 
-.util-container .find-password-container {
-    box-sizing: border-box;
-    color: rgb(100, 100, 100);
-    font-size: 0.85rem;
-    font-weight: 400;
-    text-decoration: none;
-}
-
-.util-container .find-password-container .find-password {
-    color: rgb(100, 100, 100);
-    font-size: 0.85rem;
-    font-weight: 400;
-    text-decoration: none;
-}
-
-.util-container .find-password:hover {
-    color: rgb(10, 10, 10);
-    font-weight: 500;
-}
-
-.register-container {
+.password-message-container {
     display: flex;
     box-sizing: border-box;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin: 0.5rem 0;
-    color: rgb(100, 100, 100);
-    font-size: 0.85rem;
-    font-weight: 400;
 }
 
-.register-container .register-link {
-    box-sizing: border-box;
-    color: rgb(10, 10, 10);
-    font-size: 0.85rem;
-    font-weight: 500;
-    cursor: pointer;
-    text-decoration: none;
+/* ▼ 이메일 인증 UI 스타일 ▼ */
+.email-verification-ui {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
 }
 
-.divider {
+#send-pin-button {
     width: 100%;
-    height: 1px;
-    background-color: rgb(100, 100, 100);
-    margin: -0.2rem 0;
+    height: 2.15rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(100, 100, 100);
+    background-color: rgb(230, 230, 230);
+    cursor: pointer;
 }
 
-.notice-container {
-    position: fixed;
-    top: 0;
-    left: 0;
+#pin-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    visibility: hidden;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+#pin-input-container.show {
+    visibility: visible;
+    opacity: 1;
+    height: auto;
+}
+
+.pin-input-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+#pin-input-container input[name="pin"] {
+    flex: 1;
+    min-width: 0;
+    font-size: 1rem;
+    font-weight: 400;
+    color: rgb(50, 50, 50);
+    box-sizing: border-box;
+    height: 2.15rem;
+    padding: 0.5rem 1rem;
+    border: solid 1px rgb(100, 100, 100);
+    border-radius: 0.5rem;
+    background: rgb(240, 240, 240);
+    outline: none;
+}
+
+#verify-pin-button {
+    flex-shrink: 0;
+    width: 80px;
+    height: 2.15rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(100, 100, 100);
+    background-color: rgb(230, 230, 230);
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+#pin-timer-message {
+    font-size: 0.85rem;
+    color: rgb(100, 100, 100);
+    text-align: center;
+    min-height: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }

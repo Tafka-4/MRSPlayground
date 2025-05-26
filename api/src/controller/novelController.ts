@@ -1,9 +1,26 @@
 import { Request, Response, NextFunction } from "express";
 import { escape } from "html-escaper";
 import Novel from "../model/novelModel.js";
-import User from "../model/userModel.js";
 import novelError from "../utils/error/novelError.js";
 import userError from "../utils/error/userError.js";
+
+// User Service API 호출을 위한 헬퍼 함수
+const callUserService = async (endpoint: string, options: RequestInit = {}) => {
+    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-service:3001';
+    const response = await fetch(`${userServiceUrl}${endpoint}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            ...options.headers
+        },
+        ...options
+    });
+    
+    if (!response.ok) {
+        throw new Error(`User Service error: ${response.status}`);
+    }
+    
+    return response.json();
+};
 
 // login required
 export const createNovel = async (req: Request, res: Response) => {
@@ -27,8 +44,15 @@ export const createNovel = async (req: Request, res: Response) => {
 
     const novel = await Novel.create(novelData);
 
-    // Add novelId to user's wroteNovels array
-    await User.findOneAndUpdate({ userid: userId }, { $addToSet: { wroteNovels: novel.novelId } });
+    // Add novelId to user's wroteNovels array via User Service
+    try {
+        await callUserService(`/api/users/add-novel`, {
+            method: 'PUT',
+            body: JSON.stringify({ userid: userId, novelId: novel.novelId })
+        });
+    } catch (error) {
+        console.error('Failed to update user wroteNovels:', error);
+    }
 
     res.status(201).json(novel);
 };
@@ -103,7 +127,10 @@ export const deleteNovel = async (req: Request, res: Response) => {
 
     const [deleteResult, _] = await Promise.all([
         Novel.deleteOne({ novelId }), // Triggers pre('deleteOne') hook
-        User.findOneAndUpdate({ userid: userId }, { $pull: { wroteNovels: novelId } })
+        callUserService(`/api/users/remove-novel`, {
+            method: 'PUT',
+            body: JSON.stringify({ userid: userId, novelId: novelId })
+        })
     ]);
 
     if (deleteResult.deletedCount === 0) {

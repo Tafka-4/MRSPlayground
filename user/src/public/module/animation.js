@@ -1,8 +1,8 @@
 class Animation {
     constructor(target, animationType) {
         this.target = target;
-        this.animationType = animationType || 'linear';
-        this.target.classList.add('animation');
+        this.animationType = animationType || "linear";
+        this.target.classList.add("animation");
     }
 
     #linear(start, end, duration) {
@@ -15,7 +15,7 @@ class Animation {
             const progress = Math.min(elapsedTime / duration, 1);
             const currentValue = start + range * progress;
 
-            this.#apply('transform', currentValue);
+            this.#apply("transform", currentValue);
 
             if (progress < 1) {
                 requestAnimationFrame(animate);
@@ -25,12 +25,12 @@ class Animation {
         requestAnimationFrame(animate);
     }
 
-    #easeInOut(appearDuration, disappearDuration) {
+    #easeInOut(appearDuration, disappearDuration, stayDuration) {
         const noticeWidth = this.target.offsetWidth;
         this.#linear(noticeWidth, 0, appearDuration);
         setTimeout(() => {
             this.#linear(0, noticeWidth + 100, disappearDuration);
-        }, appearDuration + 500);
+        }, appearDuration + 500 + stayDuration);
     }
 
     #shake(strength, duration) {
@@ -45,11 +45,11 @@ class Animation {
             result.push(`translate(${dx}px, ${dy}px)`);
         }
 
-        this.#apply('transform', result);
+        this.#apply("transform", result);
     }
 
     #apply(property, value) {
-        if (property === 'transform') {
+        if (property === "transform") {
             this.target.style.transform = `translateX(${value}px)`;
         } else {
             this.target.style[property] = value;
@@ -58,13 +58,13 @@ class Animation {
 
     play(...args) {
         switch (this.animationType) {
-            case 'linear':
+            case "linear":
                 this.#linear(...args);
                 break;
-            case 'shake':
+            case "shake":
                 this.#shake(...args);
                 break;
-            case 'easeInOut':
+            case "easeInOut":
                 this.#easeInOut(...args);
                 break;
             default:
@@ -73,7 +73,7 @@ class Animation {
     }
 
     kill() {
-        this.target.classList.remove('animation');
+        this.target.classList.remove("animation");
         this.target.remove();
     }
 }

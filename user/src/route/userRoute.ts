@@ -11,4 +11,8 @@ router.get('/register', (req: Request, res: Response) => {
     res.render('./auth/register');
 });
 
+router.get('/find-password', (req: Request, res: Response) => {
+    res.render('./auth/find-password');
+});
+
 export default router;
