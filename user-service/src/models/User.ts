@@ -8,9 +8,9 @@ import { redisClient } from '../config/redis.js';
 import { UserError, UserNotValidPasswordError, UserNotFoundError, UserNotLoginError, UserTokenVerificationFailedError, UserImageUploadFailedError, UserImageDeleteFailedError } from '../utils/errors.js';
 
 export interface IUser {
-  id?: number;
   userid: string;
-  username: string;
+  id: string;
+  nickname: string;
   password: string;
   email: string;
   isVerified: boolean;
@@ -21,11 +21,6 @@ export interface IUser {
   favoriteNovels: string[];
   createdAt?: Date;
   updatedAt?: Date;
-}
-
-interface MulterFile {
-  originalname: string;
-  buffer: Buffer;
 }
 
 export class User {
@@ -40,11 +35,12 @@ export class User {
     const hashedPassword = await bcrypt.hash(userData.password, 10);
     
     const [result] = await pool.execute(
-      `INSERT INTO users (userid, username, password, email, authority, description, profileImage, wroteNovels, favoriteNovels) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO users (userid, id, nickname, password, email, authority, description, profileImage, wroteNovels, favoriteNovels) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         userid, 
-        userData.username, 
+        userData.id,
+        userData.nickname, 
         hashedPassword, 
         userData.email, 
         userData.authority || 'user', 
@@ -57,7 +53,8 @@ export class User {
 
     const newUser: IUser = {
       userid,
-      username: userData.username,
+      id: userData.id,
+      nickname: userData.nickname,
       password: hashedPassword,
       email: userData.email,
       isVerified: false,
@@ -89,13 +86,15 @@ export class User {
     if (users.length === 0) return null;
 
     const userData = users[0];
-    userData.wroteNovels = JSON.parse(userData.wroteNovels as any) || [];
-    userData.favoriteNovels = JSON.parse(userData.favoriteNovels as any) || [];
+    if (typeof userData.wroteNovels === 'string' && typeof userData.favoriteNovels === 'string') {
+      userData.wroteNovels = JSON.parse(userData.wroteNovels) || [];
+      userData.favoriteNovels = JSON.parse(userData.favoriteNovels) || [];
+    }
 
     return new User(userData);
   }
 
-  static async find(query: Partial<IUser> & { username?: { $regex: string } }, limit?: number): Promise<User[]> {
+  static async find(query: Partial<IUser> & { nickname?: { $regex: string } }, limit?: number): Promise<User[]> {
     let sql = 'SELECT * FROM users';
     const values: any[] = [];
 
@@ -104,7 +103,7 @@ export class User {
       const conditions: string[] = [];
 
       Object.entries(query).forEach(([key, value]) => {
-        if (key === 'username' && typeof value === 'object' && value && '$regex' in value) {
+        if (key === 'nickname' && typeof value === 'object' && value && '$regex' in value) {
           conditions.push(`${key} LIKE ?`);
           values.push(`%${value.$regex}%`);
         } else {
@@ -125,8 +124,10 @@ export class User {
     const users = rows as IUser[];
 
     return users.map(userData => {
-      userData.wroteNovels = JSON.parse(userData.wroteNovels as any) || [];
-      userData.favoriteNovels = JSON.parse(userData.favoriteNovels as any) || [];
+      if (typeof userData.wroteNovels === 'string' && typeof userData.favoriteNovels === 'string') {
+        userData.wroteNovels = JSON.parse(userData.wroteNovels) || [];
+        userData.favoriteNovels = JSON.parse(userData.favoriteNovels) || [];
+      }
       return new User(userData);
     });
   }
@@ -171,12 +172,13 @@ export class User {
     const user = await User.findOne(query);
     if (!user) return;
 
-    // 프로필 이미지 삭제
-    if (user.data.profileImage && fs.existsSync(user.data.profileImage)) {
-      fs.unlinkSync(user.data.profileImage);
+    if (user.data.profileImage) {
+      const actualFilePath = user.data.profileImage.replace('/uploads/profile-image/', './uploads/profile/');
+      if (fs.existsSync(actualFilePath)) {
+        fs.unlinkSync(actualFilePath);
+      }
     }
 
-    // Redis 데이터 삭제
     await redisClient.del(`${user.data.userid}:refreshToken`);
     await redisClient.del(`${user.data.userid}:favorites`);
 
@@ -215,7 +217,7 @@ export class User {
     return accessToken;
   }
 
-  async uploadProfileImage(file: MulterFile): Promise<string> {
+  async uploadProfileImage(file: Express.Multer.File): Promise<string> {
     const extension = file.originalname.split(".").pop();
     if (!extension) {
       throw new UserImageUploadFailedError("Invalid file extension");
@@ -227,17 +229,23 @@ export class User {
     const filePath = `./uploads/profile/${filename}`;
     fs.writeFileSync(filePath, file.buffer);
     
-    this.data.profileImage = filePath;
-    await User.findOneAndUpdate({ userid: this.data.userid }, { profileImage: filePath });
+    const webPath = `/uploads/profile-image/${filename}`;
+    this.data.profileImage = webPath;
+    await User.findOneAndUpdate({ userid: this.data.userid }, { profileImage: webPath });
     
-    return filePath;
+    return webPath;
   }
 
   async deleteProfileImage(): Promise<void> {
     if (!this.data.profileImage) {
       throw new UserImageDeleteFailedError("Profile image not found");
     }
-    fs.unlinkSync(this.data.profileImage);
+    
+    const actualFilePath = this.data.profileImage.replace('/uploads/profile-image/', './uploads/profile/');
+    if (fs.existsSync(actualFilePath)) {
+      fs.unlinkSync(actualFilePath);
+    }
+    
     this.data.profileImage = "";
     await User.findOneAndUpdate({ userid: this.data.userid }, { profileImage: "" });
   }
@@ -248,7 +256,9 @@ export class User {
   }
 
   get userid() { return this.data.userid; }
-  get username() { return this.data.username; }
+  get id() { return this.data.id; }
+  get nickname() { return this.data.nickname; }
+  get username() { return this.data.nickname; }
   get email() { return this.data.email; }
   get isVerified() { return this.data.isVerified; }
   get authority() { return this.data.authority; }

@@ -1,28 +1,16 @@
 import { Router } from 'express';
+import { loginRequired } from '../middleware/login.js';
+import upload from '../middleware/upload.js';
 import * as userController from '../controllers/userController.js';
-import * as authController from '../controllers/authController.js';
 
 const router = Router();
 
-// User routes
-router.post('/register', userController.registerUser);
-router.post('/login', userController.loginUser);
-router.post('/logout', userController.logoutUser);
-router.post('/refresh', userController.refreshToken);
-router.get('/:userid', userController.getUser);
-router.get('/', userController.getUserList);
-router.put('/update', userController.updateUser);
-router.post('/upload-profile', userController.uploadUserProfileImage);
-router.delete('/delete-profile', userController.deleteUserProfileImage);
-router.delete('/delete', userController.deleteUser);
-
-// Auth routes
-router.post('/send-verification', authController.sendVerificationEmail);
-router.post('/verify-email', authController.verifyEmail);
-router.put('/change-email', authController.changeEmail);
-router.put('/change-password', authController.changePassword);
-router.post('/reset-password-send', authController.resetPasswordMailSend);
-router.post('/reset-password', authController.resetPassword);
-router.post('/set-admin', authController.setAdmin);
+// User management routes
+router.get('/:userid', loginRequired, userController.getUser);
+router.get('/', loginRequired, userController.getUserList);
+router.put('/update', loginRequired, userController.updateUser);
+router.post('/upload-profile', loginRequired, upload.single('profileImage'), userController.uploadUserProfileImage);
+router.delete('/delete-profile', loginRequired, userController.deleteUserProfileImage);
+router.delete('/delete', loginRequired, userController.deleteUser);
 
 export default router; 

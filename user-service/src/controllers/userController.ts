@@ -1,77 +1,11 @@
 import { Request, Response, RequestHandler } from "express";
 import { escape } from "html-escaper";
 import { User } from "../models/User.js";
-import { UserError, UserNotValidPasswordError, UserNotFoundError, UserNotLoginError, UserForbiddenError, UserImageDeleteFailedError } from "../utils/errors.js";
+import { UserError, UserNotFoundError, UserForbiddenError, UserImageDeleteFailedError } from "../utils/errors.js";
 
 interface RequestWithFile extends Request {
-    file?: {
-        originalname: string;
-        buffer: Buffer;
-    };
+    file?: Express.Multer.File;
 }
-
-export const registerUser: RequestHandler = async (req: Request, res: Response) => {
-    const { username, password, email, description } = req.body;
-    if (!username || !password || !email) {
-        throw new UserError("Username, password, and email are required");
-    }
-    if (password.length < 8) {
-        throw new UserError("Password must be at least 8 characters long");
-    }
-    if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
-        throw new UserError("Invalid email address");
-    }
-    const userData = {
-        username: escape(username),
-        password: password,
-        email: email,
-        authority: "user" as const,
-        description: description ? escape(description) : "",
-        profileImage: ""
-    }
-    const user = await User.create(userData);
-    res.status(201).json(user.toJSON());
-};
-
-export const loginUser: RequestHandler = async (req: Request, res: Response) => {
-    const { email, password } = req.body;
-    if (!email || !password) {
-        throw new UserError("Email and password are required");
-    }
-    const user = await User.findOne({ email });
-    if (!user) {
-        throw new UserNotValidPasswordError("Invalid email or password");
-    }
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-        throw new UserNotValidPasswordError("Invalid email or password");
-    }
-    const tokens = await user.generateTokens();
-    res.status(200).json({ tokens, user: user.toJSON() });
-};
-
-// login required
-export const logoutUser: RequestHandler = async (req: Request, res: Response) => {
-    const user = (req as any).user;
-    if (!user) {
-        throw new UserNotFoundError("User not found");
-    }
-    const isLogout = await user.logout();
-    if (isLogout === 0) {   
-        throw new UserNotLoginError("User not logged in");
-    }
-    res.status(200).json({ message: "Logged out successfully" });
-};
-
-export const refreshToken: RequestHandler = async (req: Request, res: Response) => {
-    const user = (req as any).user;
-    const refreshToken = req.body.refreshToken;
-    if (!user) {
-        throw new UserNotFoundError("User not found");
-    }
-    const accessToken = await user.refresh(refreshToken);
-    res.status(200).json({ accessToken });
-};
 
 export const getUser: RequestHandler = async (req: Request, res: Response) => {
     const { userid } = req.params;
@@ -91,7 +25,7 @@ export const getUserList: RequestHandler = async (req: Request, res: Response) =
     
     let searchQuery: any = {};
     if (query && typeof query === 'string') {
-        searchQuery = { username: { $regex: query } };
+        searchQuery = { nickname: { $regex: query } };
     }
     
     const users = await User.find(searchQuery, limitNumber);
@@ -100,9 +34,9 @@ export const getUserList: RequestHandler = async (req: Request, res: Response) =
 
 // login required
 export const updateUser: RequestHandler = async (req: Request, res: Response) => {
-    const { username, description } = req.body;
+    const { nickname, description } = req.body;
     const currentUser = (req as any).user;
-    const user = await User.findOneAndUpdate({ userid: currentUser?.userid }, { username, description }, { new: true });
+    const user = await User.findOneAndUpdate({ userid: currentUser?.userid }, { nickname, description }, { new: true });
     if (!user) {
         throw new UserNotFoundError("User not found");
     }

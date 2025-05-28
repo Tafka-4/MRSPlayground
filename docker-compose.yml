@@ -24,10 +24,13 @@ services:
     expose:
       - "5000"
     environment:
-      - NODE_ENV=production
-      - USER_SERVICE_URL=http://user-service:3001
-      - JWT_SECRET=your-jwt-secret-key-change-this-in-production
-      - MONGO_URI=mongodb://admin:password@mongodb:27017/mrsplayground?authSource=admin
+      - NODE_ENV=${NODE_ENV}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PW=${MONGO_PW}
+      - REDIS_PW=
     depends_on:
       - user-service
       - redis
@@ -46,16 +49,16 @@ services:
     volumes:
       - user_uploads:/app/uploads
     environment:
-      - NODE_ENV=production
-      - DB_HOST=userdb
-      - DB_USER=root
-      - DB_PASSWORD=root
-      - DB_NAME=userapi
-      - DB_PORT=3306
-      - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=your-jwt-secret-key-change-this-in-production
-      - EMAIL_USER=your-email@gmail.com
-      - EMAIL_PASS=your-email-password
+      - NODE_ENV=${NODE_ENV}
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - REDIS_URL=${REDIS_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
     depends_on:
       - userdb
       - redis
@@ -73,8 +76,8 @@ services:
     volumes:
       - ./user:/app
     environment:
-      - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=http://localhost/api
+      - NODE_ENV=${NODE_ENV}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
     restart: unless-stopped
     networks:
       - app-network
@@ -83,8 +86,8 @@ services:
   userdb:
     image: mysql:8.0
     environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=userapi
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
     expose:
       - "3306"
     volumes:
@@ -110,8 +113,8 @@ services:
   mongodb:
     image: mongo:6
     environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PW}
     expose:
       - "27017"
     volumes:

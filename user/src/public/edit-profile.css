@@ -1,0 +1,303 @@
+@font-face {
+    font-family: "ONE-Mobile-POP";
+    src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff")
+        format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    font-family: "ONE-Mobile-POP";
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    background-color: rgb(240, 240, 240);
+    box-sizing: border-box;
+}
+
+.container {
+    width: 100%;
+    max-width: 500px;
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.edit-form-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.back-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.back-button:hover {
+    background-color: rgb(240, 240, 240);
+}
+
+.back-button .material-symbols-outlined {
+    font-size: 1.5rem;
+    color: rgb(100, 100, 100);
+}
+
+.title {
+    color: rgb(10, 10, 10);
+    font-size: 2.5rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.divider {
+    border: none;
+    height: 1px;
+    background-color: rgb(230, 230, 230);
+    margin: 1rem 0 2rem 0;
+}
+
+.profile-image-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.profile-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: rgb(230, 230, 230);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid rgb(200, 200, 200);
+}
+
+.profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-image .material-symbols-outlined {
+    font-size: 2.5rem;
+    color: rgb(100, 100, 100);
+}
+
+.profile-image-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.image-upload-button,
+.image-delete-button {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 0.3rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.image-upload-button {
+    background-color: rgb(10, 10, 10);
+    color: white;
+}
+
+.image-upload-button:hover {
+    background-color: rgb(50, 50, 50);
+}
+
+.image-delete-button {
+    background-color: #f47c7c;
+    color: white;
+}
+
+.image-delete-button:hover {
+    background-color: #e66b6b;
+}
+
+.form-inputs {
+    margin-bottom: 2rem;
+}
+
+.input-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.input-wrapper .material-symbols-outlined {
+    position: absolute;
+    left: 0.6rem;
+    top: 0.5rem;
+    color: rgb(100, 100, 100);
+    font-size: 1.5rem;
+    font-weight: 20;
+}
+
+.input-wrapper .textarea-icon {
+    top: 0.5rem;
+}
+
+input, textarea {
+    font-size: 1rem;
+    font-weight: 400;
+    display: flex;
+    box-sizing: border-box;
+    position: relative;
+    width: 100%;
+    margin: 0;
+    padding: 0.7rem 0.7rem 0.7rem 2.5rem;
+    outline: none;
+    border: solid 1px rgb(100, 100, 100);
+    border-radius: 0.5rem;
+    background: rgb(240, 240, 240);
+    resize: vertical;
+    min-height: 2.15rem;
+}
+
+textarea {
+    min-height: 100px;
+    font-family: "ONE-Mobile-POP";
+}
+
+input::placeholder, textarea::placeholder {
+    color: rgb(100, 100, 100);
+    font-size: 1rem;
+    font-weight: 300;
+}
+
+input:focus, textarea:focus {
+    background: rgb(230, 230, 230);
+    color: rgb(10, 10, 10);
+    outline: none;
+    transition-duration: 0.1s;
+}
+
+input:focus::placeholder, textarea:focus::placeholder {
+    color: rgb(100, 100, 100);
+}
+
+.readonly-info {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(230, 230, 230);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid rgb(240, 240, 240);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item label {
+    font-weight: 500;
+    color: rgb(100, 100, 100);
+    min-width: 80px;
+}
+
+.info-value {
+    color: rgb(10, 10, 10);
+    font-weight: 400;
+    text-align: right;
+    word-break: break-all;
+}
+
+.button-container {
+    display: flex;
+    gap: 1rem;
+}
+
+.cancel-button,
+.save-button {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.2rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.cancel-button {
+    background-color: rgb(230, 230, 230);
+    color: rgb(100, 100, 100);
+}
+
+.cancel-button:hover {
+    background-color: rgb(220, 220, 220);
+}
+
+.save-button {
+    background-color: rgb(10, 10, 10);
+    color: white;
+}
+
+.save-button:hover {
+    background-color: rgb(50, 50, 50);
+}
+
+.save-button:disabled {
+    background-color: rgb(200, 200, 200);
+    cursor: not-allowed;
+}
+
+.notice-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1.5rem;
+    }
+    
+    .title {
+        font-size: 2rem;
+    }
+    
+    .button-container {
+        flex-direction: column;
+    }
+    
+    .profile-image-actions {
+        flex-direction: column;
+    }
+} 

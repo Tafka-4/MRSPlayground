@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>마이페이지</title>
+        <script src="/mypage.mjs" type="module"></script>
+        <link rel="stylesheet" href="/mypage.css" />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <div class="mypage-header">
+                <h1 class="title">마이페이지</h1>
+                <button class="logout-button" id="logout-button">
+                    <span class="material-symbols-outlined">logout</span>
+                    로그아웃
+                </button>
+            </div>
+            
+            <div class="profile-section">
+                <div class="profile-image-container">
+                    <div class="profile-image" id="profile-image">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <div class="profile-image-actions">
+                        <button class="image-upload-button" id="image-upload-button">
+                            <span class="material-symbols-outlined">photo_camera</span>
+                            사진 변경
+                        </button>
+                        <button class="image-delete-button" id="image-delete-button">
+                            <span class="material-symbols-outlined">delete</span>
+                            사진 삭제
+                        </button>
+                    </div>
+                    <input type="file" id="profile-image-input" accept="image/*" style="display: none;" />
+                </div>
+                
+                <div class="profile-info">
+                    <div class="info-item">
+                        <label>아이디</label>
+                        <div class="info-value" id="userid">로딩 중...</div>
+                    </div>
+                    <div class="info-item">
+                        <label>닉네임</label>
+                        <div class="info-value" id="username">로딩 중...</div>
+                    </div>
+                    <div class="info-item">
+                        <label>이메일</label>
+                        <div class="info-value" id="email">로딩 중...</div>
+                    </div>
+                    <div class="info-item">
+                        <label>소개</label>
+                        <div class="info-value" id="description">소개가 없습니다.</div>
+                    </div>
+                    <div class="info-item">
+                        <label>가입일</label>
+                        <div class="info-value" id="created-at">로딩 중...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="edit-button" onclick="location.href='/mypage/edit'">
+                    <span class="material-symbols-outlined">edit</span>
+                    프로필 수정
+                </button>
+                <button class="password-button" onclick="location.href='/mypage/edit/password'">
+                    <span class="material-symbols-outlined">lock</span>
+                    비밀번호 변경
+                </button>
+                <button class="delete-account-button" id="delete-account-button">
+                    <span class="material-symbols-outlined">delete_forever</span>
+                    계정 삭제
+                </button>
+            </div>
+        </div>
+        
+        <div class="notice-container"></div>
+        
+        <div class="modal-overlay" id="delete-modal-overlay" style="display: none;">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>계정 삭제 확인</h3>
+                    <button class="modal-close" id="modal-close">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>정말로 계정을 삭제하시겠습니까?</p>
+                    <p class="warning">이 작업은 되돌릴 수 없습니다.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="cancel-button" id="cancel-delete">취소</button>
+                    <button class="confirm-delete-button" id="confirm-delete">삭제</button>
+                </div>
+            </div>
+        </div>
+    </body>
+</html> 

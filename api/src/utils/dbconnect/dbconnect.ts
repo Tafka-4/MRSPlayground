@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 dotenv.config();
 
 const redisConfig: redis.RedisClientOptions = {
-    url: `redis://:${process.env.REDIS_PW}@redis:6379`,
+    url: `redis://redis:6379`,
     legacyMode: false,
 };
 
@@ -27,7 +27,7 @@ const connectRedis = async () => {
 const connectMongo = async () => {
     try {
         await mongoose.connect(
-            `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PW}@mongodb:27017/myDatabase?retryWrites=true&w=majority`, 
+            `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PW}@mongodb:27017/mrsplayground?authSource=admin&retryWrites=true&w=majority`, 
             mongoConfigOptions
         );
         console.log("MongoDB connected");

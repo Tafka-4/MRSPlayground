@@ -1,7 +1,7 @@
 import NoticeBox from "./module/notice.js";
 
 const registerInput = {
-    username: document.querySelector('input[name="username"]'),
+    id: document.querySelector('input[name="id"]'),
     password: document.querySelector('input[name="password"]'),
     passwordConfirm: document.querySelector('input[name="passwordConfirm"]'),
     nickname: document.querySelector('input[name="nickname"]'),
@@ -123,13 +123,13 @@ function checkPassword() {
 }
 
 function register() {
-    const username = registerInput.username.value;
+    const id = registerInput.id.value;
     const password = registerInput.password.value;
     const passwordConfirm = registerInput.passwordConfirm.value;
     const nickname = registerInput.nickname.value;
     const email = registerInput.email.value;
 
-    if (username === "" || password === "" || passwordConfirm === "" || nickname === "" || email === "") {
+    if (id === "" || password === "" || passwordConfirm === "" || nickname === "" || email === "") {
         let notice = new NoticeBox(
             "모든 필드를 입력해주세요.",
             "error"
@@ -160,7 +160,7 @@ function register() {
         notice.show();
         return;
     }
-    if (/[^a-zA-Z0-9!@#$%^&*()_]/g.test(username)) {
+    if (/[^a-zA-Z0-9!@#$%^&*()_]/g.test(id)) {
         let notice = new NoticeBox(
             "아이디는 영문자, 숫자, 특수문자만 사용할 수 있습니다.",
             "error"
@@ -200,28 +200,26 @@ function register() {
         return;
     }
     
-    console.log("회원가입 시도:", { username, password, nickname, email });
-    // 예: 
-    // fetch('/auth/register', {
-    //     method: 'POST',
-    //     headers: {
-    //         'Content-Type': 'application/json'
-    //     },
-    //     body: JSON.stringify({ username, password, nickname, email })
-    // })
-    // .then(response => response.json())
-    // .then(data => {
-    //     if (data.success) {
-    //         new NoticeBox("회원가입 성공!", "success").show();
-    //         // 로그인 페이지로 리다이렉트 등
-    //     } else {
-    //         new NoticeBox(data.message || "회원가입 실패", "error").show();
-    //     }
-    // })
-    // .catch(error => {
-    //     console.error('Error:', error);
-    //     new NoticeBox("요청 처리 중 오류 발생", "error").show();
-    // });
+    console.log("회원가입 시도:", { id, password, nickname, email });
+    fetch("/api/v1/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ id, password, nickname, email }),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            new NoticeBox("회원가입 성공!", "success").show();
+            location.href = '/login';
+        } else {
+            new NoticeBox(data.message || "회원가입 실패", "error").show();
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+        new NoticeBox("요청 처리 중 오류 발생", "error").show();
+    });
 }
 
 sendPinButton.addEventListener('click', async () => {
@@ -229,40 +227,43 @@ sendPinButton.addEventListener('click', async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
-        // checkEmail 함수가 이미 메시지를 표시하므로, NoticeBox는 중복될 수 있음.
-        // 여기서는 NoticeBox 대신 기존 메시지 영역을 활용하거나, checkEmail을 먼저 실행시키는 것을 고려.
-        // checkEmail(); // checkEmail이 메시지를 업데이트 하도록 함
         let notice = new NoticeBox("올바른 이메일 형식이 아닙니다.", "error");
         notice.show();
         return;
     }
 
-    // API 호출 시뮬레이션 (인증번호 발송)
     sendPinButton.disabled = true;
     sendPinButton.textContent = '전송 중...';
     pinTimerMessage.textContent = '';
 
-    try {
-        // 가상 API 호출: 실제로는 fetch 사용
-        await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 딜레이
-        console.log(`인증번호 발송 요청: ${email}`);
-        // 가상 성공 응답
-        
-        pinInputContainer.classList.add('show');
-        registerInput.pin.value = ''; // PIN 입력 필드 초기화
-        startPinTimer();
-        sendPinButton.textContent = '재전송';
-        let notice = new NoticeBox("인증번호가 발송되었습니다. 이메일을 확인해주세요.", "info");
-        notice.show();
-
-    } catch (error) {
-        console.error("인증번호 발송 실패:", error);
-        let notice = new NoticeBox("인증번호 발송에 실패했습니다. 잠시 후 다시 시도해주세요.", "error");
-        notice.show();
-        sendPinButton.textContent = '인증번호 받기';
-    } finally {
-        sendPinButton.disabled = false;
-    }
+    await fetch("/api/v1/auth/send-pin", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                pinInputContainer.classList.add('show');
+                registerInput.pin.value = '';
+                startPinTimer();
+                sendPinButton.textContent = '재전송';
+                let notice = new NoticeBox(data.message || "인증번호가 발송되었습니다. 이메일을 확인해주세요.", "info");
+                notice.show();
+            } else {
+                let notice = new NoticeBox(data.message || "인증번호 발송에 실패했습니다.", "error");
+                notice.show();
+                sendPinButton.textContent = '인증번호 받기';
+            }
+        }).catch(error => {
+            console.error("인증번호 발송 실패:", error);
+            let notice = new NoticeBox("인증번호 발송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.", "error");
+            notice.show();
+            sendPinButton.textContent = '인증번호 받기';
+    });
+    sendPinButton.disabled = false;
 });
 
 verifyPinButton.addEventListener('click', async () => {
@@ -277,43 +278,46 @@ verifyPinButton.addEventListener('click', async () => {
         return;
     }
 
-    // API 호출 시뮬레이션 (PIN 검증)
     verifyPinButton.disabled = true;
     verifyPinButton.textContent = '확인 중...';
 
-    try {
-        // 가상 API 호출: 실제로는 fetch 사용
-        await new Promise(resolve => setTimeout(resolve, 1000)); // 1초 딜레이
+    await fetch("/api/v1/auth/verify-pin", {
+        method: "POST",
+        body: JSON.stringify({ email, pin }),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
         console.log(`PIN 검증 요청: ${email}, PIN: ${pin}`);
-        // 가상 성공 응답 (실제로는 API 응답에 따라 처리)
-        // 예시: if (pin === "123456") { // 실제로는 서버에서 검증
+        if (data.success) {
         isEmailVerified = true;
         clearInterval(pinTimerInterval);
-        pinTimerMessage.textContent = "이메일 인증이 완료되었습니다.";
+        pinTimerMessage.textContent = data.message || "이메일 인증이 완료되었습니다.";
         pinTimerMessage.style.color = "#4bb92c";
-        pinInputContainer.classList.remove('show'); // 인증 성공 시 PIN 입력창 숨김
-        registerInput.email.disabled = true; // 이메일 필드 비활성화
-        sendPinButton.disabled = true; // 인증번호 받기 버튼 비활성화
-        sendPinButton.textContent = '인증 완료'; // 버튼 텍스트 변경
-        let notice = new NoticeBox("이메일 인증이 완료되었습니다.", "success");
+        pinInputContainer.classList.remove('show');
+        registerInput.email.disabled = true;
+        sendPinButton.disabled = true;
+        sendPinButton.textContent = '인증 완료';
+        let notice = new NoticeBox(data.message || "이메일 인증이 완료되었습니다.", "success");
         notice.show();
-        // } else {
-        //     isEmailVerified = false;
-        //     pinTimerMessage.textContent = "인증번호가 올바르지 않습니다.";
-        //     pinTimerMessage.style.color = "#f47c7c";
-        //     let notice = new NoticeBox("인증번호가 올바르지 않습니다.", "error");
-        //     notice.show();
-        // }
-    } catch (error) {
+        } else {
+            isEmailVerified = false;
+            pinTimerMessage.textContent = data.message || "인증번호가 올바르지 않습니다.";
+            pinTimerMessage.style.color = "#f47c7c";
+            let notice = new NoticeBox(data.message || "인증번호가 올바르지 않습니다.", "error");
+            notice.show();
+        }
+    }).catch(error => {
         console.error("PIN 검증 실패:", error);
-        pinTimerMessage.textContent = "인증번호 확인에 실패했습니다. 다시 시도해주세요.";
+        pinTimerMessage.textContent = "인증번호 확인 중 오류가 발생했습니다. 다시 시도해주세요.";
         pinTimerMessage.style.color = "#f47c7c";
-        let notice = new NoticeBox("인증번호 확인에 실패했습니다.", "error");
+        let notice = new NoticeBox("인증번호 확인 중 오류가 발생했습니다.", "error");
         notice.show();
-    } finally {
-        verifyPinButton.disabled = false;
-        verifyPinButton.textContent = '인증 확인';
-    }
+    });
+    verifyPinButton.disabled = false;
+    verifyPinButton.textContent = '인증 확인';
 });
 
 function startPinTimer() {

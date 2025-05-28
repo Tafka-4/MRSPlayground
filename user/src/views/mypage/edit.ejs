@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>프로필 수정</title>
+        <script src="/edit-profile.mjs" type="module"></script>
+        <link rel="stylesheet" href="/edit-profile.css" />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <div class="edit-form">
+                <div class="edit-form-header">
+                    <button class="back-button" onclick="location.href='/mypage'">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                    </button>
+                    <h1 class="title">프로필 수정</h1>
+                </div>
+                
+                <hr class="divider" />
+                
+                <div class="edit-form-body">
+                    <div class="profile-image-section">
+                        <div class="profile-image" id="profile-image">
+                            <span class="material-symbols-outlined">person</span>
+                        </div>
+                        <div class="profile-image-actions">
+                            <button class="image-upload-button" id="image-upload-button">
+                                <span class="material-symbols-outlined">photo_camera</span>
+                                사진 변경
+                            </button>
+                            <button class="image-delete-button" id="image-delete-button">
+                                <span class="material-symbols-outlined">delete</span>
+                                사진 삭제
+                            </button>
+                        </div>
+                        <input type="file" id="profile-image-input" accept="image/*" style="display: none;" />
+                    </div>
+                    
+                    <div class="form-inputs">
+                        <div class="input-wrapper">
+                            <input type="text" name="username" placeholder="닉네임" id="username-input" />
+                            <span class="material-symbols-outlined">person</span>
+                        </div>
+                        
+                        <div class="input-wrapper">
+                            <textarea name="description" placeholder="자기소개를 입력해주세요" id="description-input" rows="4"></textarea>
+                            <span class="material-symbols-outlined textarea-icon">description</span>
+                        </div>
+                        
+                        <div class="readonly-info">
+                            <div class="info-item">
+                                <label>아이디</label>
+                                <div class="info-value" id="userid">로딩 중...</div>
+                            </div>
+                            <div class="info-item">
+                                <label>이메일</label>
+                                <div class="info-value" id="email">로딩 중...</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="button-container">
+                        <button class="cancel-button" onclick="location.href='/mypage'">
+                            취소
+                        </button>
+                        <button class="save-button" id="save-button">
+                            <span class="material-symbols-outlined">save</span>
+                            저장
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="notice-container"></div>
+    </body>
+</html> 

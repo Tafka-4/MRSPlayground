@@ -1,7 +1,7 @@
 import NoticeBox from "./module/notice.js";
 
 const loginInput = {
-    username: document.querySelector('input[name="username"]'),
+    id: document.querySelector('input[name="id"]'),
     password: document.querySelector('input[name="password"]'),
 };
 
@@ -38,10 +38,10 @@ loginButton.addEventListener("keydown", (event) => {
 });
 
 function login() {
-    const username = loginInput.username.value;
+    const id = loginInput.id.value;
     const password = loginInput.password.value;
 
-    if (username === "" || password === "") {
+    if (id === "" || password === "") {
         let notice = new NoticeBox(
             "아이디와 비밀번호를 입력해주세요.",
             "error"
@@ -57,12 +57,8 @@ function login() {
         notice.show();
         return;
     }
-    if (password.length > 16) {
-        let notice = new NoticeBox("비밀번호는 16자 이하여야 합니다.", "error");
-        notice.show();
-        return;
-    }
-    if (/[^a-zA-Z0-9!@#$%^&*()_]/g.test(username)) {
+
+    if (/[^a-zA-Z0-9!@#$%^&*()_{}]/g.test(id)) {
         let notice = new NoticeBox(
             "아이디는 영문자, 숫자, 특수문자만 사용할 수 있습니다.",
             "error"
@@ -73,7 +69,7 @@ function login() {
     if (
         !password.match(/[a-zA-Z]/g) ||
         !password.match(/[0-9]/g) ||
-        !password.match(/[!@#$%^&*()_]/g)
+        !password.match(/[!@#$%^&*()_{}]/g)
     ) {
         let notice = new NoticeBox(
             "비밀번호는 영문자, 숫자, 특수문자를 포함해야 합니다.",
@@ -85,7 +81,7 @@ function login() {
 
     fetch("/api/v1/auth/login", {
         method: "POST",
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ id, password }),
         headers: {
             "Content-Type": "application/json",
         },
@@ -94,13 +90,11 @@ function login() {
         .then((data) => {
             if (data.success) {
                 localStorage.setItem("accessToken", data.accessToken);
-                cookies.set("refreshToken", data.refreshToken, {
-                    path: "/",
-                    maxAge: 60 * 60 * 24 * 7,
-                    httpOnly: true,
-                    secure: true,
-                    sameSite: "strict",
-                });
+                let notice = new NoticeBox(
+                    data.message || "로그인 성공",
+                    "success"
+                );
+                notice.show();
                 const redirectUrl = new URLSearchParams(
                     window.location.search
                 ).get("redirect");
@@ -126,30 +120,53 @@ function login() {
 
 function rememberMe() {
     if (rememberMeCheckbox.checked) {
-        localStorage.setItem("username", loginInput.username.value);
+        localStorage.setItem("username", loginInput.id.value);
     } else {
         localStorage.removeItem("username");
     }
 }
 
-function checkLogin() {
+async function checkLogin() {
     const accessToken = localStorage.getItem("accessToken");
-    if (!accessToken) return;
+    
+    if (accessToken) {
+        const redirectUrl = new URLSearchParams(window.location.search).get("redirect");
+        if (redirectUrl) {
+            window.location.href = redirectUrl;
+        } else {
+            window.location.href = "/";
+        }
+        return;
+    }
+    
+    try {
+        const refreshResponse = await fetch('/api/v1/auth/refresh', {
+            method: 'POST',
+            credentials: 'include'
+        });
 
-    const redirectUrl = new URLSearchParams(window.location.search).get(
-        "redirect"
-    );
-    if (redirectUrl) {
-        window.location.href = redirectUrl;
-    } else {
-        window.location.href = "/";
+        if (refreshResponse.ok) {
+            const result = await refreshResponse.json();
+            if (result.success && result.accessToken) {
+                localStorage.setItem('accessToken', result.accessToken);
+                
+                const redirectUrl = new URLSearchParams(window.location.search).get("redirect");
+                if (redirectUrl) {
+                    window.location.href = redirectUrl;
+                } else {
+                    window.location.href = "/";
+                }
+            }
+        }
+    } catch (error) {
+        console.log('토큰 갱신 중 오류 발생:', error);
     }
 }
 
 function checkRememberMe() {
     const rememberUsername = localStorage.getItem("username");
     if (rememberUsername) {
-        loginInput.username.value = rememberUsername;
+        loginInput.id.value = rememberUsername;
         rememberMeCheckbox.checked = true;
     }
 }

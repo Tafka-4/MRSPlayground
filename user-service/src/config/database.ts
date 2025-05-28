@@ -20,12 +20,11 @@ export const initDatabase = async () => {
   try {
     const connection = await pool.getConnection();
     
-    // Users 테이블 생성
     await connection.execute(`
       CREATE TABLE IF NOT EXISTS users (
-        id INT AUTO_INCREMENT PRIMARY KEY,
         userid VARCHAR(36) UNIQUE NOT NULL,
-        username VARCHAR(255) UNIQUE NOT NULL,
+        id VARCHAR(255) UNIQUE NOT NULL,
+        nickname VARCHAR(255) UNIQUE NOT NULL,
         password VARCHAR(255) NOT NULL,
         email VARCHAR(255) UNIQUE NOT NULL,
         isVerified BOOLEAN DEFAULT FALSE,
