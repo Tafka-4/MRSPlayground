@@ -74,7 +74,11 @@ services:
     expose:
       - "3000"
     volumes:
-      - ./user:/app
+      - ./user/src:/app/src
+      - ./user/package.json:/app/package.json
+      - ./user/package-lock.json:/app/package-lock.json
+      - ./user/tsconfig.json:/app/tsconfig.json
+      - /app/node_modules
     environment:
       - NODE_ENV=${NODE_ENV}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}

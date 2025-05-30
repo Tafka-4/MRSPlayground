@@ -1,41 +1,43 @@
 {
-  "name": "user-service",
-  "version": "1.0.0",
-  "description": "User and Authentication Microservice",
-  "type": "module",
-  "scripts": {
-    "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "ts-node-esm src/index.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "dependencies": {
-    "@types/cookie-parser": "^1.4.8",
-    "@types/multer": "^1.4.12",
-    "bcryptjs": "^2.4.3",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "html-escaper": "^3.0.3",
-    "jsonwebtoken": "^9.0.2",
-    "multer": "^2.0.0",
-    "mysql2": "^3.6.5",
-    "nodemailer": "^6.10.0",
-    "redis": "^4.7.0",
-    "sharp": "^0.34.1",
-    "uuid": "^11.1.0"
-  },
-  "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0",
-    "@types/html-escaper": "^3.0.4",
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/node": "^20.0.0",
-    "@types/nodemailer": "^6.4.17",
-    "@types/uuid": "^10.0.0",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3"
-  }
+    "name": "user-service",
+    "version": "1.0.0",
+    "description": "User and Authentication Microservice",
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "start": "node ./dist/index.js",
+        "dev": "nodemon --watch src --ext ts,json --exec \"tsx ./src/index.ts\"",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "@types/cookie-parser": "^1.4.8",
+        "@types/multer": "^1.4.12",
+        "bcryptjs": "^2.4.3",
+        "cookie-parser": "^1.4.7",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.7",
+        "express": "^4.21.2",
+        "html-escaper": "^3.0.3",
+        "jsonwebtoken": "^9.0.2",
+        "multer": "^2.0.0",
+        "mysql2": "^3.6.5",
+        "nodemailer": "^6.10.0",
+        "redis": "^4.7.0",
+        "sharp": "^0.34.1",
+        "uuid": "^11.1.0"
+    },
+    "devDependencies": {
+        "@types/bcryptjs": "^2.4.6",
+        "@types/cors": "^2.8.17",
+        "@types/express": "^5.0.0",
+        "@types/html-escaper": "^3.0.4",
+        "@types/jsonwebtoken": "^9.0.9",
+        "@types/node": "^20.0.0",
+        "@types/nodemailer": "^6.4.17",
+        "@types/uuid": "^10.0.0",
+        "nodemon": "^3.1.10",
+        "ts-node": "^10.9.2",
+        "tsx": "^4.19.4",
+        "typescript": "^5.3.3"
+    }
 }

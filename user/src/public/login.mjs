@@ -1,58 +1,67 @@
-import NoticeBox from "./module/notice.js";
+import NoticeBox from './module/notice.js';
+import apiClient from './module/api.js';
 
-const loginInput = {
+const loginInputs = {
     id: document.querySelector('input[name="id"]'),
-    password: document.querySelector('input[name="password"]'),
+    password: document.querySelector('input[name="password"]')
 };
 
-const loginButton = document.querySelector("#login-button");
-const rememberMeCheckbox = document.querySelector("#remember-me");
-const visibilityIcon = document.querySelector("#visibility");
-const visibilityOffIcon = document.querySelector("#visibility-off");
+const loginButton = document.querySelector('#login-button');
+const rememberMeCheckbox = document.querySelector('#remember-me');
+const visibilityIcon = document.querySelector('#visibility');
+const visibilityOffIcon = document.querySelector('#visibility-off');
 
-rememberMeCheckbox.addEventListener("click", rememberMe);
-visibilityIcon.addEventListener("click", togglePasswordVisibility);
-visibilityOffIcon.addEventListener("click", togglePasswordVisibility);
+rememberMeCheckbox.addEventListener('click', rememberMe);
+visibilityIcon.addEventListener('click', togglePasswordVisibility);
+visibilityOffIcon.addEventListener('click', togglePasswordVisibility);
 
-visibilityOffIcon.style.display = "none";
+visibilityOffIcon.style.display = 'none';
 
 function togglePasswordVisibility() {
-    const passwordInput = loginInput.password;
-    
-    if (passwordInput.type === "password") {
-        passwordInput.type = "text";
-        visibilityIcon.style.display = "none";
-        visibilityOffIcon.style.display = "block";
+    const passwordInput = loginInputs.password;
+
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        visibilityIcon.style.display = 'none';
+        visibilityOffIcon.style.display = 'block';
     } else {
-        passwordInput.type = "password";
-        visibilityIcon.style.display = "block";
-        visibilityOffIcon.style.display = "none";
+        passwordInput.type = 'password';
+        visibilityIcon.style.display = 'block';
+        visibilityOffIcon.style.display = 'none';
     }
 }
 
-loginButton.addEventListener("click", login);
-loginButton.addEventListener("keydown", (event) => {
-    if (event.key === "Enter") {
+loginButton.addEventListener('click', login);
+loginButton.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
         login();
     }
 });
 
-function login() {
-    const id = loginInput.id.value;
-    const password = loginInput.password.value;
+for (const loginInput of Object.values(loginInputs)) {
+    loginInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            login();
+        }
+    });
+}
 
-    if (id === "" || password === "") {
+function login() {
+    const id = loginInputs.id.value;
+    const password = loginInputs.password.value;
+
+    if (id === '' || password === '') {
         let notice = new NoticeBox(
-            "아이디와 비밀번호를 입력해주세요.",
-            "error"
+            '아이디와 비밀번호를 입력해주세요.',
+            'error'
         );
         notice.show();
         return;
     }
     if (password.length < 8) {
         let notice = new NoticeBox(
-            "비밀번호는 8자 이상이어야 합니다.",
-            "error"
+            '비밀번호는 8자 이상이어야 합니다.',
+            'error'
         );
         notice.show();
         return;
@@ -60,8 +69,8 @@ function login() {
 
     if (/[^a-zA-Z0-9!@#$%^&*()_{}]/g.test(id)) {
         let notice = new NoticeBox(
-            "아이디는 영문자, 숫자, 특수문자만 사용할 수 있습니다.",
-            "error"
+            '아이디는 영문자, 숫자, 특수문자만 사용할 수 있습니다.',
+            'error'
         );
         notice.show();
         return;
@@ -72,47 +81,44 @@ function login() {
         !password.match(/[!@#$%^&*()_{}]/g)
     ) {
         let notice = new NoticeBox(
-            "비밀번호는 영문자, 숫자, 특수문자를 포함해야 합니다.",
-            "error"
+            '비밀번호는 영문자, 숫자, 특수문자를 포함해야 합니다.',
+            'error'
         );
         notice.show();
         return;
     }
 
-    fetch("/api/v1/auth/login", {
-        method: "POST",
-        body: JSON.stringify({ id, password }),
-        headers: {
-            "Content-Type": "application/json",
-        },
-    })
+    apiClient
+        .post('/api/v1/auth/login', { id, password })
         .then((response) => response.json())
         .then((data) => {
             if (data.success) {
-                localStorage.setItem("accessToken", data.accessToken);
+                localStorage.setItem('accessToken', data.accessToken);
                 let notice = new NoticeBox(
-                    data.message || "로그인 성공",
-                    "success"
+                    data.message || '로그인 성공',
+                    'success'
                 );
                 notice.show();
-                const redirectUrl = new URLSearchParams(
-                    window.location.search
-                ).get("redirect");
-                if (redirectUrl) {
-                    window.location.href = redirectUrl;
-                } else {
-                    window.location.href = "/";
-                }
+                setTimeout(() => {
+                    const redirectUrl = new URLSearchParams(
+                        window.location.search
+                    ).get('redirect');
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    } else {
+                        window.location.href = '/';
+                    }
+                }, 1000);
             } else {
-                let notice = new NoticeBox(data.message, "error");
+                let notice = new NoticeBox(data.message, 'error');
                 notice.show();
-                document.querySelector('input[name="password"]').value = "";
+                document.querySelector('input[name="password"]').value = '';
             }
         })
         .catch((error) => {
             let notice = new NoticeBox(
-                "로그인 중 오류가 발생했습니다.",
-                "error"
+                '로그인 중 오류가 발생했습니다.',
+                'error'
             );
             notice.show();
         });
@@ -120,53 +126,50 @@ function login() {
 
 function rememberMe() {
     if (rememberMeCheckbox.checked) {
-        localStorage.setItem("username", loginInput.id.value);
+        localStorage.setItem('username', loginInputs.id.value);
     } else {
-        localStorage.removeItem("username");
+        localStorage.removeItem('username');
     }
 }
 
 async function checkLogin() {
-    const accessToken = localStorage.getItem("accessToken");
-    
-    if (accessToken) {
-        const redirectUrl = new URLSearchParams(window.location.search).get("redirect");
-        if (redirectUrl) {
-            window.location.href = redirectUrl;
-        } else {
-            window.location.href = "/";
-        }
+    const accessToken = localStorage.getItem('accessToken');
+
+    if (!accessToken) {
         return;
     }
-    
-    try {
-        const refreshResponse = await fetch('/api/v1/auth/refresh', {
-            method: 'POST',
-            credentials: 'include'
-        });
 
-        if (refreshResponse.ok) {
-            const result = await refreshResponse.json();
-            if (result.success && result.accessToken) {
-                localStorage.setItem('accessToken', result.accessToken);
-                
-                const redirectUrl = new URLSearchParams(window.location.search).get("redirect");
-                if (redirectUrl) {
-                    window.location.href = redirectUrl;
-                } else {
-                    window.location.href = "/";
-                }
+    try {
+        const response = await apiClient.post('/api/v1/auth/check-token');
+
+        const data = await response.json();
+
+        if (data.success) {
+            const redirectUrl = new URLSearchParams(window.location.search).get(
+                'redirect'
+            );
+            if (redirectUrl) {
+                window.location.href = redirectUrl;
+            } else {
+                window.location.href = '/';
             }
+        } else {
+            localStorage.removeItem('accessToken');
+            document.cookie =
+                'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         }
     } catch (error) {
-        console.log('토큰 갱신 중 오류 발생:', error);
+        localStorage.removeItem('accessToken');
+        document.cookie =
+            'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        console.error('토큰 검증 중 오류:', error);
     }
 }
 
 function checkRememberMe() {
-    const rememberUsername = localStorage.getItem("username");
+    const rememberUsername = localStorage.getItem('username');
     if (rememberUsername) {
-        loginInput.id.value = rememberUsername;
+        loginInputs.id.value = rememberUsername;
         rememberMeCheckbox.checked = true;
     }
 }

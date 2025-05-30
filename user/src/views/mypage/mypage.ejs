@@ -14,7 +14,11 @@
     <body>
         <div class="container">
             <div class="mypage-header">
-                <h1 class="title">마이페이지</h1>
+                <h1 class="title" id="title">마이페이지</h1>
+                <button class="admin-button" id="admin-button">
+                    <span class="material-symbols-outlined">admin_panel_settings</span>
+                    관리자 페이지
+                </button>
                 <button class="logout-button" id="logout-button">
                     <span class="material-symbols-outlined">logout</span>
                     로그아웃
@@ -59,6 +63,10 @@
                     <div class="info-item">
                         <label>가입일</label>
                         <div class="info-value" id="created-at">로딩 중...</div>
+                    </div>
+                    <div class="info-item">
+                        <label>UID</label>
+                        <div class="info-value" id="uid">로딩 중...</div>
                     </div>
                 </div>
             </div>

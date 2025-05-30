@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>관리자 확인</title>
+        <script type="module">
+            import { apiClient } from './module/api.js';
+            const response = await apiClient.get('/api/v1/auth/me');
+            const data = await response.json();
+            data.user.authority === 'admin' ? window.location.href = '/admin' : window.location.href = '/';
+        </script>
+        <style>
+            @font-face {
+                font-family: "ONE-Mobile-POP";
+                src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff")
+                    format("woff");
+                font-weight: normal;
+                font-style: normal;
+            }
+
+            * {
+                font-family: "ONE-Mobile-POP";
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+
+            #loading {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+
+            #content {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="loading">로딩 중...</div>
+        <div id="content">
+            <h1>관리자 확인</h1>
+            <p>관리자 확인 중...</p>
+        </div>
+    </body>
+</html>

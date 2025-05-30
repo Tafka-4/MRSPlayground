@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>접근 금지 - 403</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .error-container {
+            background: white;
+            padding: 3rem;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+        .error-code {
+            font-size: 6rem;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        .error-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin: 1rem 0;
+        }
+        .error-message {
+            font-size: 1.1rem;
+            color: #7f8c8d;
+            margin: 1.5rem 0;
+            line-height: 1.6;
+        }
+        .btn-home {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 500;
+            transition: transform 0.3s ease;
+            margin-top: 1rem;
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="icon">🚫</div>
+        <h1 class="error-code">403</h1>
+        <h2 class="error-title">접근 금지</h2>
+        <p class="error-message">
+            <%= message || '이 페이지에 접근할 권한이 없습니다.' %>
+        </p>
+        <% if (typeof user !== 'undefined' && user) { %>
+            <p style="color: #95a5a6; font-size: 0.9rem;">
+                현재 로그인: <%= user.nickname || user.userid %>
+            </p>
+        <% } %>
+        <a href="/" class="btn-home">홈으로 돌아가기</a>
+    </div>
+</body>
+</html> 

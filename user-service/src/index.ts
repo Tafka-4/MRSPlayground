@@ -27,8 +27,6 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-app.use(errorHandler);
-
 // API v1 routes
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', authRoutes);
@@ -53,6 +51,8 @@ app.get('/api/v1/', (req, res) => {
     }
   });
 });
+
+app.use(errorHandler);
 
 app.use('*', (req, res) => {
   res.status(404).json({

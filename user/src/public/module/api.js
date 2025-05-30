@@ -19,7 +19,7 @@ class ApiClient {
             ...options,
             credentials: 'include',
             headers: {
-                'Authorization': `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
                 ...options.headers
             }
         };
@@ -30,9 +30,9 @@ class ApiClient {
             this.refreshAttempts = 0;
             return response;
         }
-        
+
         console.log('401 에러 발생, 토큰 갱신 시도');
-        
+
         if (this.refreshAttempts >= this.maxRefreshAttempts) {
             console.log('최대 토큰 갱신 시도 횟수 초과');
             this.forceLogout();
@@ -69,7 +69,11 @@ class ApiClient {
             });
         }
 
-        console.log(`토큰 갱신 시작 (시도 ${this.refreshAttempts + 1}/${this.maxRefreshAttempts})`);
+        console.log(
+            `토큰 갱신 시작 (시도 ${this.refreshAttempts + 1}/${
+                this.maxRefreshAttempts
+            })`
+        );
         this.isRefreshing = true;
         this.refreshAttempts++;
 
@@ -87,7 +91,7 @@ class ApiClient {
 
             const result = await refreshResponse.json();
             const { accessToken } = result;
-            
+
             if (!accessToken) {
                 console.log('토큰 갱신 응답에 accessToken 없음');
                 this.processQueue(new Error('토큰 갱신 실패'), null);
@@ -96,11 +100,10 @@ class ApiClient {
 
             localStorage.setItem('accessToken', accessToken);
             console.log('토큰 갱신 성공');
-            
+
             this.refreshAttempts = 0;
             this.processQueue(null, accessToken);
             return accessToken;
-
         } catch (error) {
             console.error('토큰 갱신 중 에러:', error);
             this.processQueue(error, null);
@@ -118,28 +121,32 @@ class ApiClient {
                 resolve(token);
             }
         });
-        
+
         this.failedQueue = [];
     }
 
     clearAllTokens() {
         localStorage.removeItem('accessToken');
-        document.cookie = 'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        document.cookie =
+            'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     }
 
     forceLogout() {
         if (this.isRedirecting) {
             return;
         }
-        
+
         this.isRedirecting = true;
         this.clearAllTokens();
-        
+
         this.failedQueue = [];
         this.isRefreshing = false;
         this.refreshAttempts = 0;
-        
-        if (window.location.pathname !== '/login' && window.location.pathname !== '/login.html') {
+
+        if (
+            window.location.pathname !== '/login' &&
+            window.location.pathname !== '/login.html'
+        ) {
             setTimeout(() => {
                 if (!this.isRedirecting) return;
                 window.location.href = '/login';
@@ -256,4 +263,4 @@ class ApiClient {
 
 const apiClient = new ApiClient();
 
-export default apiClient; 
+export default apiClient;

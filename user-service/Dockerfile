@@ -1,13 +1,18 @@
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install
 
-COPY . .
-RUN npm run build
+RUN npm ci --include=dev
+
+COPY src ./src
+COPY tsconfig.json ./
+
+RUN npm install -g nodemon
 
 EXPOSE 3001
 
-CMD ["npm", "start"] 
+RUN npm run build
+
+CMD ["npm", "run", "dev"]

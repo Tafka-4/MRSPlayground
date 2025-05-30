@@ -2,9 +2,14 @@ FROM node:22-alpine
 
 WORKDIR /app
 
-COPY . .
+COPY package*.json ./
 
-RUN npm i
+RUN npm ci --include=dev
+
+COPY src ./src
+COPY tsconfig.json ./
+
+RUN npm install -g nodemon
 
 EXPOSE 3000
 

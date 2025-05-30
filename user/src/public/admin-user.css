@@ -23,18 +23,11 @@ body {
 
 .container {
     width: 100%;
-    max-width: 600px;
+    max-width: 1200px;
     background: white;
     border-radius: 1rem;
     padding: 2rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.mypage-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
 }
 
 .title {
@@ -44,86 +37,188 @@ body {
     margin: 0;
 }
 
-.admin-button {
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.back-button {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background-color: #eea73c;
-    color: white;
+    padding: 0.8rem 1.2rem;
+    background-color: rgb(230, 230, 230);
+    color: rgb(100, 100, 100);
     border: none;
     border-radius: 0.5rem;
-    font-size: 0.9rem;
-    font-weight: 500;
-    cursor: pointer;
-    margin-left: 8rem;
-    transition: background-color 0.2s ease;
-}
-
-.logout-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
-    background-color: #f47c7c;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 0.9rem;
+    font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
     transition: background-color 0.2s ease;
+    text-decoration: none;
 }
 
-.logout-button:hover {
-    background-color: #e66b6b;
+.back-button:hover {
+    background-color: rgb(220, 220, 220);
 }
 
-.profile-section {
+.search-section {
     display: flex;
-    gap: 2rem;
+    gap: 1rem;
     margin-bottom: 2rem;
     flex-wrap: wrap;
 }
 
-.profile-image-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
+.search-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 0.8rem;
+    border: 1px solid rgb(200, 200, 200);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
 }
 
-.profile-image {
-    width: 120px;
-    height: 120px;
+.search-input:focus {
+    outline: none;
+    border-color: rgb(10, 10, 10);
+}
+
+.search-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.2rem;
+    background-color: rgb(10, 10, 10);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.search-button:hover {
+    background-color: rgb(50, 50, 50);
+}
+
+.users-table {
+    background: white;
+    border: 1px solid rgb(230, 230, 230);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.table-header {
+    background-color: rgb(250, 250, 250);
+    padding: 1rem;
+    border-bottom: 1px solid rgb(230, 230, 230);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.table-title {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: rgb(10, 10, 10);
+    margin: 0;
+}
+
+.refresh-button {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem 1rem;
+    background-color: rgb(100, 100, 100);
+    color: white;
+    border: none;
+    border-radius: 0.3rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.refresh-button:hover {
+    background-color: rgb(80, 80, 80);
+}
+
+.table-content {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgb(240, 240, 240);
+    transition: background-color 0.2s ease;
+}
+
+.user-item:hover {
+    background-color: rgb(250, 250, 250);
+}
+
+.user-item:last-child {
+    border-bottom: none;
+}
+
+.user-avatar {
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     background-color: rgb(230, 230, 230);
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-right: 1rem;
     overflow: hidden;
-    border: 3px solid rgb(200, 200, 200);
+    border: 2px solid rgb(200, 200, 200);
 }
 
-.profile-image img {
+.user-avatar img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.profile-image .material-symbols-outlined {
-    font-size: 3rem;
+.user-avatar .material-symbols-outlined {
+    font-size: 1.5rem;
     color: rgb(100, 100, 100);
 }
 
-.profile-image-actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-direction: column;
+.user-info {
+    flex: 1;
+    min-width: 0;
 }
 
-.image-upload-button,
-.image-delete-button {
+.user-name {
+    font-weight: 500;
+    color: rgb(10, 10, 10);
+    margin-bottom: 0.2rem;
+}
+
+.user-details {
+    font-size: 0.9rem;
+    color: rgb(100, 100, 100);
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.user-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.action-button {
     display: flex;
     align-items: center;
     gap: 0.3rem;
@@ -136,103 +231,62 @@ body {
     transition: background-color 0.2s ease;
 }
 
-.image-upload-button {
+.view-button {
     background-color: rgb(10, 10, 10);
     color: white;
 }
 
-.image-upload-button:hover {
+.view-button:hover {
     background-color: rgb(50, 50, 50);
 }
 
-.image-delete-button {
+.delete-button {
     background-color: #f47c7c;
     color: white;
 }
 
-.image-delete-button:hover {
+.delete-button:hover {
     background-color: #e66b6b;
 }
 
-.profile-info {
-    flex: 1;
-    min-width: 300px;
-}
-
-.info-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.8rem 0;
-    border-bottom: 1px solid rgb(230, 230, 230);
-}
-
-.info-item:last-child {
-    border-bottom: none;
-}
-
-.info-item label {
-    font-weight: 500;
+.loading {
+    text-align: center;
     color: rgb(100, 100, 100);
-    min-width: 80px;
+    padding: 2rem;
 }
 
-.info-value {
-    color: rgb(10, 10, 10);
-    font-weight: 400;
-    text-align: right;
-    word-break: break-all;
+.empty-state {
+    text-align: center;
+    color: rgb(100, 100, 100);
+    padding: 2rem;
 }
 
-.action-buttons {
+.pagination {
     display: flex;
-    gap: 1rem;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
     flex-wrap: wrap;
 }
 
-.edit-button,
-.password-button,
-.delete-account-button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.8rem 1.2rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
+.page-button {
+    padding: 0.5rem 1rem;
+    border: 1px solid rgb(200, 200, 200);
+    background-color: white;
+    color: rgb(100, 100, 100);
+    border-radius: 0.3rem;
     cursor: pointer;
-    transition: background-color 0.2s ease;
-    flex: 1;
-    min-width: 150px;
-    justify-content: center;
+    transition: all 0.2s ease;
 }
 
-.edit-button {
+.page-button:hover {
+    background-color: rgb(250, 250, 250);
+}
+
+.page-button.active {
     background-color: rgb(10, 10, 10);
     color: white;
-}
-
-.edit-button:hover {
-    background-color: rgb(50, 50, 50);
-}
-
-.password-button {
-    background-color: rgb(100, 100, 100);
-    color: white;
-}
-
-.password-button:hover {
-    background-color: rgb(80, 80, 80);
-}
-
-.delete-account-button {
-    background-color: #f47c7c;
-    color: white;
-}
-
-.delete-account-button:hover {
-    background-color: #e66b6b;
+    border-color: rgb(10, 10, 10);
 }
 
 .notice-container {
@@ -356,29 +410,24 @@ body {
         font-size: 2rem;
     }
     
-    .profile-section {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-    
-    .profile-info {
-        min-width: auto;
-        width: 100%;
-    }
-    
-    .action-buttons {
-        flex-direction: column;
-    }
-    
-    .mypage-header {
+    .admin-header {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
     }
     
-    .admin-button {
-        margin-left: 0;
-        align-self: center;
+    .search-section {
+        flex-direction: column;
+    }
+    
+    .user-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .user-actions {
+        width: 100%;
+        justify-content: center;
     }
 } 

@@ -26,6 +26,13 @@ export class UserNotLoginError extends Error {
   }
 }
 
+export class UserNotAdminError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UserNotAdminError';
+  }
+}
+
 export class UserTokenVerificationFailedError extends Error {
   constructor(message: string) {
     super(message);
