@@ -53,3 +53,7 @@ uploads/
 # OS
 .DS_Store
 Thumbs.db
+
+#etc
+.prettierrc
+line.ps1
