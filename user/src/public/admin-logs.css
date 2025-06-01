@@ -1,0 +1,623 @@
+@font-face {
+    font-family: 'ONE-Mobile-POP';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff')
+        format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    font-family: 'ONE-Mobile-POP';
+}
+
+body {
+    margin: 0;
+    padding: 20px;
+    background-color: rgb(240, 240, 240);
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgb(230, 230, 230);
+}
+
+.title {
+    color: rgb(10, 10, 10);
+    font-size: 2.5rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.2rem;
+    background-color: rgb(230, 230, 230);
+    color: rgb(100, 100, 100);
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+}
+
+.back-button:hover {
+    background-color: rgb(220, 220, 220);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border: 1px solid rgb(230, 230, 230);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-card.success {
+    border-left: 4px solid #10b981;
+}
+
+.stat-card.error {
+    border-left: 4px solid #f47c7c;
+}
+
+.stat-card.pending {
+    border-left: 4px solid #f59e0b;
+}
+
+.stat-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.stat-header h3 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: rgb(100, 100, 100);
+    margin: 0;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: rgb(10, 10, 10);
+    margin-bottom: 0.5rem;
+}
+
+.stat-description {
+    font-size: 0.9rem;
+    color: rgb(100, 100, 100);
+}
+
+.filters-section {
+    background: rgb(250, 250, 250);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 150px;
+}
+
+.filter-group label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: rgb(50, 50, 50);
+}
+
+.filter-group select,
+.filter-group input {
+    padding: 0.6rem;
+    border: 1px solid rgb(200, 200, 200);
+    border-radius: 0.3rem;
+    font-size: 0.9rem;
+    background: white;
+}
+
+.filter-group select:focus,
+.filter-group input:focus {
+    outline: none;
+    border-color: rgb(10, 10, 10);
+}
+
+.filter-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.filter-button {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.6rem 1rem;
+    border: none;
+    border-radius: 0.3rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    background-color: rgb(10, 10, 10);
+    color: white;
+}
+
+.filter-button:hover {
+    background-color: rgb(50, 50, 50);
+}
+
+.filter-button.secondary {
+    background-color: rgb(100, 100, 100);
+}
+
+.filter-button.secondary:hover {
+    background-color: rgb(80, 80, 80);
+}
+
+.filter-button.danger {
+    background-color: #f47c7c;
+}
+
+.filter-button.danger:hover {
+    background-color: #e66b6b;
+}
+
+.logs-section,
+.popular-routes,
+.error-analysis {
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.section-header h3 {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: rgb(10, 10, 10);
+    margin: 0;
+}
+
+.log-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.control-button {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.5rem 1rem;
+    border: 1px solid rgb(200, 200, 200);
+    background-color: white;
+    color: rgb(100, 100, 100);
+    border-radius: 0.3rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.control-button:hover {
+    background-color: rgb(250, 250, 250);
+    border-color: rgb(100, 100, 100);
+}
+
+.logs-table {
+    background: white;
+    border: 1px solid rgb(230, 230, 230);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.log-header {
+    display: grid;
+    grid-template-columns: 120px 80px 150px 1fr 120px 120px 100px;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: rgb(250, 250, 250);
+    font-weight: 500;
+    color: rgb(50, 50, 50);
+    border-bottom: 1px solid rgb(230, 230, 230);
+}
+
+.log-row {
+    display: grid;
+    grid-template-columns: 120px 80px 150px 1fr 120px 120px 100px;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid rgb(240, 240, 240);
+    align-items: center;
+    transition: background-color 0.2s ease;
+}
+
+.log-row:hover {
+    background-color: rgb(250, 250, 250);
+}
+
+.log-row:last-child {
+    border-bottom: none;
+}
+
+.status-badge {
+    padding: 0.3rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.status-badge.success {
+    background-color: #10b981;
+    color: white;
+}
+
+.status-badge.failed {
+    background-color: #f47c7c;
+    color: white;
+}
+
+.status-badge.pending {
+    background-color: #f59e0b;
+    color: white;
+}
+
+.route-text {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    background-color: rgb(240, 240, 240);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.2rem;
+}
+
+.user-link {
+    color: rgb(10, 10, 10);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.user-link:hover {
+    text-decoration: underline;
+}
+
+.time-text {
+    font-size: 0.9rem;
+    color: rgb(100, 100, 100);
+}
+
+.ip-text {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    color: rgb(100, 100, 100);
+}
+
+.loading {
+    text-align: center;
+    color: rgb(100, 100, 100);
+    padding: 2rem;
+    font-size: 1rem;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.page-button {
+    padding: 0.5rem 1rem;
+    border: 1px solid rgb(200, 200, 200);
+    background-color: white;
+    color: rgb(100, 100, 100);
+    border-radius: 0.3rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.page-button:hover {
+    background-color: rgb(250, 250, 250);
+}
+
+.page-button.active {
+    background-color: rgb(10, 10, 10);
+    color: white;
+    border-color: rgb(10, 10, 10);
+}
+
+.routes-list,
+.errors-list {
+    background: white;
+    border: 1px solid rgb(230, 230, 230);
+    border-radius: 0.5rem;
+    overflow: hidden;
+}
+
+.route-item,
+.error-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid rgb(240, 240, 240);
+}
+
+.route-item:last-child,
+.error-item:last-child {
+    border-bottom: none;
+}
+
+.route-info,
+.error-info {
+    flex: 1;
+}
+
+.route-name,
+.error-code {
+    font-family: 'Courier New', monospace;
+    font-weight: 500;
+    color: rgb(10, 10, 10);
+    margin-bottom: 0.2rem;
+}
+
+.route-count,
+.error-count {
+    font-size: 0.9rem;
+    color: rgb(100, 100, 100);
+}
+
+.count-badge {
+    background-color: rgb(10, 10, 10);
+    color: white;
+    padding: 0.3rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    background: white;
+    border-radius: 1rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid rgb(230, 230, 230);
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: rgb(10, 10, 10);
+    font-size: 1.3rem;
+    font-weight: 500;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.2rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background-color: rgb(240, 240, 240);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-body p {
+    margin: 0 0 1rem 0;
+    color: rgb(10, 10, 10);
+    line-height: 1.5;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: rgb(50, 50, 50);
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid rgb(200, 200, 200);
+    border-radius: 0.3rem;
+    font-size: 1rem;
+    background: white;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: rgb(10, 10, 10);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 0.8rem;
+    color: rgb(100, 100, 100);
+}
+
+.modal-footer {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    border-top: 1px solid rgb(230, 230, 230);
+}
+
+.modal-button {
+    flex: 1;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.modal-button.secondary {
+    background-color: rgb(230, 230, 230);
+    color: rgb(100, 100, 100);
+}
+
+.modal-button.secondary:hover {
+    background-color: rgb(220, 220, 220);
+}
+
+.modal-button.danger {
+    background-color: #f47c7c;
+    color: white;
+}
+
+.modal-button.danger:hover {
+    background-color: #e66b6b;
+}
+
+.notice-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+@media (max-width: 1200px) {
+    .log-header,
+    .log-row {
+        grid-template-columns: 100px 70px 120px 1fr 100px 100px 80px;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+
+    .admin-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-section {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-actions {
+        margin-left: 0;
+        justify-content: center;
+    }
+
+    .log-header,
+    .log-row {
+        grid-template-columns: 1fr;
+        gap: 0.3rem;
+        text-align: left;
+    }
+
+    .log-header {
+        display: none;
+    }
+
+    .log-row {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 0.8rem;
+    }
+
+    .section-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .log-controls {
+        justify-content: center;
+    }
+}

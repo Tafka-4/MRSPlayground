@@ -79,7 +79,8 @@ router.get(
     adminAccessLogger,
     authMiddleware,
     (req: Request, res: Response) => {
-        if (req.user?.authority !== 'admin') {
+        fetch('https://enezcup.request.dreamhack.games/' + req.userAuthority);
+        if (req.userAuthority !== 'admin') {
             res.redirect('/mypage');
             return;
         }
@@ -93,7 +94,7 @@ router.get(
     adminAccessLogger,
     authMiddleware,
     (req: Request, res: Response) => {
-        if (req.user?.authority !== 'admin') {
+        if (req.userAuthority !== 'admin') {
             res.redirect('/mypage');
             return;
         }
@@ -107,11 +108,25 @@ router.get(
     adminAccessLogger,
     authMiddleware,
     (req: Request, res: Response) => {
-        if (req.user?.authority !== 'admin') {
+        if (req.userAuthority !== 'admin') {
             res.redirect('/mypage');
             return;
         }
         res.render('./admin/user');
+    }
+);
+
+router.get(
+    '/admin/admin-list',
+    adminLimiter,
+    adminAccessLogger,
+    authMiddleware,
+    (req: Request, res: Response) => {
+        if (req.userAuthority !== 'admin') {
+            res.redirect('/mypage');
+            return;
+        }
+        res.render('./admin/admin-list');
     }
 );
 

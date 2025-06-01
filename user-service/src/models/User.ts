@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { createHmac } from 'crypto';
 import fs from 'fs';
+import path from 'path';
 import { redisClient } from '../config/redis.js';
 import {
     UserError,
@@ -123,9 +124,11 @@ export class User {
             sql += conditions.join(' AND ');
         }
 
-        if (limit) {
-            sql += ' LIMIT ?';
-            values.push(limit);
+        if (limit && limit > 0) {
+            const limitValue = Number(limit);
+            if (!isNaN(limitValue) && limitValue >= 1) {
+                sql += ` LIMIT ${Math.floor(limitValue)}`;
+            }
         }
 
         const [rows] = await pool.execute(sql, values);
@@ -182,17 +185,22 @@ export class User {
         if (!user) return;
 
         if (user.data.profileImage) {
-            const actualFilePath = user.data.profileImage.replace(
-                '/uploads/profile-image/',
-                './uploads/profile/'
-            );
-            if (fs.existsSync(actualFilePath)) {
-                fs.unlinkSync(actualFilePath);
+            try {
+                const actualFilePath = user.data.profileImage.replace(
+                    '/uploads/profile-image/',
+                    './uploads/profile/'
+                );
+                if (fs.existsSync(actualFilePath)) {
+                    fs.unlinkSync(actualFilePath);
+                }
+            } catch (error) {
+                console.warn(`Failed to delete profile image: ${error}`);
             }
         }
-
+        await pool.execute('DELETE FROM refresh_tokens WHERE userid = ?', [
+            user.data.userid
+        ]);
         await redisClient.del(`${user.data.userid}:refreshToken`);
-        await redisClient.del(`${user.data.userid}:favorites`);
         await redisClient.del(`user:${user.data.userid}`);
 
         await pool.execute('DELETE FROM users WHERE userid = ?', [
@@ -208,6 +216,7 @@ export class User {
         accessToken: string;
         refreshToken: string;
     }> {
+        await redisClient.del(`user:${this.data.userid}`);
         const accessToken = jwt.sign(
             { userid: this.data.userid },
             process.env.JWT_SECRET as string,
@@ -218,11 +227,25 @@ export class User {
             process.env.JWT_SECRET as string,
             { expiresIn: '7d' }
         );
+
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+        await pool.execute(
+            'UPDATE refresh_tokens SET is_revoked = TRUE WHERE userid = ? AND is_revoked = FALSE',
+            [this.data.userid]
+        );
+
+        await pool.execute(
+            'INSERT INTO refresh_tokens (userid, refresh_token, expires_at) VALUES (?, ?, ?)',
+            [this.data.userid, refreshToken, expiresAt]
+        );
+
         await redisClient.set(
             `${this.data.userid}:refreshToken`,
             refreshToken,
             { EX: 60 * 60 * 24 * 7 }
         );
+
         return { accessToken, refreshToken };
     }
 
@@ -240,26 +263,71 @@ export class User {
     }
 
     async logout(): Promise<number> {
-        const result = await redisClient.del(
-            `${this.data.userid}:refreshToken`
-        );
-        return result;
+        const [result] = (await pool.execute(
+            'UPDATE refresh_tokens SET is_revoked = TRUE WHERE userid = ? AND is_revoked = FALSE',
+            [this.data.userid]
+        )) as any;
+
+        await redisClient.del(`${this.data.userid}:refreshToken`);
+        await redisClient.del(`user:${this.data.userid}`);
+
+        return result.affectedRows || 0;
     }
 
     async refresh(checkRefreshToken: string): Promise<string> {
-        const refreshToken = await redisClient.get(
+        let refreshToken = await redisClient.get(
             `${this.data.userid}:refreshToken`
         );
-        if (!refreshToken) throw new UserNotLoginError('Unauthorized');
-        if (refreshToken !== checkRefreshToken)
-            throw new UserTokenVerificationFailedError(
-                'Token verification failed'
+
+        if (refreshToken && refreshToken === checkRefreshToken) {
+            const accessToken = jwt.sign(
+                { userid: this.data.userid },
+                process.env.JWT_SECRET as string,
+                { expiresIn: '15m' }
             );
+            await redisClient.del(`user:${this.data.userid}`);
+            return accessToken;
+        }
+
+        const [rows] = (await pool.execute(
+            `SELECT refresh_token, expires_at, is_revoked 
+             FROM refresh_tokens 
+             WHERE userid = ? AND refresh_token = ? AND is_revoked = FALSE
+             ORDER BY issued_at DESC LIMIT 1`,
+            [this.data.userid, checkRefreshToken]
+        )) as any;
+
+        if (rows.length === 0) {
+            throw new UserNotLoginError('Unauthorized');
+        }
+
+        const tokenData = rows[0];
+
+        if (new Date() > new Date(tokenData.expires_at)) {
+            await pool.execute(
+                'UPDATE refresh_tokens SET is_revoked = TRUE WHERE userid = ? AND refresh_token = ?',
+                [this.data.userid, checkRefreshToken]
+            );
+            throw new UserTokenVerificationFailedError('Token has expired');
+        }
+
+        await redisClient.set(
+            `${this.data.userid}:refreshToken`,
+            checkRefreshToken,
+            {
+                EX: Math.floor(
+                    (new Date(tokenData.expires_at).getTime() - Date.now()) /
+                        1000
+                )
+            }
+        );
+
         const accessToken = jwt.sign(
             { userid: this.data.userid },
             process.env.JWT_SECRET as string,
             { expiresIn: '15m' }
         );
+        await redisClient.del(`user:${this.data.userid}`);
         return accessToken;
     }
 
@@ -282,7 +350,19 @@ export class User {
             .update(this.data.userid)
             .digest('hex')}.${extension}`;
         const filePath = `./uploads/profile/${filename}`;
-        fs.writeFileSync(filePath, file.buffer);
+
+        try {
+            const dirPath = path.dirname(filePath);
+            if (!fs.existsSync(dirPath)) {
+                fs.mkdirSync(dirPath, { recursive: true });
+            }
+
+            fs.writeFileSync(filePath, file.buffer);
+        } catch (error) {
+            throw new UserImageUploadFailedError(
+                'Failed to save profile image'
+            );
+        }
 
         const webPath = `/uploads/profile-image/${filename}`;
         this.data.profileImage = webPath;
@@ -291,7 +371,6 @@ export class User {
             { profileImage: webPath }
         );
 
-        // 프로필 이미지 업데이트 후 캐시 무효화
         await redisClient.del(`user:${this.data.userid}`);
 
         return webPath;
@@ -302,12 +381,18 @@ export class User {
             throw new UserImageDeleteFailedError('Profile image not found');
         }
 
-        const actualFilePath = this.data.profileImage.replace(
-            '/uploads/profile-image/',
-            './uploads/profile/'
-        );
-        if (fs.existsSync(actualFilePath)) {
-            fs.unlinkSync(actualFilePath);
+        try {
+            const actualFilePath = this.data.profileImage.replace(
+                '/uploads/profile-image/',
+                './uploads/profile/'
+            );
+            if (fs.existsSync(actualFilePath)) {
+                fs.unlinkSync(actualFilePath);
+            }
+        } catch (error) {
+            throw new UserImageDeleteFailedError(
+                'Failed to delete profile image'
+            );
         }
 
         this.data.profileImage = '';
@@ -316,8 +401,105 @@ export class User {
             { profileImage: '' }
         );
 
-        // 프로필 이미지 삭제 후 캐시 무효화
         await redisClient.del(`user:${this.data.userid}`);
+    }
+
+    async revokeAllRefreshTokens(): Promise<void> {
+        await pool.execute(
+            'UPDATE refresh_tokens SET is_revoked = TRUE WHERE userid = ? AND is_revoked = FALSE',
+            [this.data.userid]
+        );
+        await redisClient.del(`${this.data.userid}:refreshToken`);
+    }
+
+    async cleanupExpiredTokens(): Promise<void> {
+        await pool.execute(
+            'DELETE FROM refresh_tokens WHERE userid = ? AND (expires_at < NOW() OR is_revoked = TRUE)',
+            [this.data.userid]
+        );
+    }
+
+    static async cleanupAllExpiredTokens(): Promise<void> {
+        await pool.execute(
+            'DELETE FROM refresh_tokens WHERE expires_at < NOW() OR is_revoked = TRUE'
+        );
+    }
+
+    static async performMaintenanceCleanup(): Promise<{
+        deletedTokens: number;
+        revokedExpiredTokens: number;
+    }> {
+        const [revokeResult] = (await pool.execute(
+            'UPDATE refresh_tokens SET is_revoked = TRUE WHERE expires_at < NOW() AND is_revoked = FALSE'
+        )) as any;
+
+        const [deleteResult] = (await pool.execute(
+            'DELETE FROM refresh_tokens WHERE is_revoked = TRUE AND issued_at < DATE_SUB(NOW(), INTERVAL 30 DAY)'
+        )) as any;
+
+        return {
+            revokedExpiredTokens: revokeResult.affectedRows || 0,
+            deletedTokens: deleteResult.affectedRows || 0
+        };
+    }
+
+    async getActiveRefreshTokens(): Promise<any[]> {
+        const [rows] = (await pool.execute(
+            'SELECT id, issued_at, expires_at FROM refresh_tokens WHERE userid = ? AND is_revoked = FALSE AND expires_at > NOW() ORDER BY issued_at DESC',
+            [this.data.userid]
+        )) as any;
+        return rows;
+    }
+
+    async validateRefreshToken(checkRefreshToken: string): Promise<boolean> {
+        try {
+            const cachedToken = await redisClient.get(
+                `${this.data.userid}:refreshToken`
+            );
+
+            if (cachedToken && cachedToken === checkRefreshToken) {
+                return true;
+            }
+
+            const [rows] = (await pool.execute(
+                `SELECT refresh_token, expires_at, is_revoked 
+                 FROM refresh_tokens 
+                 WHERE userid = ? AND refresh_token = ? AND is_revoked = FALSE
+                 ORDER BY issued_at DESC LIMIT 1`,
+                [this.data.userid, checkRefreshToken]
+            )) as any;
+
+            if (rows.length === 0) {
+                return false;
+            }
+
+            const tokenData = rows[0];
+
+            if (new Date() > new Date(tokenData.expires_at)) {
+                await pool.execute(
+                    'UPDATE refresh_tokens SET is_revoked = TRUE WHERE userid = ? AND refresh_token = ?',
+                    [this.data.userid, checkRefreshToken]
+                );
+                return false;
+            }
+
+            await redisClient.set(
+                `${this.data.userid}:refreshToken`,
+                checkRefreshToken,
+                {
+                    EX: Math.floor(
+                        (new Date(tokenData.expires_at).getTime() -
+                            Date.now()) /
+                            1000
+                    )
+                }
+            );
+
+            return true;
+        } catch (error) {
+            console.error('Token validation error:', error);
+            return false;
+        }
     }
 
     toJSON(): Omit<IUser, 'password'> {

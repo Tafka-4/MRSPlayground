@@ -11,6 +11,8 @@ const rememberMeCheckbox = document.querySelector('#remember-me');
 const visibilityIcon = document.querySelector('#visibility');
 const visibilityOffIcon = document.querySelector('#visibility-off');
 
+let isLoggingIn = false;
+
 rememberMeCheckbox.addEventListener('click', rememberMe);
 visibilityIcon.addEventListener('click', togglePasswordVisibility);
 visibilityOffIcon.addEventListener('click', togglePasswordVisibility);
@@ -31,9 +33,13 @@ function togglePasswordVisibility() {
     }
 }
 
-loginButton.addEventListener('click', login);
+loginButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    login();
+});
 loginButton.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
+        event.preventDefault();
         login();
     }
 });
@@ -41,12 +47,18 @@ loginButton.addEventListener('keydown', (event) => {
 for (const loginInput of Object.values(loginInputs)) {
     loginInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
+            event.preventDefault();
             login();
         }
     });
 }
 
 function login() {
+    if (isLoggingIn) {
+        console.log('로그인이 이미 진행 중입니다.');
+        return;
+    }
+
     const id = loginInputs.id.value;
     const password = loginInputs.password.value;
 
@@ -88,6 +100,15 @@ function login() {
         return;
     }
 
+    isLoggingIn = true;
+    loginButton.disabled = true;
+
+    const originalButtonText = document.querySelector(
+        'label[for="login-button"]'
+    ).textContent;
+    document.querySelector('label[for="login-button"]').textContent =
+        '로그인 중...';
+
     apiClient
         .post('/api/v1/auth/login', { id, password })
         .then((response) => response.json())
@@ -121,6 +142,12 @@ function login() {
                 'error'
             );
             notice.show();
+        })
+        .finally(() => {
+            isLoggingIn = false;
+            loginButton.disabled = false;
+            document.querySelector('label[for="login-button"]').textContent =
+                originalButtonText;
         });
 }
 

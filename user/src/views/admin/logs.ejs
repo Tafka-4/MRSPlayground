@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>로그 모니터링</title>
+        <link rel="stylesheet" href="/admin-logs.css" />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
+    </head>
+    <body>
+        <div class="container">
+            <div class="admin-header">
+                <h1 class="title">로그 모니터링</h1>
+                <a href="/admin" class="back-button">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    대시보드로 돌아가기
+                </a>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="material-symbols-outlined">timeline</span>
+                        <h3>총 요청 수</h3>
+                    </div>
+                    <div class="stat-value" id="total-requests-stat">
+                        로딩 중...
+                    </div>
+                    <div class="stat-description">24시간 기준</div>
+                </div>
+
+                <div class="stat-card success">
+                    <div class="stat-header">
+                        <span class="material-symbols-outlined"
+                            >check_circle</span
+                        >
+                        <h3>성공 요청</h3>
+                    </div>
+                    <div class="stat-value" id="success-requests-stat">
+                        로딩 중...
+                    </div>
+                    <div class="stat-description">
+                        성공률: <span id="success-rate-percent">-</span>
+                    </div>
+                </div>
+
+                <div class="stat-card error">
+                    <div class="stat-header">
+                        <span class="material-symbols-outlined">error</span>
+                        <h3>실패 요청</h3>
+                    </div>
+                    <div class="stat-value" id="failed-requests-stat">
+                        로딩 중...
+                    </div>
+                    <div class="stat-description">
+                        실패율: <span id="failed-rate-percent">-</span>
+                    </div>
+                </div>
+
+                <div class="stat-card pending">
+                    <div class="stat-header">
+                        <span class="material-symbols-outlined">pending</span>
+                        <h3>대기 중</h3>
+                    </div>
+                    <div class="stat-value" id="pending-requests-stat">
+                        로딩 중...
+                    </div>
+                    <div class="stat-description">현재 처리 중</div>
+                </div>
+            </div>
+
+            <div class="filters-section">
+                <div class="filter-group">
+                    <label>상태 필터:</label>
+                    <select id="status-filter">
+                        <option value="">전체</option>
+                        <option value="success">성공</option>
+                        <option value="failed">실패</option>
+                        <option value="pending">대기 중</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>사용자 ID:</label>
+                    <input
+                        type="text"
+                        id="user-filter"
+                        placeholder="사용자 ID 입력"
+                    />
+                </div>
+
+                <div class="filter-group">
+                    <label>페이지당 항목:</label>
+                    <select id="limit-filter">
+                        <option value="10">10개</option>
+                        <option value="25">25개</option>
+                        <option value="50">50개</option>
+                        <option value="100">100개</option>
+                    </select>
+                </div>
+
+                <div class="filter-actions">
+                    <button class="filter-button" onclick="applyFilters()">
+                        <span class="material-symbols-outlined">search</span>
+                        필터 적용
+                    </button>
+                    <button
+                        class="filter-button secondary"
+                        onclick="resetFilters()"
+                    >
+                        <span class="material-symbols-outlined">refresh</span>
+                        초기화
+                    </button>
+                    <button
+                        class="filter-button danger"
+                        onclick="showCleanupModal()"
+                    >
+                        <span class="material-symbols-outlined"
+                            >cleaning_services</span
+                        >
+                        로그 정리
+                    </button>
+                </div>
+            </div>
+
+            <div class="logs-section">
+                <div class="section-header">
+                    <h3>API 요청 로그</h3>
+                    <div class="log-controls">
+                        <button
+                            class="control-button"
+                            onclick="toggleAutoRefresh()"
+                        >
+                            <span
+                                class="material-symbols-outlined"
+                                id="auto-refresh-icon"
+                                >pause</span
+                            >
+                            <span id="auto-refresh-text">자동 새로고침</span>
+                        </button>
+                        <button class="control-button" onclick="refreshLogs()">
+                            <span class="material-symbols-outlined"
+                                >refresh</span
+                            >
+                            새로고침
+                        </button>
+                    </div>
+                </div>
+
+                <div class="logs-table" id="logs-table">
+                    <div class="loading">로그를 불러오는 중...</div>
+                </div>
+
+                <div class="pagination" id="pagination"></div>
+            </div>
+
+            <div class="popular-routes">
+                <div class="section-header">
+                    <h3>인기 라우트</h3>
+                    <button
+                        class="control-button"
+                        onclick="loadPopularRoutes()"
+                    >
+                        <span class="material-symbols-outlined">refresh</span>
+                        새로고침
+                    </button>
+                </div>
+                <div class="routes-list" id="routes-list">
+                    <div class="loading">인기 라우트를 불러오는 중...</div>
+                </div>
+            </div>
+
+            <div class="error-analysis">
+                <div class="section-header">
+                    <h3>에러 분석</h3>
+                    <button
+                        class="control-button"
+                        onclick="loadErrorAnalysis()"
+                    >
+                        <span class="material-symbols-outlined">refresh</span>
+                        새로고침
+                    </button>
+                </div>
+                <div class="errors-list" id="errors-list">
+                    <div class="loading">에러 분석을 불러오는 중...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="cleanup-modal" style="display: none">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3>로그 정리</h3>
+                    <button class="modal-close" onclick="hideCleanupModal()">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        오래된 로그를 정리합니다. 삭제된 로그는 복구할 수
+                        없습니다.
+                    </p>
+
+                    <div class="form-group">
+                        <label>삭제 기준 날짜:</label>
+                        <input type="date" id="cleanup-date" required />
+                        <small>이 날짜 이전의 로그가 삭제됩니다.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>상태별 삭제:</label>
+                        <select id="cleanup-status">
+                            <option value="">전체 로그</option>
+                            <option value="success">성공 로그만</option>
+                            <option value="failed">실패 로그만</option>
+                            <option value="pending">대기 로그만</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        class="modal-button secondary"
+                        onclick="hideCleanupModal()"
+                    >
+                        취소
+                    </button>
+                    <button
+                        class="modal-button danger"
+                        onclick="performCleanup()"
+                    >
+                        삭제 실행
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="notice-container"></div>
+
+        <script type="module" src="/admin-logs.mjs"></script>
+    </body>
+</html>

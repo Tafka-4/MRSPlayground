@@ -28,7 +28,7 @@ export const errorHandler: ErrorRequestHandler = (
         return;
     }
 
-    if (err.name === 'UserForbiddenError') {
+    if (err.name === 'UserForbiddenError' || err.name === 'UserNotAdminError') {
         res.status(403).json({ error: err.message });
         return;
     }
@@ -39,13 +39,21 @@ export const errorHandler: ErrorRequestHandler = (
     }
 
     if (
+        err.name === 'UserAlreadyVerifiedError' ||
+        err.name === 'AuthUserAlreadyAdminError'
+    ) {
+        res.status(409).json({ error: err.message });
+        return;
+    }
+
+    if (
         err.name === 'UserError' ||
         err.name === 'UserNotValidPasswordError' ||
+        err.name === 'UserNotVerifiedError' ||
         err.name === 'UserImageDeleteFailedError' ||
         err.name === 'UserImageUploadFailedError' ||
         err.name === 'AuthError' ||
-        err.name === 'AuthEmailVerifyFailedError' ||
-        err.name === 'AuthUserAlreadyAdminError'
+        err.name === 'AuthEmailVerifyFailedError'
     ) {
         res.status(400).json({ error: err.message });
         return;

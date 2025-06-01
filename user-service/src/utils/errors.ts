@@ -1,83 +1,97 @@
 export class UserError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'UserError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserError';
+    }
 }
 
 export class UserNotValidPasswordError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'UserNotValidPasswordError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserNotValidPasswordError';
+    }
 }
 
 export class UserNotFoundError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'UserNotFoundError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserNotFoundError';
+    }
 }
 
 export class UserNotLoginError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'UserNotLoginError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserNotLoginError';
+    }
 }
 
 export class UserNotAdminError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'UserNotAdminError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserNotAdminError';
+    }
 }
 
 export class UserTokenVerificationFailedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'UserTokenVerificationFailedError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserTokenVerificationFailedError';
+    }
 }
 
 export class UserImageUploadFailedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'UserImageUploadFailedError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserImageUploadFailedError';
+    }
 }
 
 export class UserImageDeleteFailedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'UserImageDeleteFailedError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserImageDeleteFailedError';
+    }
 }
 
 export class UserForbiddenError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'UserForbiddenError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserForbiddenError';
+    }
 }
 
 export class AuthError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'AuthError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'AuthError';
+    }
 }
 
 export class AuthEmailVerifyFailedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'AuthEmailVerifyFailedError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'AuthEmailVerifyFailedError';
+    }
 }
 
 export class AuthUserAlreadyAdminError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'AuthUserAlreadyAdminError';
-  }
-} 
+    constructor(message: string) {
+        super(message);
+        this.name = 'AuthUserAlreadyAdminError';
+    }
+}
+
+export class UserAlreadyVerifiedError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserAlreadyVerifiedError';
+    }
+}
+
+export class UserNotVerifiedError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'UserNotVerifiedError';
+    }
+}

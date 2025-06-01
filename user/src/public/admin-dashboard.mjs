@@ -1,63 +1,327 @@
-function showNotice(message, type = 'info') {
-    const notice = document.createElement('div');
-    notice.style.cssText = `
-        background-color: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f47c7c' : '#2196F3'};
-        color: white;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        margin-bottom: 1rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    `;
-    notice.textContent = message;
-    document.querySelector('.notice-container').appendChild(notice);
-    
-    setTimeout(() => {
-        notice.remove();
-    }, 3000);
-}
+import escape from './module/escape.js';
+import apiClient from './module/api.js';
+import NoticeBox from './module/notice.js';
+
+let logMonitoringInterval = null;
+let isLogMonitoringActive = false;
 
 async function loadDashboardStats() {
     try {
-        const stats = {
-            totalUsers: Math.floor(Math.random() * 10000) + 1000,
-            newUsers: Math.floor(Math.random() * 50) + 1,
-            activeUsers: Math.floor(Math.random() * 500) + 100,
-            totalPosts: Math.floor(Math.random() * 50000) + 5000
-        };
-        
-        document.getElementById('total-users').textContent = stats.totalUsers.toLocaleString();
-        document.getElementById('new-users').textContent = stats.newUsers.toLocaleString();
-        document.getElementById('active-users').textContent = stats.activeUsers.toLocaleString();
-        document.getElementById('total-posts').textContent = stats.totalPosts.toLocaleString();
-        
+        const userStatsResponse = await apiClient.get(
+            '/api/v1/users/admin/statistics'
+        );
+
+        let userStats;
+        if (userStatsResponse.ok) {
+            const userStatsData = await userStatsResponse.json();
+            userStats = userStatsData.statistics;
+        } else {
+            userStats = {
+                totalUsers: 0,
+                newUsers: 0,
+                activeUsers: 0
+            };
+        }
+
+        const totalPosts = Math.floor(Math.random() * 50000) + 5000;
+
+        document.getElementById('total-users').textContent =
+            userStats.totalUsers.toLocaleString();
+        document.getElementById('new-users').textContent =
+            userStats.newUsers.toLocaleString();
+        document.getElementById('active-users').textContent =
+            userStats.activeUsers.toLocaleString();
+        document.getElementById('total-posts').textContent =
+            totalPosts.toLocaleString();
+
+        await loadLogStats();
     } catch (error) {
         console.error('통계 데이터 로딩 실패:', error);
-        showNotice('통계 데이터를 불러오는데 실패했습니다.', 'error');
+        new NoticeBox('통계 데이터를 불러오는데 실패했습니다.', 'error').show();
+
+        document.getElementById('total-users').textContent = '0';
+        document.getElementById('new-users').textContent = '0';
+        document.getElementById('active-users').textContent = '0';
+        document.getElementById('total-posts').textContent = '0';
     }
 }
 
-function loadRecentActivity() {
+async function loadLogStats() {
+    try {
+        const response = await apiClient.get(
+            '/api/v1/logs/admin/logs/statistics'
+        );
+
+        if (!response.ok) {
+            throw new Error('로그 통계를 불러올 수 없습니다.');
+        }
+
+        const data = await response.json();
+        const stats = data.recent_24h_statistics;
+
+        const totalRequestsEl = document.getElementById('total-requests');
+        const successRateEl = document.getElementById('success-rate');
+        const failedRequestsEl = document.getElementById('failed-requests');
+        const pendingRequestsEl = document.getElementById('pending-requests');
+
+        if (totalRequestsEl) {
+            totalRequestsEl.textContent = (
+                stats.total_requests || 0
+            ).toLocaleString();
+        }
+
+        if (successRateEl) {
+            const total = stats.total_requests || 0;
+            const success = stats.successful_requests || 0;
+            const rate =
+                total > 0 ? ((success / total) * 100).toFixed(1) : '0.0';
+            successRateEl.textContent = `${rate}%`;
+        }
+
+        if (failedRequestsEl) {
+            failedRequestsEl.textContent = (
+                stats.failed_requests || 0
+            ).toLocaleString();
+        }
+
+        if (pendingRequestsEl) {
+            pendingRequestsEl.textContent = (
+                stats.pending_requests || 0
+            ).toLocaleString();
+        }
+    } catch (error) {
+        console.error('로그 통계 로딩 실패:', error);
+    }
+}
+
+async function loadRecentActivity() {
     const activityList = document.getElementById('activity-list');
-    
-    const activities = [
-        { icon: 'person_add', text: '새로운 사용자가 가입했습니다.', time: '5분 전' },
-        { icon: 'article', text: '새로운 게시물이 작성되었습니다.', time: '12분 전' },
-        { icon: 'login', text: '사용자가 로그인했습니다.', time: '18분 전' },
-        { icon: 'edit', text: '게시물이 수정되었습니다.', time: '25분 전' },
-        { icon: 'delete', text: '게시물이 삭제되었습니다.', time: '1시간 전' }
-    ];
-    
-    activityList.innerHTML = activities.map(activity => `
-        <li class="activity-item">
-            <div class="activity-icon">
-                <span class="material-symbols-outlined">${activity.icon}</span>
+
+    try {
+        const response = await apiClient.get('/api/v1/logs/admin/logs?limit=5');
+
+        if (!response.ok) {
+            throw new Error('최근 활동을 불러올 수 없습니다.');
+        }
+
+        const data = await response.json();
+        const logs = data.logs || [];
+
+        if (logs.length === 0) {
+            activityList.innerHTML = `
+                <li class="activity-item placeholder">
+                    <div class="activity-icon">
+                        <span class="material-symbols-outlined">info</span>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">최근 활동이 없습니다.</div>
+                        <div class="activity-time">데이터 없음</div>
+                    </div>
+                </li>
+            `;
+            return;
+        }
+
+        const activities = logs.map((log) => {
+            const username = log.username || log.login_id || '익명 사용자';
+            const route = log.route || 'Unknown';
+            const method = log.method || 'GET';
+            const status = log.status || 'unknown';
+            const time = log.created_at
+                ? new Date(log.created_at).toLocaleString('ko-KR')
+                : '시간 정보 없음';
+
+            let icon = 'info';
+            let activityText = '';
+
+            if (route.includes('/auth/login')) {
+                icon = 'login';
+                activityText = `${username}님이 로그인했습니다.`;
+            } else if (route.includes('/auth/register')) {
+                icon = 'person_add';
+                activityText = `${username}님이 회원가입했습니다.`;
+            } else if (route.includes('/auth/logout')) {
+                icon = 'logout';
+                activityText = `${username}님이 로그아웃했습니다.`;
+            } else if (method === 'POST') {
+                icon = 'add';
+                activityText = `${username}님이 새로운 요청을 생성했습니다.`;
+            } else if (method === 'PUT' || method === 'PATCH') {
+                icon = 'edit';
+                activityText = `${username}님이 데이터를 수정했습니다.`;
+            } else if (method === 'DELETE') {
+                icon = 'delete';
+                activityText = `${username}님이 데이터를 삭제했습니다.`;
+            } else {
+                icon = 'visibility';
+                activityText = `${username}님이 ${route}에 접근했습니다.`;
+            }
+
+            if (status === 'failed') {
+                icon = 'error';
+                activityText += ' (실패)';
+            } else if (status === 'pending') {
+                icon = 'pending';
+                activityText += ' (대기 중)';
+            }
+
+            return {
+                icon,
+                text: activityText,
+                time,
+                status
+            };
+        });
+
+        activityList.innerHTML = activities
+            .map(
+                (activity) => `
+                <li class="activity-item">
+                    <div class="activity-icon">
+                        <span class="material-symbols-outlined">${escape(
+                            activity.icon
+                        )}</span>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">${escape(
+                            activity.text
+                        )}</div>
+                        <div class="activity-time">${escape(
+                            activity.time
+                        )}</div>
+                    </div>
+                </li>
+            `
+            )
+            .join('');
+    } catch (error) {
+        console.error('최근 활동 로딩 실패:', error);
+
+        activityList.innerHTML = `
+            <li class="activity-item placeholder">
+                <div class="activity-icon">
+                    <span class="material-symbols-outlined">error</span>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-text">활동 데이터를 불러오는데 실패했습니다.</div>
+                    <div class="activity-time">오류 발생</div>
+                </div>
+            </li>
+        `;
+
+        new NoticeBox(
+            '최근 활동 데이터를 불러오는데 실패했습니다.',
+            'error'
+        ).show();
+    }
+}
+
+async function loadRecentLogs() {
+    try {
+        const response = await apiClient.get('/api/v1/logs/admin/logs?limit=5');
+
+        if (!response.ok) {
+            return;
+        }
+
+        const data = await response.json();
+        const logs = data.logs || [];
+
+        const logContainer = document.getElementById('log-container');
+
+        if (logs.length === 0) {
+            logContainer.innerHTML = `
+                <div class="log-item placeholder">
+                    <div class="log-icon">
+                        <span class="material-symbols-outlined">info</span>
+                    </div>
+                    <div class="log-content">
+                        <div class="log-text">최근 로그가 없습니다.</div>
+                        <div class="log-time">데이터 없음</div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        const logHTML = logs
+            .map((log) => {
+                const status = log.status || 'unknown';
+                const route = log.route || 'N/A';
+                const user = log.username || log.user_id || '익명';
+                const time = log.created_at
+                    ? new Date(log.created_at).toLocaleString('ko-KR')
+                    : 'N/A';
+
+                const iconMap = {
+                    success: 'check_circle',
+                    failed: 'error',
+                    pending: 'pending'
+                };
+
+                const icon = iconMap[status] || 'help';
+
+                return `
+                <div class="log-item">
+                    <div class="log-icon">
+                        <span class="material-symbols-outlined">${icon}</span>
+                    </div>
+                    <div class="log-content">
+                        <div class="log-text">${escape(user)} - ${escape(
+                    route
+                )}</div>
+                        <div class="log-time">${escape(time)} (${escape(
+                    status
+                )})</div>
+                    </div>
+                </div>
+            `;
+            })
+            .join('');
+
+        logContainer.innerHTML = logHTML;
+    } catch (error) {
+        console.error('최근 로그 로딩 실패:', error);
+    }
+}
+
+function toggleLogMonitoring() {
+    const icon = document.getElementById('log-toggle-icon');
+    const text = document.getElementById('log-toggle-text');
+
+    if (isLogMonitoringActive) {
+        clearInterval(logMonitoringInterval);
+        icon.textContent = 'play_arrow';
+        text.textContent = '시작';
+        isLogMonitoringActive = false;
+        new NoticeBox('로그 모니터링이 중지되었습니다.', 'info').show();
+    } else {
+        loadRecentLogs();
+        logMonitoringInterval = setInterval(loadRecentLogs, 5000);
+        icon.textContent = 'pause';
+        text.textContent = '중지';
+        isLogMonitoringActive = true;
+        new NoticeBox(
+            '실시간 로그 모니터링이 시작되었습니다.',
+            'success'
+        ).show();
+    }
+}
+
+function clearLogs() {
+    const logContainer = document.getElementById('log-container');
+    logContainer.innerHTML = `
+        <div class="log-item placeholder">
+            <div class="log-icon">
+                <span class="material-symbols-outlined">info</span>
             </div>
-            <div class="activity-content">
-                <div class="activity-text">${activity.text}</div>
-                <div class="activity-time">${activity.time}</div>
+            <div class="log-content">
+                <div class="log-text">로그가 지워졌습니다.</div>
+                <div class="log-time">대기 중</div>
             </div>
-        </li>
-    `).join('');
+        </div>
+    `;
+    new NoticeBox('로그가 지워졌습니다.', 'success').show();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -65,5 +329,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadRecentActivity();
 });
 
-window.showNotice = showNotice;
-window.loadRecentActivity = loadRecentActivity; 
+window.loadRecentActivity = loadRecentActivity;
+window.toggleLogMonitoring = toggleLogMonitoring;
+window.clearLogs = clearLogs;

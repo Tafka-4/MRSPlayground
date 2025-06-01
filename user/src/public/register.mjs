@@ -19,11 +19,18 @@ const pinTimerMessage = document.querySelector('#pin-timer-message');
 let isEmailVerified = false;
 let pinTimerInterval;
 let timeLeft = 300;
+let isRegistering = false;
+let isSendingPin = false;
+let isVerifyingPin = false;
 
-registerButton.addEventListener('click', register);
+registerButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    register();
+});
 
 registerButton.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
+        event.preventDefault();
         register();
     }
 });
@@ -31,6 +38,7 @@ registerButton.addEventListener('keydown', (event) => {
 for (const input of Object.values(registerInput)) {
     input.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
+            event.preventDefault();
             register();
         }
     });
@@ -136,6 +144,11 @@ function checkPassword() {
 }
 
 function register() {
+    if (isRegistering) {
+        console.log('회원가입이 이미 진행 중입니다.');
+        return;
+    }
+
     const id = registerInput.id.value;
     const password = registerInput.password.value;
     const passwordConfirm = registerInput.passwordConfirm.value;
@@ -207,6 +220,16 @@ function register() {
         return;
     }
 
+    isRegistering = true;
+    registerButton.disabled = true;
+
+    const originalButtonText = document.querySelector(
+        'label[for="register-form-body-button"]'
+    ).textContent;
+    document.querySelector(
+        'label[for="register-form-body-button"]'
+    ).textContent = '처리 중...';
+
     apiClient
         .post('/api/v1/auth/register', {
             id,
@@ -226,10 +249,22 @@ function register() {
         .catch((error) => {
             console.error('Error:', error);
             new NoticeBox('요청 처리 중 오류 발생', 'error').show();
+        })
+        .finally(() => {
+            isRegistering = false;
+            registerButton.disabled = false;
+            document.querySelector(
+                'label[for="register-form-body-button"]'
+            ).textContent = originalButtonText;
         });
 }
 
 sendPinButton.addEventListener('click', async () => {
+    if (isSendingPin) {
+        console.log('PIN 전송이 이미 진행 중입니다.');
+        return;
+    }
+
     const email = registerInput.email.value;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -239,47 +274,56 @@ sendPinButton.addEventListener('click', async () => {
         return;
     }
 
+    isSendingPin = true;
     sendPinButton.disabled = true;
     sendPinButton.textContent = '전송 중...';
     pinTimerMessage.textContent = '';
 
-    await apiClient
-        .post('/api/v1/auth/send-pin', { email })
-        .then((response) => response.json())
-        .then((data) => {
-            if (data.success) {
-                pinInputContainer.classList.add('show');
-                registerInput.pin.value = '';
-                startPinTimer();
-                sendPinButton.textContent = '재전송';
-                let notice = new NoticeBox(
-                    data.message ||
-                        '인증번호가 발송되었습니다. 이메일을 확인해주세요.',
-                    'info'
-                );
-                notice.show();
-            } else {
-                let notice = new NoticeBox(
-                    data.message || '인증번호 발송에 실패했습니다.',
-                    'error'
-                );
-                notice.show();
-                sendPinButton.textContent = '인증번호 받기';
-            }
-        })
-        .catch((error) => {
-            console.error('인증번호 발송 실패:', error);
+    try {
+        const response = await apiClient.post('/api/v1/auth/send-pin', {
+            email
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            pinInputContainer.classList.add('show');
+            registerInput.pin.value = '';
+            startPinTimer();
+            sendPinButton.textContent = '재전송';
             let notice = new NoticeBox(
-                '인증번호 발송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+                data.message ||
+                    '인증번호가 발송되었습니다. 이메일을 확인해주세요.',
+                'info'
+            );
+            notice.show();
+        } else {
+            let notice = new NoticeBox(
+                data.message || '인증번호 발송에 실패했습니다.',
                 'error'
             );
             notice.show();
             sendPinButton.textContent = '인증번호 받기';
-        });
-    sendPinButton.disabled = false;
+        }
+    } catch (error) {
+        console.error('인증번호 발송 실패:', error);
+        let notice = new NoticeBox(
+            '인증번호 발송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+            'error'
+        );
+        notice.show();
+        sendPinButton.textContent = '인증번호 받기';
+    } finally {
+        isSendingPin = false;
+        sendPinButton.disabled = false;
+    }
 });
 
 verifyPinButton.addEventListener('click', async () => {
+    if (isVerifyingPin) {
+        console.log('PIN 검증이 이미 진행 중입니다.');
+        return;
+    }
+
     const email = registerInput.email.value;
     const pin = registerInput.pin.value;
 
@@ -294,54 +338,59 @@ verifyPinButton.addEventListener('click', async () => {
         return;
     }
 
+    isVerifyingPin = true;
     verifyPinButton.disabled = true;
     verifyPinButton.textContent = '확인 중...';
 
-    await apiClient
-        .post('/api/v1/auth/verify-pin', { email, pin })
-        .then((response) => response.json())
-        .then((data) => {
-            console.log(`PIN 검증 요청: ${email}, PIN: ${pin}`);
-            if (data.success) {
-                isEmailVerified = true;
-                clearInterval(pinTimerInterval);
-                pinTimerMessage.textContent =
-                    data.message || '이메일 인증이 완료되었습니다.';
-                pinTimerMessage.style.color = '#4bb92c';
-                pinInputContainer.classList.remove('show');
-                registerInput.email.disabled = true;
-                sendPinButton.disabled = true;
-                sendPinButton.textContent = '인증 완료';
-                let notice = new NoticeBox(
-                    data.message || '이메일 인증이 완료되었습니다.',
-                    'success'
-                );
-                notice.show();
-            } else {
-                isEmailVerified = false;
-                pinTimerMessage.textContent =
-                    data.message || '인증번호가 올바르지 않습니다.';
-                pinTimerMessage.style.color = '#f47c7c';
-                let notice = new NoticeBox(
-                    data.message || '인증번호가 올바르지 않습니다.',
-                    'error'
-                );
-                notice.show();
-            }
-        })
-        .catch((error) => {
-            console.error('PIN 검증 실패:', error);
+    try {
+        const response = await apiClient.post('/api/v1/auth/verify-pin', {
+            email,
+            pin
+        });
+        const data = await response.json();
+
+        console.log(`PIN 검증 요청: ${email}, PIN: ${pin}`);
+        if (data.success) {
+            isEmailVerified = true;
+            clearInterval(pinTimerInterval);
             pinTimerMessage.textContent =
-                '인증번호 확인 중 오류가 발생했습니다. 다시 시도해주세요.';
+                data.message || '이메일 인증이 완료되었습니다.';
+            pinTimerMessage.style.color = '#4bb92c';
+            pinInputContainer.classList.remove('show');
+            registerInput.email.disabled = true;
+            sendPinButton.disabled = true;
+            sendPinButton.textContent = '인증 완료';
+            let notice = new NoticeBox(
+                data.message || '이메일 인증이 완료되었습니다.',
+                'success'
+            );
+            notice.show();
+        } else {
+            isEmailVerified = false;
+            pinTimerMessage.textContent =
+                data.message || '인증번호가 올바르지 않습니다.';
             pinTimerMessage.style.color = '#f47c7c';
             let notice = new NoticeBox(
-                '인증번호 확인 중 오류가 발생했습니다.',
+                data.message || '인증번호가 올바르지 않습니다.',
                 'error'
             );
             notice.show();
-        });
-    verifyPinButton.disabled = false;
-    verifyPinButton.textContent = '인증 확인';
+        }
+    } catch (error) {
+        console.error('PIN 검증 실패:', error);
+        pinTimerMessage.textContent =
+            '인증번호 확인 중 오류가 발생했습니다. 다시 시도해주세요.';
+        pinTimerMessage.style.color = '#f47c7c';
+        let notice = new NoticeBox(
+            '인증번호 확인 중 오류가 발생했습니다.',
+            'error'
+        );
+        notice.show();
+    } finally {
+        isVerifyingPin = false;
+        verifyPinButton.disabled = false;
+        verifyPinButton.textContent = '인증 확인';
+    }
 });
 
 function startPinTimer() {

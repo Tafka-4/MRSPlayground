@@ -1,9 +1,12 @@
 import NoticeBox from './module/notice.js';
 import apiClient from './module/api.js';
+import escape from './module/escape.js';
 
 class MyPage {
     constructor() {
         this.currentUser = null;
+        this.isLoggingOut = false;
+        this.isDeletingAccount = false;
         this.init();
     }
 
@@ -66,7 +69,7 @@ class MyPage {
             } else {
                 document.getElementById('username').innerHTML =
                     "<span style='color:rgb(247, 49, 49);'>[거짓말쟁이] </span> " +
-                        this.currentUser.nickname || '정보 없음';
+                        escape(this.currentUser.nickname) || '정보 없음';
                 adminButton.style.transition = 'transform 0.3s ease';
                 const degree = Math.floor(Math.random() * 360);
                 adminButton.style.transform = `rotate(${degree}deg)`;
@@ -100,10 +103,10 @@ class MyPage {
         if (this.currentUser.authority === 'admin') {
             document.getElementById('username').innerHTML =
                 "<span style='color:rgb(234, 178, 47);'>[관리자]</span> " +
-                    this.currentUser.nickname || '정보 없음';
+                    escape(this.currentUser.nickname) || '정보 없음';
         } else {
             document.getElementById('username').innerHTML =
-                this.currentUser.nickname || '정보 없음';
+                escape(this.currentUser.nickname) || '정보 없음';
         }
         document.getElementById('email').textContent =
             this.currentUser.email || '정보 없음';
@@ -176,6 +179,9 @@ class MyPage {
     }
 
     async handleLogout() {
+        if (this.isLoggingOut) return;
+        this.isLoggingOut = true;
+
         try {
             const response = await apiClient.post('/api/v1/auth/logout');
 
@@ -193,6 +199,8 @@ class MyPage {
         } catch (error) {
             console.error('로그아웃 실패:', error);
             new NoticeBox('로그아웃에 실패했습니다.', 'error').show();
+        } finally {
+            this.isLoggingOut = false;
         }
     }
 
@@ -293,6 +301,9 @@ class MyPage {
     }
 
     async handleAccountDelete() {
+        if (this.isDeletingAccount) return;
+        this.isDeletingAccount = true;
+
         try {
             const response = await apiClient.delete('/api/v1/users/delete');
 
@@ -318,9 +329,10 @@ class MyPage {
         } catch (error) {
             console.error('계정 삭제 실패:', error);
             new NoticeBox('계정 삭제 중 오류가 발생했습니다.', 'error').show();
+        } finally {
+            this.hideDeleteModal();
+            this.isDeletingAccount = false;
         }
-
-        this.hideDeleteModal();
     }
 }
 

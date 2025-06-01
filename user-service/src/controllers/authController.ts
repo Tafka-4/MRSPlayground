@@ -1,6 +1,5 @@
 import { Request, Response, RequestHandler } from 'express';
 import { randomBytes } from 'crypto';
-import { escape } from 'html-escaper';
 import { User } from '../models/User.js';
 import { redisClient } from '../config/redis.js';
 import { sendMail } from '../utils/sendMail.js';
@@ -12,16 +11,17 @@ import {
     UserNotValidPasswordError,
     UserError,
     UserNotLoginError,
-    UserTokenVerificationFailedError
+    UserTokenVerificationFailedError,
+    UserNotAdminError,
+    UserAlreadyVerifiedError,
+    UserNotVerifiedError
 } from '../utils/errors.js';
 import jwt from 'jsonwebtoken';
 
-// Custom JWT payload interface
 interface JwtPayloadWithUserId extends jwt.JwtPayload {
     userid: string;
 }
 
-// Authentication methods
 export const registerUser: RequestHandler = async (
     req: Request,
     res: Response
@@ -55,10 +55,10 @@ export const registerUser: RequestHandler = async (
         throw new AuthError('이메일 인증이 완료되지 않았습니다');
     }
     const userData = {
-        id: escape(id),
+        id: id,
         password: password,
         email: email,
-        nickname: nickname ? escape(nickname) : escape(id),
+        nickname: nickname ? nickname : id,
         authority: 'user' as const,
         description: '',
         profileImage: ''
@@ -110,6 +110,8 @@ export const loginUser: RequestHandler = async (
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         path: '/'
     });
+
+    await redisClient.del(`${user.email}:isVerified`);
 
     res.status(200).json({
         success: true,
@@ -193,19 +195,48 @@ export const refreshToken: RequestHandler = async (
     }
 };
 
+// Helper functions for checkToken
+const getCachedOrFreshUser = async (userid: string, forceRefresh: boolean) => {
+    if (forceRefresh) {
+        return null;
+    }
+
+    const cachedUser = await redisClient.get(`user:${userid}`);
+    return cachedUser ? JSON.parse(cachedUser) : null;
+};
+
+const fetchAndCacheUser = async (userid: string) => {
+    const dbUser = await User.findOne({ userid });
+    if (!dbUser) {
+        return null;
+    }
+
+    const user = {
+        userid: dbUser.userid,
+        id: dbUser.id,
+        nickname: dbUser.nickname,
+        email: dbUser.email,
+        authority: dbUser.authority,
+        description: dbUser.description,
+        profileImage: dbUser.profileImage
+    };
+
+    await redisClient.set(`user:${userid}`, JSON.stringify(user), {
+        EX: 60 * 30
+    });
+
+    return { user, dbUser };
+};
+
+// login required
 export const checkToken: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
     try {
         const refreshToken = req.cookies.refreshToken;
-
         if (!refreshToken) {
-            res.status(401).json({
-                success: false,
-                error: '리프레시 토큰을 찾을 수 없습니다'
-            });
-            return;
+            throw new UserNotLoginError('리프레시 토큰을 찾을 수 없습니다');
         }
 
         const decoded = jwt.verify(
@@ -213,52 +244,30 @@ export const checkToken: RequestHandler = async (
             process.env.JWT_SECRET as string
         ) as JwtPayloadWithUserId;
 
-        const cachedUser = await redisClient.get(`user:${decoded.userid}`);
-        let user;
+        const forceRefresh = req.query.forceRefresh === 'true';
 
-        if (cachedUser) {
-            user = JSON.parse(cachedUser);
-        } else {
-            const dbUser = await User.findOne({ userid: decoded.userid });
-            if (!dbUser) {
-                res.status(401).json({
-                    success: false,
-                    error: '사용자를 찾을 수 없습니다'
-                });
-                return;
+        let user = await getCachedOrFreshUser(decoded.userid, forceRefresh);
+        let dbUser;
+
+        if (!user) {
+            const result = await fetchAndCacheUser(decoded.userid);
+            if (!result) {
+                throw new UserNotFoundError('사용자를 찾을 수 없습니다');
             }
-
-            user = {
-                userid: dbUser.userid,
-                id: dbUser.id,
-                nickname: dbUser.nickname,
-                email: dbUser.email,
-                authority: dbUser.authority,
-                description: dbUser.description,
-                profileImage: dbUser.profileImage
-            };
-
-            await redisClient.set(
-                `user:${decoded.userid}`,
-                JSON.stringify(user),
-                {
-                    EX: 60 * 30
-                }
-            );
+            user = result.user;
+            dbUser = result.dbUser;
+        } else {
+            dbUser = await User.findOne({ userid: decoded.userid });
+            if (!dbUser) {
+                throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+            }
         }
 
-        const storedRefreshToken = await redisClient.get(
-            `${user.userid}:refreshToken`
-        );
-
-        if (!storedRefreshToken) {
-            await redisClient.set(`${user.userid}:refreshToken`, refreshToken);
-        } else if (storedRefreshToken !== refreshToken) {
-            res.status(401).json({
-                success: false,
-                error: '유효하지 않은 토큰입니다'
-            });
-            return;
+        const isValidToken = await dbUser.validateRefreshToken(refreshToken);
+        if (!isValidToken) {
+            throw new UserTokenVerificationFailedError(
+                '유효하지 않은 토큰입니다'
+            );
         }
 
         res.status(200).json({
@@ -267,11 +276,9 @@ export const checkToken: RequestHandler = async (
         });
     } catch (error) {
         if (error instanceof jwt.JsonWebTokenError) {
-            res.status(401).json({
-                success: false,
-                error: '유효하지 않은 리프레시 토큰입니다'
-            });
-            return;
+            throw new UserTokenVerificationFailedError(
+                '유효하지 않은 리프레시 토큰입니다'
+            );
         }
         console.error('Check token error:', error);
         res.status(500).json({
@@ -281,46 +288,16 @@ export const checkToken: RequestHandler = async (
     }
 };
 
-// Get current user info (login required)
+// login required
 export const getCurrentUser: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
     try {
-        const refreshToken = req.cookies.refreshToken;
-        if (!refreshToken) {
-            res.status(401).json({
-                success: false,
-                message: '로그인이 필요합니다'
-            });
-            return;
-        }
-
-        const decoded = jwt.verify(
-            refreshToken,
-            process.env.JWT_SECRET as string
-        ) as JwtPayloadWithUserId;
-        const user = await User.findOne({ userid: decoded.userid });
-
+        const user = (req as any).user;
         if (!user) {
-            res.status(401).json({
-                success: false,
-                message: '사용자를 찾을 수 없습니다'
-            });
-            return;
+            throw new UserNotFoundError('사용자를 찾을 수 없습니다');
         }
-
-        const storedRefreshToken = await redisClient.get(
-            `${user.userid}:refreshToken`
-        );
-        if (!storedRefreshToken || storedRefreshToken !== refreshToken) {
-            res.status(401).json({
-                success: false,
-                message: '유효하지 않은 토큰입니다'
-            });
-            return;
-        }
-
         res.status(200).json(user.toJSON());
     } catch (error) {
         res.status(401).json({
@@ -330,9 +307,14 @@ export const getCurrentUser: RequestHandler = async (
     }
 };
 
-// Email verification methods
+// email verification methods
 export const sendVerificationEmail: RequestHandler = async (req, res) => {
     const { email } = req.body;
+    const isVerified = await redisClient.get(`${email}:isVerified`);
+    const isDuplicate = await User.findOne({ email });
+    if (isVerified || isDuplicate) {
+        throw new AuthError('이미 인증된 이메일입니다');
+    }
     const verificationCode = Math.floor(
         100000 + Math.random() * 900000
     ).toString();
@@ -447,9 +429,22 @@ export const changePassword: RequestHandler = async (req, res) => {
         { userid: currentUser.userid },
         { password: newPassword }
     );
+
+    // Revoke all refresh tokens for security after password change
+    await currentUser.revokeAllRefreshTokens();
+
+    // Clear current session cookie
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+    });
+
     res.status(200).json({
         success: true,
-        message: '비밀번호가 성공적으로 변경되었습니다'
+        message:
+            '비밀번호가 성공적으로 변경되었습니다. 보안을 위해 다시 로그인해주세요.'
     });
 };
 
@@ -505,8 +500,8 @@ export const resetPasswordMailSend: RequestHandler = async (req, res) => {
 
 // admin required
 export const setAdmin: RequestHandler = async (req, res) => {
-    const { userid } = req.body;
-    const user = await User.findOne({ userid });
+    const { target } = req.params;
+    const user = await User.findOne({ userid: target });
     if (!user) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
@@ -515,9 +510,218 @@ export const setAdmin: RequestHandler = async (req, res) => {
             '이미 관리자 권한을 가진 사용자입니다'
         );
     }
-    await User.findOneAndUpdate({ userid }, { authority: 'admin' });
+    await User.findOneAndUpdate({ userid: target }, { authority: 'admin' });
     res.status(200).json({
         success: true,
         message: '관리자 권한이 성공적으로 설정되었습니다'
+    });
+};
+
+//admin required
+export const unSetAdmin: RequestHandler = async (req, res) => {
+    const { target } = req.params;
+    const adminUser = (req as any).user;
+    const targetUser = await User.findOne({ userid: target });
+    if (!targetUser) {
+        throw new UserNotFoundError('대상 사용자를 찾을 수 없습니다');
+    }
+    if (!adminUser) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+    if (adminUser.authority !== 'admin') {
+        throw new UserNotAdminError('관리자 권한이 없습니다');
+    }
+    if (targetUser.authority !== 'admin') {
+        throw new UserNotAdminError('대상 사용자가 관리자가 아닙니다');
+    }
+    await User.findOneAndUpdate({ userid: target }, { authority: 'user' });
+    res.status(200).json({
+        success: true,
+        message: '관리자 권한이 성공적으로 제거되었습니다'
+    });
+};
+
+export const verifyUser: RequestHandler = async (req, res) => {
+    const { target } = req.params;
+    const user = await User.findOne({ userid: target });
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+    if (user.isVerified) {
+        throw new UserAlreadyVerifiedError('이미 인증된 사용자입니다');
+    }
+    await User.findOneAndUpdate({ userid: target }, { isVerified: true });
+    res.status(200).json({
+        success: true,
+        message: '사용자가 성공적으로 인증되었습니다'
+    });
+};
+
+//admin required
+export const unVerifyUser: RequestHandler = async (req, res) => {
+    const { target } = req.params;
+    const user = await User.findOne({ userid: target });
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+    if (!user.isVerified) {
+        throw new UserNotVerifiedError('인증되지 않은 사용자입니다');
+    }
+    await User.findOneAndUpdate({ userid: target }, { isVerified: false });
+    res.status(200).json({
+        success: true,
+        message: '사용자가 성공적으로 인증 해제되었습니다'
+    });
+};
+
+//admin required
+export const adminUserDelete: RequestHandler = async (req, res) => {
+    const { target } = req.params;
+    const user = (req as any).user;
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+    if (user.authority !== 'admin') {
+        throw new UserNotAdminError('관리자 권한이 없습니다');
+    }
+    if (!target) {
+        throw new UserError('삭제할 사용자의 userid를 입력해주세요');
+    }
+    if (target === user.userid) {
+        throw new UserError('자신의 계정을 삭제할 수 없습니다');
+    }
+    await User.deleteOne({ userid: target });
+
+    res.status(200).json({
+        success: true,
+        message: '사용자가 성공적으로 삭제되었습니다'
+    });
+};
+
+//admin required
+export const adminUserList: RequestHandler = async (req, res) => {
+    const user = (req as any).user;
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+    if (user.authority !== 'admin') {
+        throw new UserNotAdminError('관리자 권한이 없습니다');
+    }
+    const users = await User.find({ authority: 'admin' });
+    res.status(200).json({
+        success: true,
+        message: '관리자 목록',
+        users: users.map((user) => user.toJSON())
+    });
+};
+
+// security and token management endpoints
+
+// login required
+export const getActiveTokens: RequestHandler = async (req, res) => {
+    const user = (req as any).user;
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+
+    const activeTokens = await user.getActiveRefreshTokens();
+    res.status(200).json({
+        success: true,
+        message: '활성 토큰 목록',
+        tokens: activeTokens
+    });
+};
+
+// login required
+export const revokeAllOtherTokens: RequestHandler = async (req, res) => {
+    const user = (req as any).user;
+    const currentRefreshToken = req.cookies.refreshToken;
+
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+
+    if (!currentRefreshToken) {
+        throw new UserNotLoginError('현재 토큰을 찾을 수 없습니다');
+    }
+
+    // Validate current token first
+    try {
+        await user.refresh(currentRefreshToken);
+    } catch (error) {
+        throw new UserTokenVerificationFailedError(
+            '현재 토큰이 유효하지 않습니다'
+        );
+    }
+
+    // Revoke all tokens except current one
+    await user.revokeAllRefreshTokens();
+
+    // Re-create current session token
+    const tokens = await user.generateTokens();
+
+    res.cookie('refreshToken', tokens.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        path: '/'
+    });
+
+    res.status(200).json({
+        success: true,
+        message: '다른 모든 세션이 종료되었습니다',
+        accessToken: tokens.accessToken
+    });
+};
+
+// admin required
+export const adminRevokeUserTokens: RequestHandler = async (req, res) => {
+    const { userid } = req.body;
+    const adminUser = (req as any).user;
+
+    if (!adminUser) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+
+    if (adminUser.authority !== 'admin') {
+        throw new UserNotAdminError('관리자 권한이 없습니다');
+    }
+
+    const targetUser = await User.findOne({ userid });
+    if (!targetUser) {
+        throw new UserNotFoundError('대상 사용자를 찾을 수 없습니다');
+    }
+
+    await targetUser.revokeAllRefreshTokens();
+
+    res.status(200).json({
+        success: true,
+        message: `사용자 ${targetUser.nickname}의 모든 세션이 강제 종료되었습니다`
+    });
+};
+
+// admin required
+export const systemCleanup: RequestHandler = async (req, res) => {
+    const user = (req as any).user;
+
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+
+    if (user.authority !== 'admin') {
+        throw new UserNotAdminError('관리자 권한이 없습니다');
+    }
+
+    const result = await User.performMaintenanceCleanup();
+
+    res.status(200).json({
+        success: true,
+        message: '시스템 정리가 완료되었습니다',
+        result: {
+            revokedExpiredTokens: result.revokedExpiredTokens,
+            deletedOldTokens: result.deletedTokens
+        }
     });
 };

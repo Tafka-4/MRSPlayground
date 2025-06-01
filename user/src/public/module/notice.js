@@ -1,38 +1,39 @@
-import Animation from "./animation.js";
+import Animation from './animation.js';
+import escape from './escape.js';
 
 class NoticeBox {
     static activeNotices = [];
     constructor(message, type, displayImage = null) {
         this.id = Math.random().toString(36).substring(2, 15);
-        this.noticeBox = document.createElement("div");
-        this.message = message;
-        this.type = type;
+        this.noticeBox = document.createElement('div');
+        this.message = escape(message);
+        this.type = escape(type);
         this.displayImage = displayImage;
         this.noticeBox.innerHTML = this.#noticeBoxSegement();
-        this.noticeBox.addEventListener("click", () => {
+        this.noticeBox.addEventListener('click', () => {
             this.#destroy();
         });
         this.#styleNoticeBox(this.#getColorForType(this.type));
         this.noticeBox.classList.add(`notice-box-${this.type}`);
 
         switch (type) {
-            case "success":
-                this.animation = new Animation(this.noticeBox, "easeInOut");
+            case 'success':
+                this.animation = new Animation(this.noticeBox, 'easeInOut');
                 break;
-            case "warning":
-                this.animation = new Animation(this.noticeBox, "easeInOut");
+            case 'warning':
+                this.animation = new Animation(this.noticeBox, 'easeInOut');
                 break;
-            case "error":
-                this.animation = new Animation(this.noticeBox, "easeInOut");
+            case 'error':
+                this.animation = new Animation(this.noticeBox, 'easeInOut');
                 break;
             default:
-                this.animation = new Animation(this.noticeBox, "easeInOut");
+                this.animation = new Animation(this.noticeBox, 'easeInOut');
                 break;
         }
     }
 
     show() {
-        const noticeContainer = document.querySelector(".notice-container");
+        const noticeContainer = document.querySelector('.notice-container');
         noticeContainer.appendChild(this.noticeBox);
         NoticeBox.activeNotices.push(this);
 
@@ -76,7 +77,7 @@ class NoticeBox {
             return;
         }
 
-        const styleElement = document.createElement("style");
+        const styleElement = document.createElement('style');
         styleElement.id = styleId;
         styleElement.innerHTML = `
             .notice-box-${this.type} {
@@ -100,14 +101,14 @@ class NoticeBox {
 
     #getColorForType(type) {
         switch (type) {
-            case "success":
-                return "#4CAF50";
-            case "warning":
-                return "#FFC107";
-            case "error":
-                return "#F44336";
+            case 'success':
+                return '#4CAF50';
+            case 'warning':
+                return '#FFC107';
+            case 'error':
+                return '#F44336';
             default:
-                return "#007bff";
+                return '#007bff';
         }
     }
 
@@ -118,7 +119,7 @@ class NoticeBox {
                 ${
                     this.displayImage
                         ? `<img src="${this.displayImage}" alt="displayImage" width="100px" height="100px">`
-                        : ""
+                        : ''
                 }
             </div>
             <div class="notice-box-${this.type}-content">

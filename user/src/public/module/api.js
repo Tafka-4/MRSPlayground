@@ -8,6 +8,10 @@ class ApiClient {
         this.maxRefreshAttempts = 3;
     }
 
+    generateRequestId() {
+        return crypto.randomUUID();
+    }
+
     async makeRequest(url, options = {}) {
         if (this.isRedirecting) {
             console.log('리다이렉션 중이므로 요청 취소');
@@ -15,16 +19,34 @@ class ApiClient {
         }
 
         const token = localStorage.getItem('accessToken');
+        const { query, ...restOptions } = options;
+        const requestId = this.generateRequestId();
+
+        let requestUrl = url;
+        if (query && typeof query === 'object') {
+            const searchParams = new URLSearchParams();
+            Object.entries(query).forEach(([key, value]) => {
+                if (value !== null && value !== undefined) {
+                    searchParams.append(key, value);
+                }
+            });
+            const queryString = searchParams.toString();
+            if (queryString) {
+                requestUrl += (url.includes('?') ? '&' : '?') + queryString;
+            }
+        }
+
         const requestOptions = {
-            ...options,
+            ...restOptions,
             credentials: 'include',
             headers: {
                 Authorization: `Bearer ${token}`,
-                ...options.headers
+                'X-Request-ID': requestId,
+                ...restOptions.headers
             }
         };
 
-        let response = await fetch(url, requestOptions);
+        let response = await fetch(requestUrl, requestOptions);
 
         if (response.status !== 401) {
             this.refreshAttempts = 0;
@@ -48,7 +70,8 @@ class ApiClient {
 
         console.log('토큰 갱신 성공, 요청 재시도');
         requestOptions.headers['Authorization'] = `Bearer ${newToken}`;
-        return await fetch(url, requestOptions);
+        requestOptions.headers['X-Request-ID'] = this.generateRequestId();
+        return await fetch(requestUrl, requestOptions);
     }
 
     async refreshToken() {
@@ -80,7 +103,10 @@ class ApiClient {
         try {
             const refreshResponse = await fetch('/api/v1/auth/refresh', {
                 method: 'POST',
-                credentials: 'include'
+                credentials: 'include',
+                headers: {
+                    'X-Request-ID': this.generateRequestId()
+                }
             });
 
             if (!refreshResponse.ok) {

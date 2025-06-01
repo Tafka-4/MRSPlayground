@@ -14,11 +14,34 @@ const dbConfig = {
     queueLimit: 0
 };
 
+const requestdbConfig = {
+    host: process.env.REQDB_HOST || 'requestdb',
+    user: process.env.REQDB_USER || 'root',
+    password: process.env.REQDB_PASSWORD || 'root',
+    database: process.env.REQDB_NAME || 'requestapi',
+    port: parseInt(process.env.REQDB_PORT || '3306'),
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+};
+
 export const pool = mysql.createPool(dbConfig);
+export const requestPool = mysql.createPool(requestdbConfig);
 
 export const checkDatabaseConnection = async (): Promise<boolean> => {
     try {
         const connection = await pool.getConnection();
+        await connection.ping();
+        connection.release();
+        return true;
+    } catch (error) {
+        return false;
+    }
+};
+
+export const checkRequestDatabaseConnection = async (): Promise<boolean> => {
+    try {
+        const connection = await requestPool.getConnection();
         await connection.ping();
         connection.release();
         return true;
@@ -35,26 +58,29 @@ export const waitForDatabase = async (
 
     while (retries < maxRetries) {
         try {
-            console.log(`DB 연결 시도 중... (${retries + 1}/${maxRetries})`);
+            console.log(
+                `Try to connect to database... (${retries + 1}/${maxRetries})`
+            );
 
             const isConnected = await checkDatabaseConnection();
-            if (isConnected) {
-                console.log('DB 연결 성공!');
+            const isRequestConnected = await checkRequestDatabaseConnection();
+            if (isConnected && isRequestConnected) {
+                console.log('DB Connected!');
                 return;
             }
-            throw new Error('DB 연결 실패');
+            throw new Error('DB Connection Failed');
         } catch (error) {
             retries++;
             if (retries >= maxRetries) {
-                console.error('DB 연결 최대 재시도 횟수 초과:', error);
+                console.error('DB Connection Failed:', error);
                 throw new Error(
-                    `DB 연결에 실패했습니다. ${maxRetries}번 재시도 후에도 연결할 수 없습니다.`
+                    `DB Connection Failed. ${maxRetries} times retry failed.`
                 );
             }
             console.log(
-                `DB 연결 실패. ${
+                `DB Connection Failed. ${
                     retryInterval / 1000
-                }초 후 재시도... (${retries}/${maxRetries})`
+                } seconds later retry... (${retries}/${maxRetries})`
             );
             await new Promise((resolve) => setTimeout(resolve, retryInterval));
         }
@@ -67,23 +93,44 @@ export const initDatabase = async () => {
 
         const connection = await pool.getConnection();
 
+        // Create users table
         await connection.execute(`
-      CREATE TABLE IF NOT EXISTS users (
-        userid VARCHAR(36) UNIQUE NOT NULL,
-        id VARCHAR(255) UNIQUE NOT NULL,
-        nickname VARCHAR(255) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        isVerified BOOLEAN DEFAULT FALSE,
-        authority ENUM('user', 'admin') DEFAULT 'user',
-        description TEXT,
-        profileImage VARCHAR(500) DEFAULT '',
-        createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      )
-    `);
+            CREATE TABLE IF NOT EXISTS users (
+                userid VARCHAR(36) UNIQUE NOT NULL,
+                id VARCHAR(255) UNIQUE NOT NULL,
+                nickname VARCHAR(255) NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                isVerified BOOLEAN DEFAULT FALSE,
+                authority ENUM('user', 'admin') DEFAULT 'user',
+                description TEXT,
+                profileImage VARCHAR(500) DEFAULT '',
+                createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+            );
+        `);
+
+        // Create refresh_tokens table
+        await connection.execute(`
+            CREATE TABLE IF NOT EXISTS refresh_tokens (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                userid VARCHAR(36) NOT NULL,
+                refresh_token TEXT NOT NULL,
+                issued_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NOT NULL,
+                is_revoked BOOLEAN DEFAULT FALSE,
+                createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_userid (userid),
+                INDEX idx_refresh_token (refresh_token(255)),
+                INDEX idx_expires_at (expires_at),
+                INDEX idx_is_revoked (is_revoked),
+                FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE CASCADE
+            );
+        `);
 
         connection.release();
+
         console.log('Database initialized successfully');
     } catch (error) {
         console.error('Database initialization failed:', error);
