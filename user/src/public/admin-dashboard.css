@@ -75,14 +75,20 @@ body {
 }
 
 .nav-button.secondary {
-    width: auto;
     text-align: center;
-    margin-left: 10px;
+    justify-content: center;
     background-color: rgb(100, 100, 100);
 }
 
 .nav-button.secondary:hover {
     background-color: rgb(80, 80, 80);
+}
+
+button.nav-button.secondary {
+    height: 40px;
+    width: 160px;
+    min-width: 160px;
+    flex: none;
 }
 
 .dashboard-grid {
@@ -153,6 +159,27 @@ body {
 .log-controls {
     display: flex;
     gap: 0.5rem;
+}
+
+.activity-header .card-title {
+    text-align: center;
+    margin-bottom: 0.5rem;
+}
+
+.activity-header .log-controls {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    justify-content: center;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.log-controls button.nav-button.secondary {
+    width: 120px;
+    min-width: 120px;
+    height: 40px;
+    flex: none;
 }
 
 .activity-list {
@@ -333,6 +360,31 @@ body {
 
     .admin-nav {
         flex-direction: column;
+    }
+
+    .log-monitoring .activity-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .log-monitoring .activity-header .card-title {
+        text-align: center;
+        margin-bottom: 0.5rem;
+        width: 100%;
+    }
+
+    .log-monitoring .activity-header .log-controls {
+        display: flex;
+        flex-direction: row;
+        gap: 0.5rem;
+        justify-content: center;
+        width: 100%;
+        flex-wrap: wrap;
     }
 
     .dashboard-grid {
