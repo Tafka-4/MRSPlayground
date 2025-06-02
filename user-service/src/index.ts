@@ -4,12 +4,14 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
+import { createServer } from 'http';
 import { initDatabase } from './config/database.js';
 import { connectRedis } from './config/redis.js';
 import userRoutes from './routes/userRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import logRoutes from './routes/logRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import LogWebSocketServer from './websocket/logSocket.js';
 
 dotenv.config();
 
@@ -80,8 +82,31 @@ const startServer = async () => {
         await initDatabase();
         await connectRedis();
 
-        app.listen(PORT, '0.0.0.0', () => {
+        const server = createServer(app);
+
+        const logWebSocketServer = new LogWebSocketServer(server);
+
+        server.listen(PORT, '0.0.0.0', () => {
             console.log(`User Service running on port ${PORT}`);
+            console.log(
+                `WebSocket endpoint available at ws://localhost:${PORT}/ws/logs`
+            );
+        });
+
+        process.on('SIGTERM', () => {
+            console.log('SIGTERM received, shutting down gracefully');
+            logWebSocketServer.stop();
+            server.close(() => {
+                process.exit(0);
+            });
+        });
+
+        process.on('SIGINT', () => {
+            console.log('SIGINT received, shutting down gracefully');
+            logWebSocketServer.stop();
+            server.close(() => {
+                process.exit(0);
+            });
         });
     } catch (error) {
         console.error('Failed to start server:', error);

@@ -8,217 +8,256 @@ const safeNumber = (value: any, defaultValue: number = 0): number => {
 };
 
 const validatePagination = (page: any, limit: any) => {
-    const safePageNum = safeNumber(page, 1);
-    const safeLimitNum = safeNumber(limit, 10);
-
-    const validatedPage = Math.max(1, Math.floor(safePageNum));
-    const validatedLimit = Math.min(Math.max(1, Math.floor(safeLimitNum)), 100);
-
-    return {
-        page: validatedPage,
-        limit: validatedLimit
-    };
+    const safePage = Math.max(1, safeNumber(page, 1));
+    const safeLimit = Math.min(Math.max(1, safeNumber(limit, 10)), 100);
+    return { page: safePage, limit: safeLimit };
 };
 
-export const getUserRequestLogs = async (req: Request, res: Response) => {
+const checkDatabaseConnection = async (): Promise<boolean> => {
     try {
-        const { page = 1, limit = 10, status, userId } = req.query;
-        const { page: safePage, limit: safeLimit } = validatePagination(
-            page,
-            limit
-        );
-        const offset = (safePage - 1) * safeLimit;
-
-        let query = 'SELECT * FROM user_requests WHERE 1=1';
-        const params: any[] = [];
-
-        if (status && typeof status === 'string' && status.trim()) {
-            const validStatuses = ['pending', 'success', 'failed'];
-            if (validStatuses.includes(status.trim())) {
-                query += ' AND status = ?';
-                params.push(status.trim());
-            }
-        }
-
-        if (userId && typeof userId === 'string' && userId.trim()) {
-            query += ' AND user_id = ?';
-            params.push(userId.trim());
-        }
-
-        query += ` ORDER BY created_at DESC LIMIT ${safeLimit} OFFSET ${offset}`;
-
-        const [logs] = (await requestPool.execute(query, params)) as any[];
-
-        const userIds = [
-            ...new Set(
-                logs
-                    .map((log: any) => log.user_id)
-                    .filter(
-                        (id: any) => id && typeof id === 'string' && id.trim()
-                    )
-            )
-        ];
-        let usersData: any = {};
-
-        if (userIds.length > 0) {
-            const placeholders = userIds.map(() => '?').join(',');
-            const [users] = (await pool.execute(
-                `SELECT userid, id, nickname, email FROM users WHERE userid IN (${placeholders})`,
-                userIds
-            )) as any[];
-
-            usersData = users.reduce((acc: any, user: any) => {
-                if (user.userid) {
-                    acc[user.userid] = {
-                        username: user.nickname || null,
-                        email: user.email || null,
-                        login_id: user.id || null
-                    };
-                }
-                return acc;
-            }, {});
-        }
-
-        const enrichedLogs = logs.map((log: any) => ({
-            ...log,
-            username: usersData[log.user_id]?.username || null,
-            email: usersData[log.user_id]?.email || null,
-            login_id: usersData[log.user_id]?.login_id || null
-        }));
-
-        let countQuery =
-            'SELECT COUNT(*) as total FROM user_requests WHERE 1=1';
-        const countParams: any[] = [];
-
-        if (status && typeof status === 'string' && status.trim()) {
-            const validStatuses = ['pending', 'success', 'failed'];
-            if (validStatuses.includes(status.trim())) {
-                countQuery += ' AND status = ?';
-                countParams.push(status.trim());
-            }
-        }
-
-        if (userId && typeof userId === 'string' && userId.trim()) {
-            countQuery += ' AND user_id = ?';
-            countParams.push(userId.trim());
-        }
-
-        const [countResult] = (await requestPool.execute(
-            countQuery,
-            countParams
-        )) as any[];
-        const total = safeNumber(countResult[0]?.total, 0);
-
-        res.status(200).json({
-            logs: enrichedLogs,
-            pagination: {
-                page: safePage,
-                limit: safeLimit,
-                total,
-                totalPages: Math.ceil(total / safeLimit)
-            }
-        });
+        await pool.execute('SELECT 1');
+        await requestPool.execute('SELECT 1');
+        return true;
     } catch (error) {
-        console.error('Error fetching user request logs:', error);
-        res.status(500).json({
-            error: 'Failed to fetch user request logs',
-            details:
-                process.env.NODE_ENV === 'development'
-                    ? error
-                    : 'Internal server error'
-        });
+        console.error('Database connection check failed:', error);
+        return false;
     }
 };
 
-export const getUserSpecificLogs = async (req: Request, res: Response) => {
-    try {
-        const { userId } = req.params;
-        const { page = 1, limit = 10, status } = req.query;
+interface LogFilters {
+    status?: string;
+    userId?: string;
+    route?: string;
+    ip?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    onlyMine?: boolean;
+    onlyErrors?: boolean;
+}
 
-        if (!userId || typeof userId !== 'string' || !userId.trim()) {
-            return res.status(400).json({
-                error: 'Valid userId parameter is required'
+class LogQueryBuilder {
+    private baseQuery = 'SELECT * FROM user_requests';
+    private countQuery = 'SELECT COUNT(*) as total FROM user_requests';
+    private conditions: string[] = [];
+    private params: any[] = [];
+
+    constructor(filters: LogFilters, currentUserId?: string) {
+        this.applyFilters(filters, currentUserId);
+    }
+
+    private applyFilters(filters: LogFilters, currentUserId?: string) {
+        if (filters.onlyMine && currentUserId) {
+            this.addCondition('user_id = ?', currentUserId);
+        }
+
+        if (filters.onlyErrors) {
+            this.addCondition('status = ?', 'failed');
+        }
+
+        if (
+            filters.status &&
+            ['pending', 'success', 'failed'].includes(filters.status)
+        ) {
+            this.addCondition('status = ?', filters.status);
+        }
+
+        if (filters.userId && !filters.onlyMine) {
+            this.addCondition('user_id = ?', filters.userId);
+        }
+
+        if (filters.route) {
+            this.addCondition('route LIKE ?', `%${filters.route}%`);
+        }
+
+        if (filters.ip) {
+            this.addCondition('client_ip LIKE ?', `%${filters.ip}%`);
+        }
+
+        if (filters.dateFrom) {
+            this.addCondition('created_at >= ?', filters.dateFrom);
+        }
+        if (filters.dateTo) {
+            this.addCondition('created_at <= ?', filters.dateTo);
+        }
+    }
+
+    private addCondition(condition: string, param: any) {
+        this.conditions.push(condition);
+        this.params.push(param);
+    }
+
+    buildQuery(page: number, limit: number, isExport: boolean = false): string {
+        let query = this.baseQuery;
+
+        if (this.conditions.length > 0) {
+            query += ' WHERE ' + this.conditions.join(' AND ');
+        }
+
+        query += ' ORDER BY created_at DESC';
+
+        if (!isExport) {
+            const offset = (page - 1) * limit;
+            query += ` LIMIT ${limit} OFFSET ${offset}`;
+        } else {
+            query += ' LIMIT 10000';
+        }
+
+        return query;
+    }
+
+    buildCountQuery(): string {
+        let query = this.countQuery;
+        if (this.conditions.length > 0) {
+            query += ' WHERE ' + this.conditions.join(' AND ');
+        }
+        return query;
+    }
+
+    getParams(): any[] {
+        return this.params;
+    }
+}
+
+const enrichLogsWithUserData = async (logs: any[]): Promise<any[]> => {
+    if (logs.length === 0) return logs;
+
+    const userIds = [
+        ...new Set(logs.map((log) => log.user_id).filter(Boolean))
+    ];
+    if (userIds.length === 0) return logs;
+
+    try {
+        const placeholders = userIds.map(() => '?').join(',');
+        const [users] = await pool.execute(
+            `SELECT userid, id, nickname, email FROM users WHERE userid IN (${placeholders})`,
+            userIds
+        );
+
+        const usersMap = new Map();
+        (users as any[]).forEach((user) => {
+            if (user.userid) {
+                usersMap.set(user.userid, {
+                    username: user.nickname || null,
+                    email: user.email || null,
+                    login_id: user.id || null
+                });
+            }
+        });
+
+        return logs.map((log) => ({
+            ...log,
+            ...(usersMap.get(log.user_id) || {
+                username: null,
+                email: null,
+                login_id: null
+            })
+        }));
+    } catch (error) {
+        console.error('Error enriching logs with user data:', error);
+        return logs;
+    }
+};
+
+export const getLogs = async (req: Request, res: Response) => {
+    try {
+        const isConnected = await checkDatabaseConnection();
+        if (!isConnected) {
+            return res.status(503).json({
+                success: false,
+                error: 'Database connection failed',
+                message: 'Service temporarily unavailable'
             });
         }
+
+        const {
+            page = 1,
+            limit = 10,
+            status,
+            userId,
+            route,
+            ip,
+            dateFrom,
+            dateTo,
+            export: isExport,
+            onlyMine,
+            onlyErrors
+        } = req.query;
 
         const { page: safePage, limit: safeLimit } = validatePagination(
             page,
             limit
         );
-        const offset = (safePage - 1) * safeLimit;
+        const currentUserId = req.user?.userid;
 
-        let query = 'SELECT * FROM user_requests WHERE user_id = ?';
-        const params: any[] = [userId.trim()];
+        const isAdmin = req.user?.authority === 'admin';
+        const isMyLogsRequest = onlyMine === 'true';
 
-        if (status && typeof status === 'string' && status.trim()) {
-            const validStatuses = ['pending', 'success', 'failed'];
-            if (validStatuses.includes(status.trim())) {
-                query += ' AND status = ?';
-                params.push(status.trim());
-            }
+        if (!isAdmin && !isMyLogsRequest) {
+            return res.status(403).json({
+                success: false,
+                error: 'Insufficient permissions',
+                message: 'Only admins can view all logs'
+            });
         }
 
-        query += ` ORDER BY created_at DESC LIMIT ${safeLimit} OFFSET ${offset}`;
-
-        const [logs] = (await requestPool.execute(query, params)) as any[];
-
-        let userData: any = null;
-        if (userId.trim()) {
-            const [users] = (await pool.execute(
-                'SELECT userid, id, nickname, email FROM users WHERE userid = ?',
-                [userId.trim()]
-            )) as any[];
-
-            if (users.length > 0) {
-                userData = {
-                    username: users[0].nickname || null,
-                    email: users[0].email || null,
-                    login_id: users[0].id || null
-                };
-            }
+        if (isMyLogsRequest && !currentUserId) {
+            return res.status(401).json({
+                success: false,
+                error: 'Authentication required',
+                message: 'User not authenticated'
+            });
         }
 
-        const enrichedLogs = logs.map((log: any) => ({
-            ...log,
-            username: userData?.username || null,
-            email: userData?.email || null,
-            login_id: userData?.login_id || null
-        }));
+        const filters: LogFilters = {
+            status: status as string,
+            userId: userId as string,
+            route: route as string,
+            ip: ip as string,
+            dateFrom: dateFrom as string,
+            dateTo: dateTo as string,
+            onlyMine: isMyLogsRequest,
+            onlyErrors: onlyErrors === 'true'
+        };
 
-        let countQuery =
-            'SELECT COUNT(*) as total FROM user_requests WHERE user_id = ?';
-        const countParams: any[] = [userId.trim()];
+        const queryBuilder = new LogQueryBuilder(filters, currentUserId);
+        const params = queryBuilder.getParams();
 
-        if (status && typeof status === 'string' && status.trim()) {
-            const validStatuses = ['pending', 'success', 'failed'];
-            if (validStatuses.includes(status.trim())) {
-                countQuery += ' AND status = ?';
-                countParams.push(status.trim());
-            }
-        }
+        const logsQuery = queryBuilder.buildQuery(
+            safePage,
+            safeLimit,
+            isExport === 'true'
+        );
+        const [logs] = await requestPool.execute(logsQuery, params);
 
-        const [countResult] = (await requestPool.execute(
-            countQuery,
-            countParams
-        )) as any[];
-        const total = safeNumber(countResult[0]?.total, 0);
+        const enrichedLogs = await enrichLogsWithUserData(logs as any[]);
 
-        res.status(200).json({
-            logs: enrichedLogs,
-            pagination: {
+        const response: any = {
+            success: true,
+            logs: enrichedLogs
+        };
+
+        if (isExport !== 'true') {
+            const countQuery = queryBuilder.buildCountQuery();
+            const [countResult] = await requestPool.execute(countQuery, params);
+            const total = safeNumber((countResult as any[])[0]?.total, 0);
+
+            response.pagination = {
                 page: safePage,
                 limit: safeLimit,
                 total,
                 totalPages: Math.ceil(total / safeLimit)
-            }
-        });
+            };
+        }
+
+        res.status(200).json(response);
     } catch (error) {
-        console.error('Error fetching user specific logs:', error);
+        console.error('Error fetching logs:', error);
         res.status(500).json({
-            error: 'Failed to fetch user specific logs',
+            success: false,
+            error: 'Failed to fetch logs',
             details:
                 process.env.NODE_ENV === 'development'
-                    ? error
+                    ? String(error)
                     : 'Internal server error'
         });
     }
@@ -226,13 +265,13 @@ export const getUserSpecificLogs = async (req: Request, res: Response) => {
 
 export const getLogStatistics = async (req: Request, res: Response) => {
     try {
-        const [statusStats] = (await requestPool.execute(`
+        const [statusStats] = await requestPool.execute(`
             SELECT status, COUNT(*) as count 
             FROM user_requests 
             GROUP BY status
-        `)) as any[];
+        `);
 
-        const [recentStats] = (await requestPool.execute(`
+        const [recentStats] = await requestPool.execute(`
             SELECT 
                 COUNT(*) as total_requests,
                 SUM(CASE WHEN status = 'success' THEN 1 ELSE 0 END) as successful_requests,
@@ -240,58 +279,61 @@ export const getLogStatistics = async (req: Request, res: Response) => {
                 SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_requests
             FROM user_requests 
             WHERE created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
-        `)) as any[];
+        `);
 
-        const [routeStats] = (await requestPool.execute(`
+        const [routeStats] = await requestPool.execute(`
             SELECT route, COUNT(*) as count 
             FROM user_requests 
             GROUP BY route 
             ORDER BY count DESC 
             LIMIT 10
-        `)) as any[];
+        `);
 
-        const [errorStats] = (await requestPool.execute(`
+        const [errorStats] = await requestPool.execute(`
             SELECT error_code, COUNT(*) as count 
             FROM user_requests 
             WHERE status = 'failed' AND error_code IS NOT NULL
             GROUP BY error_code 
             ORDER BY count DESC
-        `)) as any[];
-
-        const safeStatusStats = statusStats.map((stat: any) => ({
-            status: stat.status || 'unknown',
-            count: safeNumber(stat.count, 0)
-        }));
-
-        const safeRecentStats = {
-            total_requests: safeNumber(recentStats[0]?.total_requests, 0),
-            successful_requests: safeNumber(
-                recentStats[0]?.successful_requests,
-                0
-            ),
-            failed_requests: safeNumber(recentStats[0]?.failed_requests, 0),
-            pending_requests: safeNumber(recentStats[0]?.pending_requests, 0)
-        };
-
-        const safeRouteStats = routeStats.map((stat: any) => ({
-            route: stat.route || 'unknown',
-            count: safeNumber(stat.count, 0)
-        }));
-
-        const safeErrorStats = errorStats.map((stat: any) => ({
-            error_code: stat.error_code || 'unknown',
-            count: safeNumber(stat.count, 0)
-        }));
+        `);
 
         res.status(200).json({
-            status_statistics: safeStatusStats,
-            recent_24h_statistics: safeRecentStats,
-            route_statistics: safeRouteStats,
-            error_statistics: safeErrorStats
+            success: true,
+            status_statistics: (statusStats as any[]).map((stat) => ({
+                status: stat.status || 'unknown',
+                count: safeNumber(stat.count, 0)
+            })),
+            recent_24h_statistics: {
+                total_requests: safeNumber(
+                    (recentStats as any[])[0]?.total_requests,
+                    0
+                ),
+                successful_requests: safeNumber(
+                    (recentStats as any[])[0]?.successful_requests,
+                    0
+                ),
+                failed_requests: safeNumber(
+                    (recentStats as any[])[0]?.failed_requests,
+                    0
+                ),
+                pending_requests: safeNumber(
+                    (recentStats as any[])[0]?.pending_requests,
+                    0
+                )
+            },
+            route_statistics: (routeStats as any[]).map((stat) => ({
+                route: stat.route || 'unknown',
+                count: safeNumber(stat.count, 0)
+            })),
+            error_statistics: (errorStats as any[]).map((stat) => ({
+                error_code: stat.error_code || 'unknown',
+                count: safeNumber(stat.count, 0)
+            }))
         });
     } catch (error) {
         console.error('Error fetching log statistics:', error);
         res.status(500).json({
+            success: false,
             error: 'Failed to fetch log statistics',
             details:
                 process.env.NODE_ENV === 'development'
@@ -301,74 +343,15 @@ export const getLogStatistics = async (req: Request, res: Response) => {
     }
 };
 
-export const deleteLogs = async (req: Request, res: Response) => {
+export const getRouteErrors = async (req: Request, res: Response) => {
     try {
-        const { before_date, status } = req.body;
+        const { route } = req.query;
+        const { page = 1, limit = 20 } = req.query;
 
-        if (!before_date) {
+        if (!route || typeof route !== 'string') {
             return res.status(400).json({
-                error: 'before_date is required'
-            });
-        }
-
-        const date = new Date(before_date);
-        if (isNaN(date.getTime())) {
-            return res.status(400).json({
-                error: 'Invalid date format. Please use ISO format (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)'
-            });
-        }
-
-        const oneDayAgo = new Date();
-        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
-
-        if (date > oneDayAgo) {
-            return res.status(400).json({
-                error: 'Cannot delete logs from within the last 24 hours for safety reasons'
-            });
-        }
-
-        let query = 'DELETE FROM user_requests WHERE created_at < ?';
-        const params: any[] = [before_date];
-
-        if (status && typeof status === 'string' && status.trim()) {
-            const validStatuses = ['pending', 'success', 'failed'];
-            if (!validStatuses.includes(status.trim())) {
-                return res.status(400).json({
-                    error: 'Invalid status. Must be one of: pending, success, failed'
-                });
-            }
-            query += ' AND status = ?';
-            params.push(status.trim());
-        }
-
-        const [result] = (await requestPool.execute(query, params)) as any[];
-
-        res.status(200).json({
-            message: 'Logs deleted successfully',
-            deleted_count: safeNumber(result.affectedRows, 0),
-            deleted_before: before_date,
-            status_filter: status || 'all'
-        });
-    } catch (error) {
-        console.error('Error deleting logs:', error);
-        res.status(500).json({
-            error: 'Failed to delete logs',
-            details:
-                process.env.NODE_ENV === 'development'
-                    ? error
-                    : 'Internal server error'
-        });
-    }
-};
-
-export const getMyRequestLogs = async (req: Request, res: Response) => {
-    try {
-        const userId = req.user?.userid;
-        const { page = 1, limit = 10, status } = req.query;
-
-        if (!userId || typeof userId !== 'string' || !userId.trim()) {
-            return res.status(401).json({
-                error: 'User not authenticated or invalid user ID'
+                success: false,
+                error: 'Route parameter is required'
             });
         }
 
@@ -378,41 +361,68 @@ export const getMyRequestLogs = async (req: Request, res: Response) => {
         );
         const offset = (safePage - 1) * safeLimit;
 
-        let query = 'SELECT * FROM user_requests WHERE user_id = ?';
-        const params: any[] = [userId.trim()];
+        const [logs] = await requestPool.execute(
+            `
+            SELECT 
+                request_id, user_id, route, status, created_at, updated_at,
+                client_ip, user_agent, error_code, error_message, retry_count
+            FROM user_requests 
+            WHERE route = ? AND status = 'failed'
+            ORDER BY created_at DESC 
+            LIMIT ${safeLimit} OFFSET ${offset}
+        `,
+            [route]
+        );
 
-        if (status && typeof status === 'string' && status.trim()) {
-            const validStatuses = ['pending', 'success', 'failed'];
-            if (validStatuses.includes(status.trim())) {
-                query += ' AND status = ?';
-                params.push(status.trim());
-            }
-        }
+        const [errorStats] = await requestPool.execute(
+            `
+            SELECT 
+                error_code, error_message, COUNT(*) as count,
+                MAX(created_at) as last_occurrence
+            FROM user_requests 
+            WHERE route = ? AND status = 'failed' AND error_code IS NOT NULL
+            GROUP BY error_code, error_message
+            ORDER BY count DESC
+        `,
+            [route]
+        );
 
-        query += ` ORDER BY created_at DESC LIMIT ${safeLimit} OFFSET ${offset}`;
+        const [timeStats] = await requestPool.execute(
+            `
+            SELECT 
+                DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00') as hour_period,
+                COUNT(*) as error_count
+            FROM user_requests 
+            WHERE route = ? AND status = 'failed' 
+                AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            GROUP BY hour_period
+            ORDER BY hour_period DESC
+        `,
+            [route]
+        );
 
-        const [logs] = (await requestPool.execute(query, params)) as any[];
+        const [countResult] = await requestPool.execute(
+            'SELECT COUNT(*) as total FROM user_requests WHERE route = ? AND status = "failed"',
+            [route]
+        );
 
-        let countQuery =
-            'SELECT COUNT(*) as total FROM user_requests WHERE user_id = ?';
-        const countParams: any[] = [userId.trim()];
-
-        if (status && typeof status === 'string' && status.trim()) {
-            const validStatuses = ['pending', 'success', 'failed'];
-            if (validStatuses.includes(status.trim())) {
-                countQuery += ' AND status = ?';
-                countParams.push(status.trim());
-            }
-        }
-
-        const [countResult] = (await requestPool.execute(
-            countQuery,
-            countParams
-        )) as any[];
-        const total = safeNumber(countResult[0]?.total, 0);
+        const total = safeNumber((countResult as any[])[0]?.total, 0);
+        const enrichedLogs = await enrichLogsWithUserData(logs as any[]);
 
         res.status(200).json({
-            logs,
+            success: true,
+            route,
+            error_logs: enrichedLogs,
+            error_statistics: (errorStats as any[]).map((stat) => ({
+                error_code: stat.error_code || 'unknown',
+                error_message: stat.error_message || 'No message',
+                count: safeNumber(stat.count, 0),
+                last_occurrence: stat.last_occurrence
+            })),
+            hourly_statistics: (timeStats as any[]).map((stat) => ({
+                hour: stat.hour_period,
+                error_count: safeNumber(stat.error_count, 0)
+            })),
             pagination: {
                 page: safePage,
                 limit: safeLimit,
@@ -421,13 +431,94 @@ export const getMyRequestLogs = async (req: Request, res: Response) => {
             }
         });
     } catch (error) {
-        console.error('Error fetching my request logs:', error);
+        console.error('Error fetching route error details:', error);
         res.status(500).json({
-            error: 'Failed to fetch my request logs',
+            success: false,
+            error: 'Failed to fetch route error details',
+            details:
+                process.env.NODE_ENV === 'development'
+                    ? String(error)
+                    : 'Internal server error'
+        });
+    }
+};
+
+export const deleteLogs = async (req: Request, res: Response) => {
+    try {
+        const { beforeDate, status } = req.query;
+
+        if (!beforeDate) {
+            return res.status(400).json({
+                success: false,
+                error: 'beforeDate parameter is required'
+            });
+        }
+
+        const date = new Date(beforeDate as string);
+        if (isNaN(date.getTime())) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid date format. Please use ISO format (YYYY-MM-DD or YYYY-MM-DD HH:MM:SS)'
+            });
+        }
+
+        const oneDayAgo = new Date();
+        oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+        if (date > oneDayAgo) {
+            return res.status(400).json({
+                success: false,
+                error: 'Cannot delete logs from within the last 24 hours for safety reasons'
+            });
+        }
+
+        let query = 'DELETE FROM user_requests WHERE created_at < ?';
+        const params: any[] = [beforeDate];
+
+        if (
+            status &&
+            ['pending', 'success', 'failed'].includes(status as string)
+        ) {
+            query += ' AND status = ?';
+            params.push(status);
+        }
+
+        const [result] = await requestPool.execute(query, params);
+
+        res.status(200).json({
+            success: true,
+            message: 'Logs deleted successfully',
+            deletedCount: safeNumber((result as any).affectedRows, 0),
+            deletedBefore: beforeDate,
+            statusFilter: status || 'all'
+        });
+    } catch (error) {
+        console.error('Error deleting logs:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to delete logs',
             details:
                 process.env.NODE_ENV === 'development'
                     ? error
                     : 'Internal server error'
         });
     }
+};
+
+export const getUserRequestLogs = async (req: Request, res: Response) => {
+    return getLogs(req, res);
+};
+
+export const getUserSpecificLogs = async (req: Request, res: Response) => {
+    req.query.userId = req.params.userId;
+    return getLogs(req, res);
+};
+
+export const getMyRequestLogs = async (req: Request, res: Response) => {
+    req.query.onlyMine = 'true';
+    return getLogs(req, res);
+};
+
+export const getRouteErrorDetails = async (req: Request, res: Response) => {
+    return getRouteErrors(req, res);
 };

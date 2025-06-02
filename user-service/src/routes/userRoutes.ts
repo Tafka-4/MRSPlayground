@@ -11,9 +11,17 @@ const router = Router();
 // Admin routes
 router.get(
     '/admin/statistics',
+    loginRequired,
     adminRequired,
     userRequestWatchStart,
     asyncWrapper(userController.getUserStatistics)
+);
+
+router.get(
+    '/admin/search',
+    adminRequired,
+    userRequestWatchStart,
+    asyncWrapper(userController.searchUsers)
 );
 
 // User management routes

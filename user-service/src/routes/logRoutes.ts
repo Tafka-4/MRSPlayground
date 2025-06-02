@@ -4,38 +4,36 @@ import { adminRequired } from '../middleware/admin.js';
 import asyncWrapper from '../middleware/asyncWrapper.js';
 import * as logController from '../controllers/logController.js';
 import { userRequestWatchStart } from '../middleware/userRequestWatch.js';
+
 const router = Router();
 
 router.get(
-    '/my-logs',
+    '/',
     loginRequired,
-    userRequestWatchStart,
-    asyncWrapper(logController.getMyRequestLogs)
-);
-
-router.get(
-    '/admin/logs',
     adminRequired,
     userRequestWatchStart,
-    asyncWrapper(logController.getUserRequestLogs)
+    asyncWrapper(logController.getLogs)
 );
 
 router.get(
-    '/admin/logs/user/:userId',
-    adminRequired,
-    userRequestWatchStart,
-    asyncWrapper(logController.getUserSpecificLogs)
-);
-
-router.get(
-    '/admin/logs/statistics',
+    '/statistics',
+    loginRequired,
     adminRequired,
     userRequestWatchStart,
     asyncWrapper(logController.getLogStatistics)
 );
 
+router.get(
+    '/route-errors',
+    loginRequired,
+    adminRequired,
+    userRequestWatchStart,
+    asyncWrapper(logController.getRouteErrors)
+);
+
 router.delete(
-    '/admin/logs/cleanup',
+    '/cleanup',
+    loginRequired,
     adminRequired,
     userRequestWatchStart,
     asyncWrapper(logController.deleteLogs)

@@ -40,8 +40,6 @@ export const getUserList: RequestHandler = async (
         }
     }
 
-    console.log('Final limitNumber:', limitNumber);
-
     let searchQuery: any = {};
     if (query && typeof query === 'string' && query.trim() !== '') {
         searchQuery = { nickname: { $regex: query.trim() } };
@@ -79,12 +77,17 @@ export const uploadUserProfileImage: RequestHandler = async (
     req: RequestWithFile,
     res: Response
 ) => {
-    const user = (req as any).user;
-    if (!user) {
+    const currentUser = (req as any).user;
+    if (!currentUser) {
         throw new UserNotFoundError('User not found');
     }
     if (!req.file) {
         throw new UserError('No file uploaded');
+    }
+
+    const user = await User.findOne({ userid: currentUser.userid });
+    if (!user) {
+        throw new UserNotFoundError('User not found');
     }
 
     await user.uploadProfileImage(req.file);
@@ -99,13 +102,19 @@ export const deleteUserProfileImage: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
-    const user = (req as any).user;
+    const currentUser = (req as any).user;
+    if (!currentUser) {
+        throw new UserNotFoundError('User not found');
+    }
+    if (!currentUser.profileImage) {
+        throw new UserImageDeleteFailedError('No profile image to delete');
+    }
+
+    const user = await User.findOne({ userid: currentUser.userid });
     if (!user) {
         throw new UserNotFoundError('User not found');
     }
-    if (!user.profileImage) {
-        throw new UserImageDeleteFailedError('No profile image to delete');
-    }
+
     await user.deleteProfileImage();
     res.status(200).json({ message: 'Profile image deleted successfully' });
 };
@@ -115,7 +124,12 @@ export const deleteUser: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
-    const user = (req as any).user;
+    const currentUser = (req as any).user;
+    if (!currentUser) {
+        throw new UserNotFoundError('User not found');
+    }
+
+    const user = await User.findOne({ userid: currentUser.userid });
     if (!user) {
         throw new UserNotFoundError('User not found');
     }
@@ -139,7 +153,12 @@ export const getUserSecurityInfo: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
-    const user = (req as any).user;
+    const currentUser = (req as any).user;
+    if (!currentUser) {
+        throw new UserNotFoundError('User not found');
+    }
+
+    const user = await User.findOne({ userid: currentUser.userid });
     if (!user) {
         throw new UserNotFoundError('User not found');
     }
@@ -166,7 +185,12 @@ export const cleanupMyTokens: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
-    const user = (req as any).user;
+    const currentUser = (req as any).user;
+    if (!currentUser) {
+        throw new UserNotFoundError('User not found');
+    }
+
+    const user = await User.findOne({ userid: currentUser.userid });
     if (!user) {
         throw new UserNotFoundError('User not found');
     }
@@ -186,21 +210,19 @@ export const getUserStatistics: RequestHandler = async (
 ) => {
     try {
         const [totalUsersResult] = (await pool.execute(
-            'SELECT COUNT(*) as count FROM users'
+            'SELECT COUNT(*) as total FROM users'
         )) as any[];
-        const totalUsers = totalUsersResult[0]?.count || 0;
+        const totalUsers = totalUsersResult[0]?.total || 0;
 
         const [newUsersResult] = (await pool.execute(
-            'SELECT COUNT(*) as count FROM users WHERE createdAt >= DATE_SUB(NOW(), INTERVAL 24 HOUR)'
+            'SELECT COUNT(*) as total FROM users WHERE DATE(createdAt) = CURDATE()'
         )) as any[];
-        const newUsers = newUsersResult[0]?.count || 0;
+        const newUsers = newUsersResult[0]?.total || 0;
 
-        const [activeUsersResult] = (await pool.execute(`
-            SELECT COUNT(DISTINCT rt.userid) as count 
-            FROM refresh_tokens rt 
-            WHERE rt.expires_at > NOW()
-        `)) as any[];
-        const activeUsers = activeUsersResult[0]?.count || 0;
+        const [activeUsersResult] = (await pool.execute(
+            'SELECT COUNT(DISTINCT userid) as total FROM refresh_tokens WHERE expires_at > NOW() AND issued_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
+        )) as any[];
+        const activeUsers = activeUsersResult[0]?.total || 0;
 
         res.status(200).json({
             success: true,
@@ -213,10 +235,82 @@ export const getUserStatistics: RequestHandler = async (
     } catch (error) {
         console.error('Error fetching user statistics:', error);
         res.status(500).json({
+            success: false,
             error: 'Failed to fetch user statistics',
             details:
                 process.env.NODE_ENV === 'development'
-                    ? error
+                    ? String(error)
+                    : 'Internal server error'
+        });
+    }
+};
+
+// Admin required
+export const searchUsers: RequestHandler = async (
+    req: Request,
+    res: Response
+) => {
+    try {
+        const { q, limit = 10 } = req.query;
+
+        if (!q || typeof q !== 'string' || q.trim().length < 2) {
+            res.status(400).json({
+                success: false,
+                error: 'Query parameter "q" must be at least 2 characters long'
+            });
+            return;
+        }
+
+        const searchQuery = q.trim();
+        const limitNumber = Math.min(parseInt(limit as string) || 10, 50);
+
+        const [users] = (await pool.execute(
+            `SELECT userid, id, nickname, email, createdAt 
+             FROM users 
+             WHERE (userid LIKE ? OR nickname LIKE ? OR id LIKE ?) 
+             ORDER BY 
+                CASE 
+                    WHEN userid = ? THEN 1
+                    WHEN nickname = ? THEN 2
+                    WHEN id = ? THEN 3
+                    WHEN userid LIKE ? THEN 4
+                    WHEN nickname LIKE ? THEN 5
+                    WHEN id LIKE ? THEN 6
+                    ELSE 7
+                END
+             LIMIT ?`,
+            [
+                `%${searchQuery}%`,
+                `%${searchQuery}%`,
+                `%${searchQuery}%`,
+                searchQuery,
+                searchQuery,
+                searchQuery,
+                `${searchQuery}%`,
+                `${searchQuery}%`,
+                `${searchQuery}%`,
+                limitNumber
+            ]
+        )) as any[];
+
+        res.status(200).json({
+            success: true,
+            users: users.map((user: any) => ({
+                userid: user.userid,
+                nickname: user.nickname,
+                loginId: user.id,
+                email: user.email,
+                createdAt: user.createdAt
+            }))
+        });
+    } catch (error) {
+        console.error('Error searching users:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Failed to search users',
+            details:
+                process.env.NODE_ENV === 'development'
+                    ? String(error)
                     : 'Internal server error'
         });
     }

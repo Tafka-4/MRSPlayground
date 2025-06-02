@@ -14,10 +14,18 @@
         <div class="container">
             <div class="admin-header">
                 <h1 class="title">로그 모니터링</h1>
-                <a href="/admin" class="back-button">
-                    <span class="material-symbols-outlined">arrow_back</span>
-                    대시보드로 돌아가기
-                </a>
+                <div class="header-actions">
+                    <button class="action-button export" onclick="exportLogs()">
+                        <span class="material-symbols-outlined">download</span>
+                        로그 내보내기
+                    </button>
+                    <a href="/admin" class="back-button">
+                        <span class="material-symbols-outlined"
+                            >arrow_back</span
+                        >
+                        대시보드로 돌아가기
+                    </a>
+                </div>
             </div>
 
             <div class="stats-grid">
@@ -72,56 +80,163 @@
                 </div>
             </div>
 
-            <div class="filters-section">
-                <div class="filter-group">
-                    <label>상태 필터:</label>
-                    <select id="status-filter">
-                        <option value="">전체</option>
-                        <option value="success">성공</option>
-                        <option value="failed">실패</option>
-                        <option value="pending">대기 중</option>
-                    </select>
+            <!-- 고급 필터링 섹션 -->
+            <div class="advanced-filters">
+                <div class="filter-title">
+                    <h3>고급 필터</h3>
+                    <button class="toggle-filters" onclick="toggleFilters()">
+                        <span
+                            class="material-symbols-outlined"
+                            id="filter-toggle-icon"
+                            >expand_less</span
+                        >
+                    </button>
                 </div>
 
-                <div class="filter-group">
-                    <label>사용자 ID:</label>
-                    <input
-                        type="text"
-                        id="user-filter"
-                        placeholder="사용자 ID 입력"
-                    />
+                <div class="filter-content" id="filter-content">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>사용자 검색</label>
+                            <div class="search-input-group">
+                                <input
+                                    type="text"
+                                    id="user-search"
+                                    placeholder="사용자 ID 또는 닉네임"
+                                    autocomplete="off"
+                                />
+                                <button
+                                    class="search-button"
+                                    onclick="searchUser()"
+                                >
+                                    <span class="material-symbols-outlined"
+                                        >search</span
+                                    >
+                                </button>
+                            </div>
+                            <div
+                                class="search-suggestions"
+                                id="user-suggestions"
+                            ></div>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>상태 필터:</label>
+                            <select id="status-filter">
+                                <option value="">전체</option>
+                                <option value="success">성공</option>
+                                <option value="failed">실패</option>
+                                <option value="pending">대기 중</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>페이지당 항목:</label>
+                            <select id="limit-filter">
+                                <option value="10">10개</option>
+                                <option value="25">25개</option>
+                                <option value="50">50개</option>
+                                <option value="100">100개</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-row two-columns">
+                        <div class="filter-group">
+                            <label>라우트 패턴</label>
+                            <input
+                                type="text"
+                                id="route-filter"
+                                placeholder="/api/v1/..."
+                            />
+                        </div>
+
+                        <div class="filter-group">
+                            <label>IP 주소</label>
+                            <input
+                                type="text"
+                                id="ip-filter"
+                                placeholder="192.168.1.1"
+                            />
+                        </div>
+                    </div>
+
+                    <div class="filter-row full-width">
+                        <div class="filter-group">
+                            <label>날짜 범위</label>
+                            <div class="date-range">
+                                <input type="datetime-local" id="date-from" />
+                                <span>~</span>
+                                <input type="datetime-local" id="date-to" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button
+                            class="filter-button primary"
+                            onclick="applyFilters()"
+                        >
+                            <span class="material-symbols-outlined"
+                                >search</span
+                            >
+                            필터 적용
+                        </button>
+                        <button
+                            class="filter-button secondary"
+                            onclick="resetFilters()"
+                        >
+                            <span class="material-symbols-outlined"
+                                >refresh</span
+                            >
+                            초기화
+                        </button>
+                        <button
+                            class="filter-button warning"
+                            onclick="saveFilterPreset()"
+                        >
+                            <span class="material-symbols-outlined"
+                                >bookmark</span
+                            >
+                            필터 저장
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="monitoring-controls">
+                <div class="control-group">
+                    <h3>실시간 모니터링</h3>
+                    <div class="monitoring-status" id="monitoring-status">
+                        <span class="status-dot disconnected"></span>
+                        <span>연결 해제됨</span>
+                    </div>
                 </div>
 
-                <div class="filter-group">
-                    <label>페이지당 항목:</label>
-                    <select id="limit-filter">
-                        <option value="10">10개</option>
-                        <option value="25">25개</option>
-                        <option value="50">50개</option>
-                        <option value="100">100개</option>
-                    </select>
-                </div>
-
-                <div class="filter-actions">
-                    <button class="filter-button" onclick="applyFilters()">
-                        <span class="material-symbols-outlined">search</span>
-                        필터 적용
+                <div class="control-buttons">
+                    <button
+                        class="control-button"
+                        onclick="toggleRealTimeMonitoring()"
+                    >
+                        <span
+                            class="material-symbols-outlined"
+                            id="monitoring-icon"
+                            >play_arrow</span
+                        >
+                        <span id="monitoring-text">실시간 모니터링 시작</span>
                     </button>
                     <button
-                        class="filter-button secondary"
-                        onclick="resetFilters()"
+                        class="control-button secondary"
+                        onclick="refreshLogs()"
                     >
                         <span class="material-symbols-outlined">refresh</span>
-                        초기화
+                        수동 새로고침
                     </button>
                     <button
-                        class="filter-button danger"
-                        onclick="showCleanupModal()"
+                        class="control-button warning"
+                        onclick="clearLogDisplay()"
                     >
-                        <span class="material-symbols-outlined"
-                            >cleaning_services</span
-                        >
-                        로그 정리
+                        <span class="material-symbols-outlined">clear_all</span>
+                        화면 지우기
                     </button>
                 </div>
             </div>
@@ -129,32 +244,60 @@
             <div class="logs-section">
                 <div class="section-header">
                     <h3>API 요청 로그</h3>
-                    <div class="log-controls">
+                    <div class="view-options">
                         <button
-                            class="control-button"
-                            onclick="toggleAutoRefresh()"
+                            class="view-button active"
+                            data-view="table"
+                            onclick="switchView('table')"
                         >
-                            <span
-                                class="material-symbols-outlined"
-                                id="auto-refresh-icon"
-                                >pause</span
-                            >
-                            <span id="auto-refresh-text">자동 새로고침</span>
-                        </button>
-                        <button class="control-button" onclick="refreshLogs()">
                             <span class="material-symbols-outlined"
-                                >refresh</span
+                                >table_rows</span
                             >
-                            새로고침
+                            테이블
+                        </button>
+                        <button
+                            class="view-button"
+                            data-view="cards"
+                            onclick="switchView('cards')"
+                        >
+                            <span class="material-symbols-outlined"
+                                >grid_view</span
+                            >
+                            카드
                         </button>
                     </div>
                 </div>
 
-                <div class="logs-table" id="logs-table">
-                    <div class="loading">로그를 불러오는 중...</div>
+                <div class="logs-container" id="logs-container">
+                    <div class="logs-table-view" id="table-view">
+                        <div class="logs-table-container">
+                            <div class="logs-table-content">
+                                <div class="logs-table" id="logs-table">
+                                    <div class="loading">
+                                        로그를 불러오는 중...
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        class="logs-cards-view"
+                        id="cards-view"
+                        style="display: none"
+                    >
+                        <div class="logs-cards" id="logs-cards">
+                            <div class="loading">로그를 불러오는 중...</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="pagination" id="pagination"></div>
+                <div class="pagination-container">
+                    <div class="pagination-info" id="pagination-info">
+                        페이지 정보를 불러오는 중...
+                    </div>
+                    <div class="pagination" id="pagination"></div>
+                </div>
             </div>
 
             <div class="popular-routes">
@@ -186,6 +329,74 @@
                 </div>
                 <div class="errors-list" id="errors-list">
                     <div class="loading">에러 분석을 불러오는 중...</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="user-detail-modal" style="display: none">
+            <div class="modal large">
+                <div class="modal-header">
+                    <h3 id="user-detail-title">사용자 로그 상세</h3>
+                    <button
+                        class="modal-close"
+                        onclick="closeUserDetailModal()"
+                    >
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="user-info" id="user-info"></div>
+                    <div class="user-logs" id="user-modal-logs"></div>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        class="modal-button secondary"
+                        onclick="closeUserDetailModal()"
+                    >
+                        닫기
+                    </button>
+                    <button
+                        class="modal-button primary"
+                        onclick="exportUserLogs()"
+                    >
+                        <span class="material-symbols-outlined">download</span>
+                        이 사용자 로그 내보내기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="route-error-modal" style="display: none">
+            <div class="modal large">
+                <div class="modal-header">
+                    <h3 id="route-error-title">라우트 에러 상세</h3>
+                    <button
+                        class="modal-close"
+                        onclick="closeRouteErrorModal()"
+                    >
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="error-overview" id="error-overview"></div>
+                    <div class="error-statistics" id="error-statistics"></div>
+                    <div class="error-timeline" id="error-timeline"></div>
+                    <div class="error-logs" id="error-logs"></div>
+                </div>
+                <div class="modal-footer">
+                    <button
+                        class="modal-button secondary"
+                        onclick="closeRouteErrorModal()"
+                    >
+                        닫기
+                    </button>
+                    <button
+                        class="modal-button primary"
+                        onclick="exportRouteErrors()"
+                    >
+                        <span class="material-symbols-outlined">download</span>
+                        에러 로그 내보내기
+                    </button>
                 </div>
             </div>
         </div>

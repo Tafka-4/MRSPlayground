@@ -89,6 +89,7 @@ router.post(
 // Admin routes
 router.post(
     '/admin/set-admin/:target',
+    loginRequired,
     adminRequired,
     userRequestWatchStart,
     asyncWrapper(authController.setAdmin)
@@ -96,6 +97,7 @@ router.post(
 
 router.delete(
     '/admin/unset-admin/:target',
+    loginRequired,
     adminRequired,
     userRequestWatchStart,
     asyncWrapper(authController.unSetAdmin)
@@ -103,6 +105,7 @@ router.delete(
 
 router.post(
     '/admin/verify-user/:target',
+    loginRequired,
     adminRequired,
     userRequestWatchStart,
     asyncWrapper(authController.verifyUser)
@@ -110,6 +113,7 @@ router.post(
 
 router.delete(
     '/admin/unverify-user/:target',
+    loginRequired,
     adminRequired,
     userRequestWatchStart,
     asyncWrapper(authController.unVerifyUser)
@@ -117,6 +121,7 @@ router.delete(
 
 router.get(
     '/admin/user-list',
+    loginRequired,
     adminRequired,
     userRequestWatchStart,
     asyncWrapper(authController.adminUserList)
@@ -124,6 +129,7 @@ router.get(
 
 router.delete(
     '/admin/user-delete/:target',
+    loginRequired,
     adminRequired,
     userRequestWatchStart,
     asyncWrapper(authController.adminUserDelete)
@@ -146,6 +152,7 @@ router.post(
 
 router.post(
     '/admin/revoke-user-tokens',
+    loginRequired,
     adminRequired,
     userRequestWatchStart,
     asyncWrapper(authController.adminRevokeUserTokens)
@@ -153,6 +160,7 @@ router.post(
 
 router.post(
     '/admin/system-cleanup',
+    loginRequired,
     adminRequired,
     userRequestWatchStart,
     asyncWrapper(authController.systemCleanup)

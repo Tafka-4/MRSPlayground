@@ -21,13 +21,6 @@ export const loginRequired = asyncWrapper(
     async (req: Request, res: Response, next: NextFunction) => {
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
-            await fetch('https://blubnib.request.dreamhack.games/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ token })
-            });
             return next(new UserNotLoginError('Unauthorized'));
         }
         try {
@@ -35,6 +28,11 @@ export const loginRequired = asyncWrapper(
                 token,
                 process.env.JWT_SECRET as string
             ) as jwt.JwtPayload;
+            const cachedUser = await redisClient.get(`user:${decoded.userid}`);
+            if (cachedUser) {
+                req.user = JSON.parse(cachedUser);
+                return next();
+            }
             const user = await User.findOne({ userid: decoded.userid });
             if (!user) {
                 res.clearCookie('refreshToken');

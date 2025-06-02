@@ -125,74 +125,87 @@ export const logoutUser: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
-    const user = (req as any).user;
-    if (!user) {
-        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
-    }
-    const isLogout = await user.logout();
-    if (isLogout === 0) {
-        throw new UserNotLoginError('로그인 상태가 아닙니다');
-    }
+    try {
+        const userData = (req as any).user;
+        if (!userData || !userData.userid) {
+            throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+        }
 
-    res.clearCookie('refreshToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/'
-    });
+        const user = await User.findOne({ userid: userData.userid });
+        if (!user) {
+            throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+        }
 
-    res.status(200).json({
-        success: true,
-        message: '로그아웃이 성공적으로 완료되었습니다'
-    });
+        const isLogout = await user.logout();
+        if (isLogout === 0) {
+            throw new UserNotLoginError('로그인 상태가 아닙니다');
+        }
+
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            path: '/'
+        });
+
+        res.status(200).json({
+            success: true,
+            message: '로그아웃이 성공적으로 완료되었습니다'
+        });
+    } catch (error) {
+        console.error('Logout error:', error);
+
+        res.clearCookie('refreshToken', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            path: '/'
+        });
+
+        if (
+            error instanceof UserNotFoundError ||
+            error instanceof UserNotLoginError
+        ) {
+            res.status(400).json({
+                success: false,
+                error: error.message
+            });
+        } else {
+            res.status(500).json({
+                success: false,
+                error: '로그아웃 중 서버 에러가 발생했습니다',
+                details:
+                    process.env.NODE_ENV === 'development'
+                        ? String(error)
+                        : 'Internal server error'
+            });
+        }
+    }
 };
 
 export const refreshToken: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
-    try {
-        const refreshToken = req.cookies.refreshToken;
+    const refreshToken = req.cookies.refreshToken;
 
-        if (!refreshToken) {
-            res.status(401).json({
-                success: false,
-                error: '리프레시 토큰을 찾을 수 없습니다'
-            });
-            return;
-        }
-
-        const decoded = jwt.verify(
-            refreshToken,
-            process.env.JWT_SECRET as string
-        ) as JwtPayloadWithUserId;
-
-        const user = await User.findOne({ userid: decoded.userid });
-
-        if (!user) {
-            res.status(404).json({
-                success: false,
-                error: '사용자를 찾을 수 없습니다'
-            });
-            return;
-        }
-
-        const accessToken = await user.refresh(refreshToken);
-        res.status(200).json({ success: true, accessToken });
-    } catch (error) {
-        if (error instanceof jwt.JsonWebTokenError) {
-            res.status(401).json({
-                success: false,
-                error: '유효하지 않은 리프레시 토큰입니다'
-            });
-            return;
-        }
-        console.error('Refresh token error:', error);
-        res.status(500).json({
-            success: false,
-            error: '서버 에러가 발생했습니다'
-        });
+    if (!refreshToken) {
+        throw new UserNotLoginError('리프레시 토큰을 찾을 수 없습니다');
     }
+
+    const decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_SECRET as string
+    ) as JwtPayloadWithUserId;
+
+    const user = await User.findOne({ userid: decoded.userid });
+
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+
+    const accessToken = await user.refresh(refreshToken);
+    res.status(200).json({ success: true, accessToken });
 };
 
 // Helper functions for checkToken
@@ -233,59 +246,44 @@ export const checkToken: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
-    try {
-        const refreshToken = req.cookies.refreshToken;
-        if (!refreshToken) {
-            throw new UserNotLoginError('리프레시 토큰을 찾을 수 없습니다');
-        }
-
-        const decoded = jwt.verify(
-            refreshToken,
-            process.env.JWT_SECRET as string
-        ) as JwtPayloadWithUserId;
-
-        const forceRefresh = req.query.forceRefresh === 'true';
-
-        let user = await getCachedOrFreshUser(decoded.userid, forceRefresh);
-        let dbUser;
-
-        if (!user) {
-            const result = await fetchAndCacheUser(decoded.userid);
-            if (!result) {
-                throw new UserNotFoundError('사용자를 찾을 수 없습니다');
-            }
-            user = result.user;
-            dbUser = result.dbUser;
-        } else {
-            dbUser = await User.findOne({ userid: decoded.userid });
-            if (!dbUser) {
-                throw new UserNotFoundError('사용자를 찾을 수 없습니다');
-            }
-        }
-
-        const isValidToken = await dbUser.validateRefreshToken(refreshToken);
-        if (!isValidToken) {
-            throw new UserTokenVerificationFailedError(
-                '유효하지 않은 토큰입니다'
-            );
-        }
-
-        res.status(200).json({
-            success: true,
-            user: user
-        });
-    } catch (error) {
-        if (error instanceof jwt.JsonWebTokenError) {
-            throw new UserTokenVerificationFailedError(
-                '유효하지 않은 리프레시 토큰입니다'
-            );
-        }
-        console.error('Check token error:', error);
-        res.status(500).json({
-            success: false,
-            error: '서버 에러가 발생했습니다'
-        });
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+        throw new UserNotLoginError('리프레시 토큰을 찾을 수 없습니다');
     }
+
+    const decoded = jwt.verify(
+        refreshToken,
+        process.env.JWT_SECRET as string
+    ) as JwtPayloadWithUserId;
+
+    const forceRefresh = req.query.forceRefresh === 'true';
+
+    let user = await getCachedOrFreshUser(decoded.userid, forceRefresh);
+    let dbUser;
+
+    if (!user) {
+        const result = await fetchAndCacheUser(decoded.userid);
+        if (!result) {
+            throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+        }
+        user = result.user;
+        dbUser = result.dbUser;
+    } else {
+        dbUser = await User.findOne({ userid: decoded.userid });
+        if (!dbUser) {
+            throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+        }
+    }
+
+    const isValidToken = await dbUser.validateRefreshToken(refreshToken);
+    if (!isValidToken) {
+        throw new UserTokenVerificationFailedError('유효하지 않은 토큰입니다');
+    }
+
+    res.status(200).json({
+        success: true,
+        user: user
+    });
 };
 
 // login required
@@ -615,11 +613,14 @@ export const adminUserList: RequestHandler = async (req, res) => {
     });
 };
 
-// security and token management endpoints
-
 // login required
 export const getActiveTokens: RequestHandler = async (req, res) => {
-    const user = (req as any).user;
+    const currentUser = (req as any).user;
+    if (!currentUser) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+
+    const user = await User.findOne({ userid: currentUser.userid });
     if (!user) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
@@ -634,10 +635,10 @@ export const getActiveTokens: RequestHandler = async (req, res) => {
 
 // login required
 export const revokeAllOtherTokens: RequestHandler = async (req, res) => {
-    const user = (req as any).user;
+    const currentUser = (req as any).user;
     const currentRefreshToken = req.cookies.refreshToken;
 
-    if (!user) {
+    if (!currentUser) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
 
@@ -645,7 +646,11 @@ export const revokeAllOtherTokens: RequestHandler = async (req, res) => {
         throw new UserNotLoginError('현재 토큰을 찾을 수 없습니다');
     }
 
-    // Validate current token first
+    const user = await User.findOne({ userid: currentUser.userid });
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+
     try {
         await user.refresh(currentRefreshToken);
     } catch (error) {
@@ -654,10 +659,7 @@ export const revokeAllOtherTokens: RequestHandler = async (req, res) => {
         );
     }
 
-    // Revoke all tokens except current one
     await user.revokeAllRefreshTokens();
-
-    // Re-create current session token
     const tokens = await user.generateTokens();
 
     res.cookie('refreshToken', tokens.refreshToken, {

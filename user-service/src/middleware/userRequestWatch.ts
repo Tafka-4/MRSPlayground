@@ -9,6 +9,11 @@ export const userRequestWatchStart = async (
     const requestId = req.headers['x-request-id'] as string;
     const userAgent = req.headers['user-agent'] as string;
     const clientIp = req.ip;
+    const isAuthenticated = !!req.user;
+
+    if (req.user) {
+        const user = req.user;
+    }
 
     if (!requestId) {
         return next(new Error('Missing request ID'));
@@ -26,7 +31,7 @@ export const userRequestWatchStart = async (
 
             if (retryCount >= 5) {
                 await requestPool.execute(
-                    'UPDATE user_requests SET status = ?, updated_at = ?, user_agent = ?, client_ip = ?, error_code = ?, error_message = ? WHERE request_id = ?',
+                    'UPDATE user_requests SET status = ?, updated_at = ?, user_agent = ?, client_ip = ?, error_code = ?, error_message = ?, is_authenticated = ? WHERE request_id = ?',
                     [
                         'failed',
                         new Date(),
@@ -34,6 +39,7 @@ export const userRequestWatchStart = async (
                         clientIp || null,
                         '500',
                         'Too many retries',
+                        isAuthenticated,
                         requestId
                     ]
                 );
@@ -41,12 +47,13 @@ export const userRequestWatchStart = async (
             }
 
             await requestPool.execute(
-                'UPDATE user_requests SET retry_count = ?, updated_at = ?, user_agent = ?, client_ip = ? WHERE request_id = ?',
+                'UPDATE user_requests SET retry_count = ?, updated_at = ?, user_agent = ?, client_ip = ?, is_authenticated = ? WHERE request_id = ?',
                 [
                     retryCount + 1,
                     new Date(),
                     userAgent || null,
                     clientIp || null,
+                    isAuthenticated,
                     requestId
                 ]
             );
@@ -61,16 +68,18 @@ export const userRequestWatchStart = async (
         const userId = req.user?.userid || null;
 
         await requestPool.execute(
-            `INSERT INTO user_requests (request_id, user_id, route, status, created_at, client_ip, user_agent, retry_count) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, 0)
+            `INSERT INTO user_requests (request_id, user_id, is_authenticated, route, status, created_at, client_ip, user_agent, retry_count) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
              ON DUPLICATE KEY UPDATE 
                 retry_count = retry_count + 1,
                 updated_at = VALUES(created_at),
                 user_agent = VALUES(user_agent),
-                client_ip = VALUES(client_ip)`,
+                client_ip = VALUES(client_ip),
+                is_authenticated = VALUES(is_authenticated)`,
             [
                 requestId,
                 userId,
+                isAuthenticated,
                 req.originalUrl || null,
                 'pending',
                 new Date(),
@@ -100,14 +109,16 @@ const updateRequestStatus = async (
     const userAgent = req.headers['user-agent'] as string;
     const clientIp = req.ip;
     const userId = req.user?.userid || null;
+    const isAuthenticated = !!req.user;
     const errorCode = res.statusCode;
     const errorMessage = res.statusMessage;
 
     try {
         await requestPool.execute(
-            'UPDATE user_requests SET user_id = ?, status = ?, updated_at = ?, user_agent = ?, client_ip = ?, error_code = ?, error_message = ? WHERE request_id = ?',
+            'UPDATE user_requests SET user_id = ?, is_authenticated = ?, status = ?, updated_at = ?, user_agent = ?, client_ip = ?, error_code = ?, error_message = ? WHERE request_id = ?',
             [
                 userId,
+                isAuthenticated,
                 status,
                 new Date(),
                 userAgent || null,
