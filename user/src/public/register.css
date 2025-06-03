@@ -1,13 +1,13 @@
 @font-face {
-    font-family: "ONE-Mobile-POP";
-    src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff")
-        format("woff");
+    font-family: 'ONE-Mobile-POP';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff')
+        format('woff');
     font-weight: normal;
     font-style: normal;
 }
 
 * {
-    font-family: "ONE-Mobile-POP";
+    font-family: 'ONE-Mobile-POP';
 }
 
 body {
@@ -74,7 +74,7 @@ body {
     box-sizing: border-box;
     flex-direction: column;
     width: 100%;
-    margin-bottom: 1rem
+    margin-bottom: 1rem;
 }
 
 .register-form-body-input-wrapper {
@@ -127,14 +127,14 @@ input:focus::placeholder {
     color: rgb(100, 100, 100);
 }
 
-input[type="password"] {
+input[type='password'] {
     font-family: 'pass', 'Roboto', Helvetica, Arial, sans-serif;
     &::-webkit-input-placeholder {
         transform-origin: 0 50%;
     }
 }
 
-input[type="password"]::placeholder {
+input[type='password']::placeholder {
     font-family: 'ONE-Mobile-POP';
     font-size: 1rem;
     opacity: 1;
@@ -206,7 +206,7 @@ input[type="password"]::placeholder {
     align-items: center;
 }
 
-#pin-input-container input[name="pin"] {
+#pin-input-container input[name='pin'] {
     flex: 1;
     min-width: 0;
     font-size: 1rem;

@@ -32,6 +32,12 @@ export const registerUser: RequestHandler = async (
         throw new UserError('아이디, 비밀번호, 이메일은 필수 입력 항목입니다');
     }
 
+    if (!/^[a-zA-Z0-9!@#$%^&*()_]+$/.test(id)) {
+        throw new UserError(
+            '아이디는 영문자, 숫자, 특수문자(!@#$%^&*()_)만 사용할 수 있습니다'
+        );
+    }
+
     if (password.length < 8) {
         throw new UserError('비밀번호는 8자 이상이어야 합니다');
     }

@@ -287,6 +287,11 @@ function initializeLogWebSocket() {
         return;
     }
 
+    if (logWebSocket) {
+        logWebSocket.disconnect();
+        logWebSocket = null;
+    }
+
     logWebSocket = new WebSocketClient();
 
     logWebSocket.on('connected', () => {

@@ -60,6 +60,42 @@ registerInput.email.addEventListener('input', () => {
     checkEmail();
 });
 
+registerInput.id.addEventListener('input', checkId);
+
+function checkId() {
+    const id = registerInput.id.value;
+    let messageElement = document.querySelector(
+        '.password-message-container-message'
+    );
+
+    if (!messageElement) {
+        messageElement = document.createElement('div');
+        messageElement.classList.add('password-message-container-message');
+        const container = document.querySelector('.password-message-container');
+        if (container) {
+            container.appendChild(messageElement);
+        } else {
+            console.error("'.password-message-container' not found.");
+            return;
+        }
+    }
+
+    if (id === '') {
+        messageElement.textContent = '';
+        return;
+    }
+
+    const idRegex = /^[a-zA-Z0-9!@#$%^&*()_]+$/;
+
+    if (idRegex.test(id)) {
+        messageElement.textContent = '사용 가능한 아이디입니다.';
+        messageElement.style.color = '#4bb92c';
+    } else {
+        messageElement.textContent = '영문, 숫자, 특수문자만 사용 가능합니다.';
+        messageElement.style.color = '#f47c7c';
+    }
+}
+
 function checkEmail() {
     const email = registerInput.email.value;
     let messageElement = document.querySelector(
@@ -86,10 +122,10 @@ function checkEmail() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (emailRegex.test(email)) {
-        messageElement.textContent = '유효한 이메일 형식입니다.';
+        messageElement.textContent = '올바른 이메일 형식입니다.';
         messageElement.style.color = '#4bb92c';
     } else {
-        messageElement.textContent = '올바른 이메일 형식이 아닙니다.';
+        messageElement.textContent = '이메일 형식이 올바르지 않습니다.';
         messageElement.style.color = '#f47c7c';
     }
 }
@@ -132,10 +168,10 @@ function checkPassword() {
                 !password.match(/[!@#$%^&*()_]/g))
         ) {
             messageElement.textContent =
-                '비밀번호는 영문자, 숫자, 특수문자를 포함해야 합니다.';
+                '영문, 숫자, 특수문자를 모두 포함해야 합니다.';
             messageElement.style.color = '#f47c7c';
         } else if (password.length > 0) {
-            messageElement.textContent = '비밀번호가 일치합니다!!';
+            messageElement.textContent = '비밀번호가 일치합니다!!!';
             messageElement.style.color = '#4bb92c';
         } else {
             messageElement.textContent = '';
@@ -186,9 +222,10 @@ function register() {
         notice.show();
         return;
     }
-    if (/[^a-zA-Z0-9!@#$%^&*()_]/g.test(id)) {
+    const idRegex = /^[a-zA-Z0-9!@#$%^&*()_]+$/;
+    if (!idRegex.test(id)) {
         let notice = new NoticeBox(
-            '아이디는 영문자, 숫자, 특수문자만 사용할 수 있습니다.',
+            '영문, 숫자, 특수문자만 사용 가능합니다.',
             'error'
         );
         notice.show();
@@ -200,7 +237,7 @@ function register() {
         !password.match(/[!@#$%^&*()_]/g)
     ) {
         let notice = new NoticeBox(
-            '비밀번호는 영문자, 숫자, 특수문자를 포함해야 합니다.',
+            '영문, 숫자, 특수문자를 모두 포함해야 합니다.',
             'error'
         );
         notice.show();
@@ -209,7 +246,7 @@ function register() {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
-        let notice = new NoticeBox('올바른 이메일 형식이 아닙니다.', 'error');
+        let notice = new NoticeBox('이메일 형식이 올바르지 않습니다.', 'error');
         notice.show();
         return;
     }
@@ -269,7 +306,7 @@ sendPinButton.addEventListener('click', async () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!emailRegex.test(email)) {
-        let notice = new NoticeBox('올바른 이메일 형식이 아닙니다.', 'error');
+        let notice = new NoticeBox('이메일 형식이 올바르지 않습니다.', 'error');
         notice.show();
         return;
     }

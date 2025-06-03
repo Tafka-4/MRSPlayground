@@ -131,13 +131,6 @@ class KeygenWebSocketServer {
                             ws.isAuthenticated = true;
                             this.clients.add(ws);
 
-                            console.log(
-                                `관리자 Keygen WebSocket 클라이언트 인증 성공: ${
-                                    authResult.user.nickname ||
-                                    authResult.user.id
-                                }`
-                            );
-
                             this.sendToClient(ws, {
                                 type: 'auth-success',
                                 message: '인증이 완료되었습니다.'
@@ -145,10 +138,6 @@ class KeygenWebSocketServer {
 
                             this.sendCurrentKey(ws);
                         } else {
-                            console.log(
-                                'Keygen WebSocket 인증 실패:',
-                                authResult.error
-                            );
                             this.sendToClient(ws, {
                                 type: 'auth-failed',
                                 message:

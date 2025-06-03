@@ -11,8 +11,9 @@ function mix(base1: Buffer, base2: Buffer): Buffer {
 export const generateKey = () => {
     const BASE_SECRET = process.env.JWT_SECRET as string;
     const MY_CAT_NAME = process.env.CAT_NAME as string;
-    const CHANGE_TIME = 30; // seconds
-    const currentTime = new Date().getTime();
+    const CHANGE_TIME = 60; // seconds
+    const NOISE = Math.floor(Math.random() * 3000);
+    const currentTime = new Date().getTime() + NOISE;
 
     const timeWindow = Math.floor(currentTime / (CHANGE_TIME * 1000));
     const timeSalt = crypto
