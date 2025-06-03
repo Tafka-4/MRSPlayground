@@ -13,12 +13,14 @@ interface UserPayload {
     authority: string;
     description: string;
     profileImage: string;
+    isVerified: boolean;
 }
 
 declare module 'express' {
     interface Request {
         user?: UserPayload;
         userAuthority?: string;
+        isVerified?: boolean;
     }
 }
 
@@ -76,6 +78,7 @@ export const authMiddleware = async (
 
         req.user = data.user;
         req.userAuthority = data.user.authority;
+        req.isVerified = data.user.isVerified;
 
         console.log('토큰 검증 성공, 사용자:', data.user.nickname);
         return next();

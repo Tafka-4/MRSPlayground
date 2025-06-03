@@ -3,6 +3,7 @@ import { randomBytes } from 'crypto';
 import { User } from '../models/User.js';
 import { redisClient } from '../config/redis.js';
 import { sendMail } from '../utils/sendMail.js';
+import { generateKey } from '../utils/keygen.js';
 import {
     AuthError,
     AuthEmailVerifyFailedError,
@@ -75,8 +76,10 @@ export const loginUser: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
+    if (req.user) {
+        throw new UserError('이미 로그인 상태입니다');
+    }
     const { id, password } = req.body;
-    console.log('로그인 시도:', { id });
 
     if (!id || !password) {
         throw new UserError('아이디와 비밀번호를 입력해주세요');
@@ -94,13 +97,7 @@ export const loginUser: RequestHandler = async (
         );
     }
 
-    console.log('비밀번호 검증 성공, 토큰 생성 시작...');
     const tokens = await user.generateTokens();
-    console.log('토큰 생성 완료:', {
-        accessTokenLength: tokens.accessToken.length,
-        refreshTokenLength: tokens.refreshToken.length,
-        userid: user.userid
-    });
 
     res.cookie('refreshToken', tokens.refreshToken, {
         httpOnly: true,
@@ -112,6 +109,7 @@ export const loginUser: RequestHandler = async (
     });
 
     await redisClient.del(`${user.email}:isVerified`);
+    await redisClient.del(`user:${user.userid}`);
 
     res.status(200).json({
         success: true,
@@ -225,13 +223,9 @@ const fetchAndCacheUser = async (userid: string) => {
     }
 
     const user = {
-        userid: dbUser.userid,
-        id: dbUser.id,
-        nickname: dbUser.nickname,
-        email: dbUser.email,
-        authority: dbUser.authority,
-        description: dbUser.description,
-        profileImage: dbUser.profileImage
+        ...dbUser.toJSON(),
+        createdAt: (dbUser as any).data?.createdAt,
+        updatedAt: (dbUser as any).data?.updatedAt
     };
 
     await redisClient.set(`user:${userid}`, JSON.stringify(user), {
@@ -264,14 +258,18 @@ export const checkToken: RequestHandler = async (
     if (!user) {
         const result = await fetchAndCacheUser(decoded.userid);
         if (!result) {
-            throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+            throw new UserTokenVerificationFailedError(
+                '유효하지 않은 토큰입니다'
+            );
         }
         user = result.user;
         dbUser = result.dbUser;
     } else {
         dbUser = await User.findOne({ userid: decoded.userid });
         if (!dbUser) {
-            throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+            throw new UserTokenVerificationFailedError(
+                '유효하지 않은 토큰입니다'
+            );
         }
     }
 
@@ -296,7 +294,10 @@ export const getCurrentUser: RequestHandler = async (
         if (!user) {
             throw new UserNotFoundError('사용자를 찾을 수 없습니다');
         }
-        res.status(200).json(user.toJSON());
+        res.status(200).json({
+            success: true,
+            user: user
+        });
     } catch (error) {
         res.status(401).json({
             success: false,
@@ -493,6 +494,26 @@ export const resetPasswordMailSend: RequestHandler = async (req, res) => {
     res.status(200).json({
         success: true,
         message: '임시 비밀번호가 이메일로 발송되었습니다'
+    });
+};
+
+// login required
+export const verifyUserWithKey: RequestHandler = async (req, res) => {
+    const { key } = req.body;
+    const user = (req as any).user;
+    if (!user || !key) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+
+    const verifiedKey = generateKey();
+    if (verifiedKey !== key) {
+        throw new UserError('유효하지 않은 키입니다');
+    }
+
+    await User.findOneAndUpdate({ userid: user.userid }, { isVerified: true });
+    res.status(200).json({
+        success: true,
+        message: '사용자가 성공적으로 인증되었습니다'
     });
 };
 
@@ -725,5 +746,23 @@ export const systemCleanup: RequestHandler = async (req, res) => {
             revokedExpiredTokens: result.revokedExpiredTokens,
             deletedOldTokens: result.deletedTokens
         }
+    });
+};
+
+// admin required
+export const getCurrentKey: RequestHandler = async (req, res) => {
+    const user = (req as any).user;
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+    if (user.authority !== 'admin') {
+        throw new UserNotAdminError('관리자 권한이 없습니다');
+    }
+
+    const currentKey = generateKey();
+    res.status(200).json({
+        success: true,
+        message: '현재 키를 성공적으로 가져왔습니다',
+        key: currentKey
     });
 };

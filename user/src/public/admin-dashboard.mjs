@@ -26,16 +26,12 @@ async function loadDashboardStats() {
             };
         }
 
-        const totalPosts = Math.floor(Math.random() * 50000) + 5000;
-
         document.getElementById('total-users').textContent =
             userStats.totalUsers.toLocaleString();
         document.getElementById('new-users').textContent =
             userStats.newUsers.toLocaleString();
         document.getElementById('active-users').textContent =
             userStats.activeUsers.toLocaleString();
-        document.getElementById('total-posts').textContent =
-            totalPosts.toLocaleString();
 
         await loadLogStats();
     } catch (error) {
@@ -45,7 +41,6 @@ async function loadDashboardStats() {
         document.getElementById('total-users').textContent = '0';
         document.getElementById('new-users').textContent = '0';
         document.getElementById('active-users').textContent = '0';
-        document.getElementById('total-posts').textContent = '0';
     }
 }
 
@@ -62,7 +57,6 @@ async function loadLogStats() {
         const totalRequestsEl = document.getElementById('total-requests');
         const successRateEl = document.getElementById('success-rate');
         const failedRequestsEl = document.getElementById('failed-requests');
-        const pendingRequestsEl = document.getElementById('pending-requests');
 
         if (totalRequestsEl) {
             totalRequestsEl.textContent = (
@@ -81,12 +75,6 @@ async function loadLogStats() {
         if (failedRequestsEl) {
             failedRequestsEl.textContent = (
                 stats.failed_requests || 0
-            ).toLocaleString();
-        }
-
-        if (pendingRequestsEl) {
-            pendingRequestsEl.textContent = (
-                stats.pending_requests || 0
             ).toLocaleString();
         }
     } catch (error) {
@@ -158,9 +146,6 @@ async function loadRecentActivity() {
             if (status === 'failed') {
                 icon = 'error';
                 activityText += ' (실패)';
-            } else if (status === 'pending') {
-                icon = 'pending';
-                activityText += ' (대기 중)';
             }
 
             return {
@@ -251,13 +236,12 @@ function displayLogs(logs, isUpdate = false) {
                 ? new Date(log.created_at).toLocaleString('ko-KR')
                 : 'N/A';
 
-            const iconMap = {
+            const statusIcons = {
                 success: 'check_circle',
-                failed: 'error',
-                pending: 'pending'
+                failed: 'error'
             };
 
-            const icon = iconMap[status] || 'help';
+            const icon = statusIcons[status] || 'help';
 
             return `
             <div class="log-item ${isUpdate ? 'new-log' : ''}">
@@ -410,9 +394,91 @@ function clearLogs() {
     new NoticeBox('로그가 지워졌습니다.', 'success').show();
 }
 
+async function loadCurrentKey() {
+    try {
+        const response = await apiClient.get('/api/v1/auth/current-key');
+
+        if (response.ok) {
+            const data = await response.json();
+            const currentTime = new Date().toLocaleString('ko-KR');
+
+            const subHeaderElement = document.getElementById(
+                'current-key-sub-header-text'
+            );
+            if (subHeaderElement) {
+                subHeaderElement.textContent = `키 시점: ${currentTime}`;
+                subHeaderElement.style.color = `rgb(100, 100, 100)`;
+                subHeaderElement.style.fontStyle = `italic`;
+            }
+
+            const currentKeyElement = document.getElementById('current-key');
+            if (currentKeyElement) {
+                const key = data.key;
+                currentKeyElement.title = key;
+                currentKeyElement.textContent = key;
+                currentKeyElement.setAttribute('data-key', key);
+            }
+        } else {
+            document.getElementById('current-key').textContent = '키 로드 실패';
+            document.getElementById('current-key-sub-header-text').textContent =
+                '키 로드 실패';
+        }
+    } catch (error) {
+        console.error('현재 키 로딩 실패:', error);
+        document.getElementById('current-key').textContent = '키 로드 실패';
+        document.getElementById('current-key-sub-header-text').textContent =
+            '키 로드 실패';
+        new NoticeBox('현재 키를 불러오는데 실패했습니다.', 'error').show();
+    }
+}
+
+async function copyCurrentKey() {
+    const currentKeyElement = document.getElementById('current-key');
+    const key =
+        currentKeyElement?.getAttribute('data-key') ||
+        currentKeyElement?.textContent;
+
+    if (!key || key === '로딩 중...' || key === '키 로드 실패') {
+        new NoticeBox('복사할 키가 없습니다.', 'warning').show();
+        return;
+    }
+
+    try {
+        await navigator.clipboard.writeText(key);
+        new NoticeBox('키가 클립보드에 복사되었습니다.', 'success').show();
+
+        if (currentKeyElement) {
+            const originalBackground = currentKeyElement.style.backgroundColor;
+            currentKeyElement.style.backgroundColor = 'rgb(250, 250, 250)';
+            setTimeout(() => {
+                currentKeyElement.style.backgroundColor = originalBackground;
+                currentKeyElement.style.color = '';
+            }, 300);
+        }
+    } catch (error) {
+        console.error('클립보드 복사 실패:', error);
+
+        new NoticeBox(
+            '클립보드 복사에 실패했습니다. 키를 길게 눌러 수동으로 복사해주세요.',
+            'error'
+        ).show();
+
+        if (currentKeyElement) {
+            const originalBackground = currentKeyElement.style.backgroundColor;
+            currentKeyElement.style.backgroundColor = 'rgb(239, 68, 68)';
+            currentKeyElement.style.color = 'white';
+            setTimeout(() => {
+                currentKeyElement.style.backgroundColor = originalBackground;
+                currentKeyElement.style.color = '';
+            }, 300);
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboardStats();
     loadRecentActivity();
+    loadCurrentKey();
 });
 
 window.addEventListener('beforeunload', () => {
@@ -424,3 +490,4 @@ window.addEventListener('beforeunload', () => {
 window.loadRecentActivity = loadRecentActivity;
 window.toggleLogMonitoring = toggleLogMonitoring;
 window.clearLogs = clearLogs;
+window.copyCurrentKey = copyCurrentKey;

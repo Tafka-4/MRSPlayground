@@ -86,6 +86,21 @@ router.post(
     asyncWrapper(authController.resetPasswordMailSend)
 );
 
+router.post(
+    '/verify',
+    loginRequired,
+    userRequestWatchStart,
+    asyncWrapper(authController.verifyUserWithKey)
+);
+
+router.get(
+    '/current-key',
+    loginRequired,
+    adminRequired,
+    userRequestWatchStart,
+    asyncWrapper(authController.getCurrentKey)
+);
+
 // Admin routes
 router.post(
     '/admin/set-admin/:target',

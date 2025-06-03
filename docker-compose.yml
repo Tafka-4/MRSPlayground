@@ -57,6 +57,7 @@ services:
             - DB_PORT=${DB_PORT}
             - REDIS_URL=${REDIS_URL}
             - JWT_SECRET=${JWT_SECRET}
+            - CAT_NAME=${CAT_NAME}
             - EMAIL_USER=${EMAIL_USER}
             - EMAIL_PASS=${EMAIL_PASS}
         depends_on:

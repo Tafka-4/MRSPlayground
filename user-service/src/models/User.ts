@@ -220,7 +220,7 @@ export class User {
         const accessToken = jwt.sign(
             { userid: this.data.userid },
             process.env.JWT_SECRET as string,
-            { expiresIn: '15m' }
+            { expiresIn: '5m' }
         );
         const refreshToken = jwt.sign(
             { userid: this.data.userid },

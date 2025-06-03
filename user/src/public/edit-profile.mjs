@@ -18,12 +18,14 @@ class EditProfile {
         try {
             const response = await apiClient.get('/api/v1/auth/me');
 
-            if (!response) {
+            if (!response.ok) {
                 return;
             }
 
-            if (response.ok) {
-                this.currentUser = await response.json();
+            const data = await response.json();
+
+            if (data.success) {
+                this.currentUser = data.user;
                 this.displayUserData();
             } else {
                 console.error(

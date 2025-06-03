@@ -37,85 +37,106 @@
                 </a>
             </div>
 
-            <div class="dashboard-grid">
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined">people</span>
-                        <h3 class="card-title">총 사용자 수</h3>
+            <div class="current-key-container">
+                <div class="current-key-header-container">
+                    <div class="current-key-header">
+                        <h3 class="card-title" id="current-key-header-title">
+                            현재 키
+                        </h3>
                     </div>
-                    <div class="card-value" id="total-users">로딩 중...</div>
-                    <div class="card-description">등록된 전체 사용자</div>
-                </div>
-
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined"
-                            >person_add</span
+                    <div class="current-key-sub-header">
+                        <span
+                            class="current-key-sub-header-text"
+                            id="current-key-sub-header-text"
+                            >키 시점: 로딩 중...</span
                         >
-                        <h3 class="card-title">신규 가입자</h3>
                     </div>
-                    <div class="card-value" id="new-users">로딩 중...</div>
-                    <div class="card-description">오늘 가입한 사용자</div>
                 </div>
-
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined">login</span>
-                        <h3 class="card-title">활성 사용자</h3>
-                    </div>
-                    <div class="card-value" id="active-users">로딩 중...</div>
-                    <div class="card-description">최근 7일 내 활동</div>
+                <div
+                    class="current-key-value"
+                    id="current-key"
+                    onclick="copyCurrentKey()"
+                    title="클릭하여 복사"
+                >
+                    로딩 중...
                 </div>
+            </div>
 
-                <div class="dashboard-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined">article</span>
-                        <h3 class="card-title">총 게시물</h3>
+            <div class="dashboard-section">
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <span class="material-symbols-outlined"
+                                >people</span
+                            >
+                            <h3 class="card-title">총 사용자 수</h3>
+                        </div>
+                        <div class="card-value" id="total-users">
+                            로딩 중...
+                        </div>
+                        <div class="card-description">등록된 전체 사용자</div>
                     </div>
-                    <div class="card-value" id="total-posts">로딩 중...</div>
-                    <div class="card-description">작성된 전체 게시물</div>
-                </div>
 
-                <div class="dashboard-card log-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined">timeline</span>
-                        <h3 class="card-title">24시간 요청</h3>
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <span class="material-symbols-outlined"
+                                >person_add</span
+                            >
+                            <h3 class="card-title">신규 가입자</h3>
+                        </div>
+                        <div class="card-value" id="new-users">로딩 중...</div>
+                        <div class="card-description">오늘 가입한 사용자</div>
                     </div>
-                    <div class="card-value" id="total-requests">로딩 중...</div>
-                    <div class="card-description">최근 24시간 API 요청</div>
-                </div>
 
-                <div class="dashboard-card log-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined"
-                            >check_circle</span
-                        >
-                        <h3 class="card-title">성공률</h3>
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <span class="material-symbols-outlined">login</span>
+                            <h3 class="card-title">활성 사용자</h3>
+                        </div>
+                        <div class="card-value" id="active-users">
+                            로딩 중...
+                        </div>
+                        <div class="card-description">최근 7일 내 활동</div>
                     </div>
-                    <div class="card-value" id="success-rate">로딩 중...</div>
-                    <div class="card-description">최근 24시간 성공률</div>
-                </div>
 
-                <div class="dashboard-card log-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined">error</span>
-                        <h3 class="card-title">실패 요청</h3>
+                    <div class="dashboard-card log-card">
+                        <div class="card-header">
+                            <span class="material-symbols-outlined"
+                                >timeline</span
+                            >
+                            <h3 class="card-title">24시간 요청</h3>
+                        </div>
+                        <div class="card-value" id="total-requests">
+                            로딩 중...
+                        </div>
+                        <div class="card-description">최근 24시간 API 요청</div>
                     </div>
-                    <div class="card-value" id="failed-requests">
-                        로딩 중...
-                    </div>
-                    <div class="card-description">최근 24시간 실패 요청</div>
-                </div>
 
-                <div class="dashboard-card log-card">
-                    <div class="card-header">
-                        <span class="material-symbols-outlined">pending</span>
-                        <h3 class="card-title">대기 중인 요청</h3>
+                    <div class="dashboard-card log-card">
+                        <div class="card-header">
+                            <span class="material-symbols-outlined"
+                                >check_circle</span
+                            >
+                            <h3 class="card-title">성공률</h3>
+                        </div>
+                        <div class="card-value" id="success-rate">
+                            로딩 중...
+                        </div>
+                        <div class="card-description">최근 24시간 성공률</div>
                     </div>
-                    <div class="card-value" id="pending-requests">
-                        로딩 중...
+
+                    <div class="dashboard-card log-card">
+                        <div class="card-header">
+                            <span class="material-symbols-outlined">error</span>
+                            <h3 class="card-title">실패 요청</h3>
+                        </div>
+                        <div class="card-value" id="failed-requests">
+                            로딩 중...
+                        </div>
+                        <div class="card-description">
+                            최근 24시간 실패 요청
+                        </div>
                     </div>
-                    <div class="card-description">현재 처리 중인 요청</div>
                 </div>
             </div>
 

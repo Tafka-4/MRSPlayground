@@ -19,12 +19,14 @@ class MyPage {
         try {
             const response = await apiClient.get('/api/v1/auth/me');
 
-            if (!response) {
+            if (!response.ok) {
                 return;
             }
 
-            if (response.ok) {
-                this.currentUser = await response.json();
+            const data = await response.json();
+
+            if (data.success) {
+                this.currentUser = data.user;
                 this.displayUserData();
                 return;
             } else {
@@ -63,6 +65,13 @@ class MyPage {
         if (!this.currentUser) return;
 
         const adminButton = document.getElementById('admin-button');
+
+        if (this.currentUser.authority !== 'admin') {
+            adminButton.style.display = 'none';
+        } else {
+            adminButton.style.display = 'flex';
+        }
+
         adminButton.addEventListener('click', async () => {
             if (this.currentUser.authority === 'admin') {
                 window.location.href = '/admin';
@@ -108,6 +117,9 @@ class MyPage {
             document.getElementById('username').innerHTML =
                 escape(this.currentUser.nickname) || '정보 없음';
         }
+
+        this.handleVerificationStatus();
+
         document.getElementById('email').textContent =
             this.currentUser.email || '정보 없음';
         document.getElementById('description').textContent =
@@ -333,6 +345,44 @@ class MyPage {
             this.hideDeleteModal();
             this.isDeletingAccount = false;
         }
+    }
+
+    handleVerificationStatus() {
+        const usernameContainer = document.getElementById('username-container');
+        const unverifiedBadge = document.getElementById('unverified-badge');
+        const verifiedBadge = document.getElementById('verified-badge');
+
+        if (this.currentUser && !this.currentUser.isVerified) {
+            unverifiedBadge.style.display = 'inline-flex';
+            verifiedBadge.style.display = 'none';
+
+            usernameContainer.classList.add('clickable', 'unverified-tooltip');
+
+            usernameContainer.addEventListener(
+                'click',
+                this.handleVerificationClick.bind(this)
+            );
+        } else if (this.currentUser && this.currentUser.isVerified) {
+            unverifiedBadge.style.display = 'none';
+            verifiedBadge.style.display = 'inline-flex';
+
+            usernameContainer.classList.remove(
+                'clickable',
+                'unverified-tooltip'
+            );
+        } else {
+            unverifiedBadge.style.display = 'none';
+            verifiedBadge.style.display = 'none';
+
+            usernameContainer.classList.remove(
+                'clickable',
+                'unverified-tooltip'
+            );
+        }
+    }
+
+    handleVerificationClick() {
+        location.href = '/verify-internal-member';
     }
 }
 

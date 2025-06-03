@@ -11,6 +11,7 @@ import userRoutes from './routes/userRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import logRoutes from './routes/logRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { identify } from './middleware/identify.js';
 import LogWebSocketServer from './websocket/logSocket.js';
 
 dotenv.config();
@@ -30,6 +31,8 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(identify);
 
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 

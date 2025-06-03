@@ -1,13 +1,13 @@
 @font-face {
-    font-family: "ONE-Mobile-POP";
-    src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff")
-        format("woff");
+    font-family: 'ONE-Mobile-POP';
+    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff')
+        format('woff');
     font-weight: normal;
     font-style: normal;
 }
 
 * {
-    font-family: "ONE-Mobile-POP";
+    font-family: 'ONE-Mobile-POP';
 }
 
 body {
@@ -163,7 +163,8 @@ body {
     top: 0.5rem;
 }
 
-input, textarea {
+input,
+textarea {
     font-size: 1rem;
     font-weight: 400;
     display: flex;
@@ -182,23 +183,26 @@ input, textarea {
 
 textarea {
     min-height: 100px;
-    font-family: "ONE-Mobile-POP";
+    font-family: 'ONE-Mobile-POP';
 }
 
-input::placeholder, textarea::placeholder {
+input::placeholder,
+textarea::placeholder {
     color: rgb(100, 100, 100);
     font-size: 1rem;
     font-weight: 300;
 }
 
-input:focus, textarea:focus {
+input:focus,
+textarea:focus {
     background: rgb(230, 230, 230);
     color: rgb(10, 10, 10);
     outline: none;
     transition-duration: 0.1s;
 }
 
-input:focus::placeholder, textarea:focus::placeholder {
+input:focus::placeholder,
+textarea:focus::placeholder {
     color: rgb(100, 100, 100);
 }
 
@@ -288,16 +292,12 @@ input:focus::placeholder, textarea:focus::placeholder {
     .container {
         padding: 1.5rem;
     }
-    
+
     .title {
         font-size: 2rem;
     }
-    
+
     .button-container {
         flex-direction: column;
     }
-    
-    .profile-image-actions {
-        flex-direction: column;
-    }
-} 
+}

@@ -1,6 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
 import { requestPool } from '../config/database';
 
+const getClientIp = (req: Request): string | null => {
+    const forwarded = req.headers['x-forwarded-for'] as string;
+    const realIp = req.headers['x-real-ip'] as string;
+    const clientIp = req.headers['x-client-ip'] as string;
+    const cfConnectingIp = req.headers['cf-connecting-ip'] as string;
+
+    if (forwarded) {
+        const ips = forwarded.split(',').map((ip) => ip.trim());
+        return ips[0];
+    }
+
+    if (realIp) return realIp;
+    if (clientIp) return clientIp;
+    if (cfConnectingIp) return cfConnectingIp;
+
+    return req.ip || null;
+};
+
 export const userRequestWatchStart = async (
     req: Request,
     res: Response,
@@ -8,12 +26,8 @@ export const userRequestWatchStart = async (
 ) => {
     const requestId = req.headers['x-request-id'] as string;
     const userAgent = req.headers['user-agent'] as string;
-    const clientIp = req.ip;
+    const clientIp = getClientIp(req);
     const isAuthenticated = !!req.user;
-
-    if (req.user) {
-        const user = req.user;
-    }
 
     if (!requestId) {
         return next(new Error('Missing request ID'));
@@ -107,7 +121,7 @@ const updateRequestStatus = async (
 ) => {
     const status = res.statusCode < 400 ? 'success' : 'failed';
     const userAgent = req.headers['user-agent'] as string;
-    const clientIp = req.ip;
+    const clientIp = getClientIp(req);
     const userId = req.user?.userid || null;
     const isAuthenticated = !!req.user;
     const errorCode = res.statusCode;

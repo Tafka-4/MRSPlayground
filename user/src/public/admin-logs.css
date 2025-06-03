@@ -103,7 +103,7 @@ body {
 
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -229,6 +229,26 @@ body {
     grid-template-columns: 1fr;
 }
 
+.filter-search-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-search-group label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.filter-search-group input::placeholder {
+    color: #9ca3af;
+}
+
+.filter-search-group input:focus {
+    outline: none;
+}
+
 .filter-group {
     display: flex;
     flex-direction: column;
@@ -247,6 +267,17 @@ body {
     border-radius: 0.5rem;
     overflow: hidden;
     background: white;
+    transition: border-color 0.2s;
+    height: 46px;
+}
+
+.search-input-group:hover {
+    border-color: #667eea;
+}
+
+.search-input-group:focus-within {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .search-input-group input {
@@ -254,17 +285,33 @@ body {
     padding: 0.75rem;
     border: none;
     outline: none;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.9rem;
+    background: transparent;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.search-input-group input::placeholder {
+    color: #9ca3af;
+}
+
+.search-input-group input:focus {
+    outline: none;
 }
 
 .search-button {
     background: #667eea;
     color: white;
     border: none;
-    padding: 0.75rem;
+    padding: 0 0.75rem;
     cursor: pointer;
     transition: background-color 0.2s;
+    border-radius: 0;
+    height: 100%;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .search-button:hover {
@@ -549,9 +596,6 @@ body {
 
 .logs-table {
     width: 100%;
-    border-radius: 0.5rem;
-    border: 1px solid #e5e7eb;
-    background: white;
 }
 
 .logs-table-container {
@@ -563,13 +607,14 @@ body {
 }
 
 .logs-table-content {
-    min-width: 1000px;
+    min-width: 1200px;
     width: 100%;
+    table-layout: fixed;
 }
 
 .log-header {
     display: grid;
-    grid-template-columns: 140px 100px 150px 250px 180px 180px 140px;
+    grid-template-columns: 120px 100px 140px 300px 160px 160px 140px;
     gap: 1rem;
     padding: 1rem;
     background: #f9fafb;
@@ -581,7 +626,7 @@ body {
 
 .log-row {
     display: grid;
-    grid-template-columns: 140px 100px 150px 250px 180px 180px 140px;
+    grid-template-columns: 120px 100px 140px 300px 160px 160px 140px;
     gap: 1rem;
     padding: 1rem;
     border-bottom: 1px solid #f3f4f6;
@@ -589,8 +634,8 @@ body {
     align-items: center;
     font-size: 0.85rem;
     word-break: break-word;
-    overflow: hidden;
     line-height: 1.4;
+    position: relative;
 }
 
 .log-row:hover {
@@ -632,13 +677,43 @@ body {
     padding: 0.25rem 0.5rem;
     border-radius: 0.25rem;
     font-size: 0.8rem;
-    word-break: break-word;
-    overflow: hidden;
     line-height: 1.3;
-    max-height: 3.9em;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 1.8em;
+    border: 1px solid transparent;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.route-text:hover {
+    background: #e5e7eb;
+    border-color: #d1d5db;
+}
+
+.route-text:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    margin-top: 2px;
+    padding: 0.25rem 0.5rem;
+    background: #374151;
+    color: white;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 500px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
 }
 
 .user-link {
@@ -647,13 +722,39 @@ body {
     font-weight: 500;
     transition: color 0.2s;
     word-break: break-word;
-    overflow: hidden;
     line-height: 1.3;
+    cursor: pointer;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    display: inline-block;
 }
 
 .user-link:hover {
     color: #5a67d8;
     text-decoration: underline;
+}
+
+.user-link:hover::after {
+    content: attr(data-full-text);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    margin-top: 2px;
+    padding: 0.25rem 0.5rem;
+    background: #374151;
+    color: white;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
 }
 
 .time-text {
@@ -666,8 +767,34 @@ body {
     font-family: 'Courier New', monospace;
     font-size: 0.8rem;
     word-break: break-all;
-    overflow: hidden;
     line-height: 1.3;
+    cursor: pointer;
+    max-width: 140px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    position: relative;
+    display: inline-block;
+}
+
+.ip-text:hover::after {
+    content: attr(title);
+    position: absolute;
+    left: 0;
+    top: 100%;
+    margin-top: 2px;
+    padding: 0.25rem 0.5rem;
+    background: #374151;
+    color: white;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    pointer-events: none;
 }
 
 .logs-cards {
@@ -733,7 +860,6 @@ body {
     font-size: 1.1rem;
 }
 
-/* 페이지네이션 */
 .pagination-container {
     display: flex;
     justify-content: space-between;
@@ -1006,7 +1132,6 @@ body {
     background: #ef4444;
 }
 
-/* 사용자 정보 */
 .user-info {
     background: #f8fafc;
     border-radius: 0.5rem;
@@ -1041,7 +1166,6 @@ body {
     line-height: 1.4;
 }
 
-/* 에러 상세 모달 */
 .error-overview {
     background: #fef2f2;
     border: 1px solid #fecaca;
@@ -1341,19 +1465,56 @@ body {
     }
 }
 
-/* Tab */
+/* 매우 큰 화면 (1400px 이상) */
+@media (min-width: 1400px) {
+    .container {
+        max-width: 1400px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+/* 큰 화면 (1201px ~ 1399px) */
+@media (max-width: 1399px) and (min-width: 1201px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+}
+
+/* 중간 화면 (1025px ~ 1200px) */
+@media (max-width: 1200px) and (min-width: 1025px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+    }
+}
+
+/* 태블릿 (769px ~ 1024px) */
 @media (max-width: 1024px) {
     .container {
         padding: 1.5rem;
     }
 
     .logs-table-content {
-        min-width: 900px;
+        min-width: 1100px;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
     }
 
     .log-header,
     .log-row {
-        grid-template-columns: 120px 90px 130px 220px 160px 160px 120px;
+        grid-template-columns: 110px 90px 130px 280px 150px 150px 130px;
         font-size: 0.8rem;
     }
 
@@ -1378,6 +1539,7 @@ body {
     }
 
     .title {
+        margin-top: 1rem;
         font-size: 2rem;
         text-align: center;
     }
@@ -1429,12 +1591,12 @@ body {
     }
 
     .logs-table-content {
-        min-width: 700px;
+        min-width: 900px;
     }
 
     .log-header,
     .log-row {
-        grid-template-columns: 100px 80px 120px 180px 140px 140px 100px;
+        grid-template-columns: 100px 80px 120px 250px 140px 140px 120px;
         gap: 0.75rem;
         padding: 0.75rem;
         font-size: 0.75rem;
@@ -1554,6 +1716,78 @@ body {
     .filter-button:nth-child(3) {
         grid-column: 1 / -1;
     }
+
+    .search-input-group {
+        height: 44px;
+    }
+
+    .search-input-group input {
+        padding: 0.6rem;
+        font-size: 0.9rem;
+    }
+
+    .search-button {
+        padding: 0 0.6rem;
+        min-width: 40px;
+    }
+
+    .modal {
+        width: 95%;
+        max-height: 95vh;
+        margin: 0.5rem;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .modal-button {
+        justify-content: center;
+    }
+
+    .popular-routes,
+    .error-analysis {
+        padding: 1rem;
+    }
+
+    .route-item,
+    .error-item {
+        padding: 0.5rem;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .count-badge {
+        align-self: flex-end;
+    }
+
+    .filter-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+
+    .filter-button {
+        font-size: 0.8rem;
+        padding: 0.75rem;
+        white-space: nowrap;
+        min-height: 44px;
+        text-align: center;
+        justify-content: center;
+        word-break: keep-all;
+    }
+
+    .filter-button .material-symbols-outlined {
+        font-size: 1rem;
+        margin-right: 0.25rem;
+    }
+
+    .route-text:hover::after {
+        max-width: 300px;
+        font-size: 0.75rem;
+    }
 }
 
 /* mobile */
@@ -1612,12 +1846,12 @@ body {
     }
 
     .logs-table-content {
-        min-width: 600px;
+        min-width: 700px;
     }
 
     .log-header,
     .log-row {
-        grid-template-columns: 80px 70px 100px 1fr;
+        grid-template-columns: 80px 70px 100px 200px;
         gap: 0.5rem;
         padding: 0.5rem;
         font-size: 0.7rem;
@@ -1641,16 +1875,17 @@ body {
     }
 
     .search-input-group {
-        flex-direction: column;
+        height: 42px;
     }
 
     .search-input-group input {
-        border-radius: 0.5rem 0.5rem 0 0;
+        padding: 0.5rem;
+        font-size: 0.85rem;
     }
 
     .search-button {
-        border-radius: 0 0 0.5rem 0.5rem;
-        justify-content: center;
+        padding: 0 0.5rem;
+        min-width: 36px;
     }
 
     .modal {
@@ -1705,6 +1940,11 @@ body {
         font-size: 1rem;
         margin-right: 0.25rem;
     }
+
+    .route-text:hover::after {
+        max-width: 250px;
+        font-size: 0.7rem;
+    }
 }
 
 @media (max-width: 360px) {
@@ -1746,7 +1986,7 @@ body {
 
     .log-header,
     .log-row {
-        grid-template-columns: 70px 60px 90px 1fr;
+        grid-template-columns: 70px 60px 90px 180px;
         gap: 0.25rem;
         padding: 0.4rem;
         font-size: 0.65rem;
@@ -1760,5 +2000,10 @@ body {
 
     .filter-button .material-symbols-outlined {
         font-size: 0.9rem;
+    }
+
+    .route-text:hover::after {
+        max-width: 200px;
+        font-size: 0.65rem;
     }
 }

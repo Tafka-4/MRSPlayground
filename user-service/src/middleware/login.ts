@@ -1,13 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 import { User } from '../models/User.js';
-import {
-    UserNotFoundError,
-    UserNotLoginError,
-    UserTokenVerificationFailedError
-} from '../utils/errors.js';
+import { UserNotFoundError, UserNotLoginError } from '../utils/errors.js';
 import asyncWrapper from './asyncWrapper.js';
-import { redisClient } from '../config/redis.js';
+import {
+    extractToken,
+    verifyToken,
+    getUserFromToken,
+    isJwtError
+} from '../utils/jwt.js';
 
 declare global {
     namespace Express {
@@ -19,42 +19,29 @@ declare global {
 
 export const loginRequired = asyncWrapper(
     async (req: Request, res: Response, next: NextFunction) => {
-        const token = req.headers.authorization?.split(' ')[1];
+        if (req.user) {
+            return next();
+        }
+        const token = extractToken(req);
         if (!token) {
             return next(new UserNotLoginError('Unauthorized'));
         }
         try {
-            const decoded = jwt.verify(
-                token,
-                process.env.JWT_SECRET as string
-            ) as jwt.JwtPayload;
-            const cachedUser = await redisClient.get(`user:${decoded.userid}`);
-            if (cachedUser) {
-                req.user = JSON.parse(cachedUser);
-                return next();
-            }
-            const user = await User.findOne({ userid: decoded.userid });
+            const decoded = verifyToken(token);
+            const user = await getUserFromToken(decoded);
             if (!user) {
                 res.clearCookie('refreshToken');
                 return next(new UserNotFoundError('User not found'));
             }
             req.user = user;
-            await redisClient.set(
-                `user:${decoded.userid}`,
-                JSON.stringify(user),
-                {
-                    EX: 60 * 30
-                }
-            );
             next();
         } catch (error) {
-            if (error instanceof jwt.JsonWebTokenError) {
-                res.clearCookie('refreshToken');
-                return next(
-                    new UserTokenVerificationFailedError(
-                        'Token verification failed'
-                    )
-                );
+            if (isJwtError(error)) {
+                return res.status(401).json({
+                    error: 'TOKEN_EXPIRED',
+                    message: 'Access token has expired',
+                    needRefresh: true
+                });
             }
             next(error);
         }

@@ -19,25 +19,29 @@
                     홈으로 돌아가기
                 </a>
             </div>
-            
-            <div id="loading" class="loading">
-                프로필을 불러오는 중...
-            </div>
-            
-            <div id="error-container" style="display: none;">
+
+            <div id="loading" class="loading">프로필을 불러오는 중...</div>
+
+            <div
+                id="error-container"
+                class="error-container"
+                style="display: none"
+            >
                 <div class="error-message" id="error-message">
                     사용자를 찾을 수 없습니다.
                 </div>
             </div>
-            
-            <div id="profile-container" style="display: none;">
+
+            <div id="profile-container" style="display: none">
                 <div class="profile-section">
                     <div class="profile-image-container">
                         <div class="profile-image" id="profile-image">
-                            <span class="material-symbols-outlined">person</span>
+                            <span class="material-symbols-outlined"
+                                >person</span
+                            >
                         </div>
                     </div>
-                    
+
                     <div class="profile-info">
                         <div class="info-item">
                             <label>아이디</label>
@@ -49,35 +53,35 @@
                         </div>
                         <div class="info-item">
                             <label>소개</label>
-                            <div class="info-value" id="description">소개가 없습니다.</div>
+                            <div class="info-value" id="description">
+                                소개가 없습니다.
+                            </div>
                         </div>
                         <div class="info-item">
                             <label>가입일</label>
                             <div class="info-value" id="created-at"></div>
                         </div>
+                        <div class="info-item">
+                            <label>UID</label>
+                            <div class="info-value" id="uid"></div>
+                        </div>
                     </div>
                 </div>
-                
-                <div class="stats-section">
-                    <div class="stat-item">
-                        <span class="stat-number" id="posts-count">0</span>
-                        <div class="stat-label">게시물</div>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number" id="followers-count">0</span>
-                        <div class="stat-label">팔로워</div>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-number" id="following-count">0</span>
-                        <div class="stat-label">팔로잉</div>
-                    </div>
-                </div>
-                
-                <div class="user-actions">
-                    <button class="follow-button" id="follow-button">
-                        <span class="material-symbols-outlined">person_add</span>
-                        팔로우
+
+                <div class="action-buttons">
+                    <button class="guestbook-button" id="guestbook-button">
+                        <span class="material-symbols-outlined">comment</span>
+                        방명록 쓰기
                     </button>
+
+                    <button
+                        class="article-list-button"
+                        id="article-list-button"
+                    >
+                        <span class="material-symbols-outlined">article</span>
+                        활동 목록 보기
+                    </button>
+
                     <button class="message-button" id="message-button">
                         <span class="material-symbols-outlined">message</span>
                         메시지 보내기
@@ -85,9 +89,9 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="notice-container"></div>
-        
+
         <script type="module" src="/user-profile.mjs"></script>
     </body>
-</html> 
+</html>

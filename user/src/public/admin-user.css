@@ -208,8 +208,8 @@ body {
     font-size: 0.9rem;
     color: rgb(100, 100, 100);
     display: flex;
-    width: 80%;
-    gap: 0.8rem;
+    width: 100%;
+    gap: 1rem;
     flex-wrap: wrap;
     margin-top: 0;
     margin-bottom: 0;
@@ -427,6 +427,11 @@ body {
         flex-direction: column;
         align-items: flex-start;
         gap: 1rem;
+    }
+
+    .user-details {
+        flex-direction: column;
+        width: 100%;
     }
 
     .user-actions {

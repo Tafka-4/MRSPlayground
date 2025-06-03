@@ -174,16 +174,22 @@ function createLogTableRow(log) {
             <div>
                 ${
                     log.user_id
-                        ? `<a href="javascript:void(0)" class="user-link" onclick="showUserDetailModal('${escape(
+                        ? `<a href="javascript:void(0)" class="user-link" data-full-text="${escape(
+                              username
+                          )}" onclick="showUserDetailModal('${escape(
                               log.user_id
                           )}')">${escape(username)}</a>`
                         : escape(username)
                 }
             </div>
-            <div><span class="route-text">${escape(route)}</span></div>
+            <div><span class="route-text" title="${escape(route)}">${escape(
+        route
+    )}</span></div>
             <div class="time-text">${escape(createdAt)}</div>
             <div class="time-text">${escape(updatedAt)}</div>
-            <div class="ip-text">${escape(clientIp)}</div>
+            <div class="ip-text" title="${escape(clientIp)}">${escape(
+        clientIp
+    )}</div>
         </div>
     `;
 }
@@ -224,7 +230,9 @@ function createLogCard(log) {
                     <span>
                         ${
                             log.user_id
-                                ? `<a href="javascript:void(0)" class="user-link" onclick="showUserDetailModal('${escape(
+                                ? `<a href="javascript:void(0)" class="user-link" data-full-text="${escape(
+                                      username
+                                  )}" onclick="showUserDetailModal('${escape(
                                       log.user_id
                                   )}')">${escape(username)}</a>`
                                 : escape(username)
@@ -233,13 +241,15 @@ function createLogCard(log) {
                 </div>
                 <div class="log-card-row">
                     <span class="log-card-label">라우트:</span>
-                    <span class="route-text">${escape(route)}</span>
+                    <span class="route-text" title="${escape(route)}">${escape(
+        route
+    )}</span>
                 </div>
                 <div class="log-card-row">
                     <span class="log-card-label">IP:</span>
-                    <span class="ip-text">${escape(
+                    <span class="ip-text" title="${escape(
                         log.client_ip || 'N/A'
-                    )}</span>
+                    )}">${escape(log.client_ip || 'N/A')}</span>
                 </div>
                 <div class="log-card-row">
                     <span class="log-card-label">요청 ID:</span>
@@ -833,9 +843,9 @@ function displayErrorLogs(errorLogs, pagination) {
                 </div>
                 <div class="error-log-field">
                     <div class="error-log-label">IP 주소</div>
-                    <div class="error-log-value">${escape(
+                    <div class="error-log-value" title="${escape(
                         log.client_ip || 'N/A'
-                    )}</div>
+                    )}">${escape(log.client_ip || 'N/A')}</div>
                 </div>
                 <div class="error-log-field">
                     <div class="error-log-label">재시도 횟수</div>
@@ -1209,5 +1219,7 @@ window.selectUser = selectUser;
 window.showCleanupModal = showCleanupModal;
 window.hideCleanupModal = hideCleanupModal;
 window.performCleanup = performCleanup;
+window.loadPopularRoutes = loadPopularRoutes;
+window.loadErrorAnalysis = loadErrorAnalysis;
 
 document.addEventListener('DOMContentLoaded', initializePage);

@@ -23,7 +23,7 @@ body {
 
 .container {
     width: 100%;
-    max-width: 620px;
+    max-width: 720px;
     background: white;
     border-radius: 1rem;
     padding: 2rem;
@@ -42,6 +42,11 @@ body {
     font-size: 2.5rem;
     font-weight: 500;
     margin: 0;
+}
+
+.admin-button-container {
+    display: flex;
+    gap: 1rem;
 }
 
 .admin-button {
@@ -182,6 +187,92 @@ body {
     font-weight: 400;
     text-align: right;
     word-break: break-all;
+}
+
+.username-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.username-container.clickable {
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.username-container.clickable:hover {
+    color: #4caf50;
+}
+
+.unverified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.5rem;
+    background-color: #ff6b6b;
+    color: white;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    animation: pulse 2s infinite;
+}
+
+.unverified-badge .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+.verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.5rem;
+    background-color: #4caf50;
+    color: white;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.verified-badge .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+.unverified-tooltip {
+    position: relative;
+}
+
+.unverified-tooltip::after {
+    content: '클릭하여 인증하기';
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.3rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    margin-bottom: 0.5rem;
+}
+
+.unverified-tooltip:hover::after {
+    opacity: 1;
 }
 
 .action-buttons {
@@ -365,6 +456,10 @@ body {
     .profile-info {
         min-width: auto;
         width: 100%;
+    }
+
+    .profile-image-actions {
+        flex-direction: row;
     }
 
     .action-buttons {

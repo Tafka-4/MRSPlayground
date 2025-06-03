@@ -53,6 +53,10 @@ router.get(
     '/verify-internal-member',
     generalLimiter,
     (req: Request, res: Response) => {
+        if (req.user && req.user.isVerified) {
+            res.redirect('/mypage');
+            return;
+        }
         res.render('./auth/verify-internal-member');
     }
 );
