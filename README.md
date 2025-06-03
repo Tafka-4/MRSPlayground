@@ -11,4 +11,5 @@ Tafka4
 Tafka4 & B1ackCat(?)
 
 ## etc.
+
 mysql init에 있는 계정은 해커들을 위한 선물~

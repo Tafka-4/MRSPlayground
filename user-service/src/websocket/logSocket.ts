@@ -7,7 +7,13 @@ import { User } from '../models/User.js';
 import { redisClient } from '../config/redis.js';
 
 export interface LogMessage {
-    type: 'new-log' | 'log-update' | 'error' | 'auth-success' | 'auth-failed';
+    type:
+        | 'new-log'
+        | 'log-update'
+        | 'error'
+        | 'auth-success'
+        | 'auth-failed'
+        | 'pong';
     data?: any;
     message?: string;
 }
@@ -18,15 +24,14 @@ interface AuthenticatedWebSocket extends WebSocket {
 }
 
 class LogWebSocketServer {
-    private wss: WebSocketServer;
+    public wss: WebSocketServer;
     private clients: Set<AuthenticatedWebSocket> = new Set();
     private checkInterval: NodeJS.Timeout | null = null;
     private lastCheckTime: Date = new Date();
 
-    constructor(server: Server) {
+    constructor(server?: Server) {
         this.wss = new WebSocketServer({
-            server,
-            path: '/ws/logs'
+            noServer: true
         });
 
         this.wss.on('connection', this.handleConnection.bind(this));
@@ -98,6 +103,11 @@ class LogWebSocketServer {
             ws.on('message', async (data) => {
                 try {
                     const message = JSON.parse(data.toString());
+
+                    if (message.type === 'ping') {
+                        this.sendToClient(ws, { type: 'pong' });
+                        return;
+                    }
 
                     if (message.type === 'auth' && !ws.isAuthenticated) {
                         const authResult = await this.authenticateToken(

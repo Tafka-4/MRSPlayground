@@ -6,28 +6,47 @@ class WebSocketClient {
         this.maxReconnectAttempts = 5;
         this.reconnectInterval = 3000;
         this.listeners = new Map();
+        this.endpoint = null;
+        this.token = null;
+        this.pingInterval = null;
+        this.pongTimeout = null;
     }
 
     connect(endpoint, token) {
         try {
+            this.endpoint = endpoint;
+            this.token = token;
+
             const protocol =
                 window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const host = window.location.host;
             const url = `${protocol}//${host}${endpoint}`;
 
-            console.log('WebSocket 연결 시도:', url);
-
+            this.cleanup();
             this.ws = new WebSocket(url);
             this.pendingToken = token;
 
+            const connectionTimeout = setTimeout(() => {
+                if (this.ws && this.ws.readyState === WebSocket.CONNECTING) {
+                    this.ws.close();
+                    this.emit('error', new Error('Connection timeout'));
+                }
+            }, 15000);
+
             this.ws.onopen = () => {
-                console.log('WebSocket 연결 성공, 인증 진행 중...');
+                clearTimeout(connectionTimeout);
                 this.sendAuthMessage(this.pendingToken);
+                this.startPingPong();
             };
 
             this.ws.onmessage = (event) => {
                 try {
                     const message = JSON.parse(event.data);
+
+                    if (message.type === 'pong') {
+                        this.handlePong();
+                        return;
+                    }
 
                     if (message.type === 'auth-success') {
                         console.log('WebSocket 인증 성공');
@@ -40,12 +59,7 @@ class WebSocketClient {
                     if (message.type === 'auth-failed') {
                         console.error('WebSocket 인증 실패:', message.message);
                         this.ws.close(1008, 'Authentication failed');
-                        this.emit(
-                            'error',
-                            new Error(
-                                message.message || 'Authentication failed'
-                            )
-                        );
+                        this.emit('auth-failed', message);
                         return;
                     }
 
@@ -62,22 +76,24 @@ class WebSocketClient {
             this.ws.onclose = (event) => {
                 console.log('WebSocket 연결 종료:', event.code, event.reason);
                 this.isConnected = false;
+                this.stopPingPong();
                 this.emit('disconnected', event);
 
                 if (
-                    event.code !== 1000 &&
+                    (event.code === 1006 || event.code !== 1000) &&
                     this.reconnectAttempts < this.maxReconnectAttempts
                 ) {
-                    this.scheduleReconnect(endpoint, token);
+                    console.log(
+                        `연결이 비정상적으로 종료됨 (코드: ${event.code}), 재연결 시도...`
+                    );
+                    this.scheduleReconnect();
                 }
             };
 
             this.ws.onerror = (error) => {
-                console.error('WebSocket 오류:', error);
                 this.emit('error', error);
             };
         } catch (error) {
-            console.error('WebSocket 연결 실패:', error);
             this.emit('error', error);
         }
     }
@@ -93,10 +109,45 @@ class WebSocketClient {
         }
     }
 
-    scheduleReconnect(endpoint, token) {
+    startPingPong() {
+        this.pingInterval = setInterval(() => {
+            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                this.ws.send(JSON.stringify({ type: 'ping' }));
+
+                this.pongTimeout = setTimeout(() => {
+                    this.ws.close(1000, 'Ping timeout');
+                }, 10000);
+            }
+        }, 30000);
+    }
+
+    handlePong() {
+        if (this.pongTimeout) {
+            clearTimeout(this.pongTimeout);
+            this.pongTimeout = null;
+        }
+    }
+
+    stopPingPong() {
+        if (this.pingInterval) {
+            clearInterval(this.pingInterval);
+            this.pingInterval = null;
+        }
+        if (this.pongTimeout) {
+            clearTimeout(this.pongTimeout);
+            this.pongTimeout = null;
+        }
+    }
+
+    scheduleReconnect() {
         this.reconnectAttempts++;
+        const delay = Math.min(
+            this.reconnectInterval * Math.pow(2, this.reconnectAttempts - 1),
+            30000
+        );
+
         console.log(
-            `WebSocket 재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts}`
+            `WebSocket 재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts} (${delay}ms 후)`
         );
 
         setTimeout(() => {
@@ -104,9 +155,19 @@ class WebSocketClient {
                 !this.isConnected &&
                 this.reconnectAttempts <= this.maxReconnectAttempts
             ) {
-                this.connect(endpoint, token);
+                this.connect(this.endpoint, this.token);
             }
-        }, this.reconnectInterval);
+        }, delay);
+    }
+
+    cleanup() {
+        this.stopPingPong();
+        if (this.ws) {
+            this.ws.onopen = null;
+            this.ws.onmessage = null;
+            this.ws.onclose = null;
+            this.ws.onerror = null;
+        }
     }
 
     send(message) {
@@ -118,6 +179,7 @@ class WebSocketClient {
     }
 
     disconnect() {
+        this.cleanup();
         if (this.ws) {
             this.ws.close(1000, 'Client disconnect');
             this.ws = null;

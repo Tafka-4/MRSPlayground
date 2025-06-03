@@ -43,6 +43,37 @@
                         <h3 class="card-title" id="current-key-header-title">
                             현재 키
                         </h3>
+                        <div class="key-controls">
+                            <button
+                                class="nav-button secondary"
+                                style="
+                                    padding: 0.4rem 0.8rem;
+                                    font-size: 0.8rem;
+                                "
+                                onclick="toggleKeygenMonitoring()"
+                                id="keygen-toggle-btn"
+                            >
+                                <span
+                                    class="material-symbols-outlined"
+                                    id="keygen-toggle-icon"
+                                    >sync</span
+                                >
+                                <span id="keygen-toggle-text">실시간</span>
+                            </button>
+                            <button
+                                class="nav-button secondary"
+                                style="
+                                    padding: 0.4rem 0.8rem;
+                                    font-size: 0.8rem;
+                                "
+                                onclick="manualRefreshKey()"
+                            >
+                                <span class="material-symbols-outlined"
+                                    >refresh</span
+                                >
+                                새로고침
+                            </button>
+                        </div>
                     </div>
                     <div class="current-key-sub-header">
                         <span

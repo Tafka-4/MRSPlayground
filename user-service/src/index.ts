@@ -4,7 +4,9 @@ import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import path from 'path';
 import fs from 'fs';
-import { createServer } from 'http';
+import { createServer, IncomingMessage } from 'http';
+import { Socket } from 'net';
+import url from 'url';
 import { initDatabase } from './config/database.js';
 import { connectRedis } from './config/redis.js';
 import userRoutes from './routes/userRoutes.js';
@@ -13,6 +15,7 @@ import logRoutes from './routes/logRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { identify } from './middleware/identify.js';
 import LogWebSocketServer from './websocket/logSocket.js';
+import KeygenWebSocketServer from './websocket/keygenSocket.js';
 
 dotenv.config();
 
@@ -87,18 +90,66 @@ const startServer = async () => {
 
         const server = createServer(app);
 
-        const logWebSocketServer = new LogWebSocketServer(server);
+        const logWebSocketServer = new LogWebSocketServer();
+        const keygenWebSocketServer = new KeygenWebSocketServer();
+
+        // HTTP Upgrade... It was really hard to find this...
+        server.on(
+            'upgrade',
+            (request: IncomingMessage, socket: Socket, head: Buffer) => {
+                const pathname = request.url
+                    ? url.parse(request.url).pathname
+                    : undefined;
+
+                if (pathname === '/ws/keygen') {
+                    keygenWebSocketServer.wss.handleUpgrade(
+                        request,
+                        socket,
+                        head,
+                        (ws) => {
+                            keygenWebSocketServer.wss.emit(
+                                'connection',
+                                ws,
+                                request
+                            );
+                        }
+                    );
+                } else if (pathname === '/ws/logs') {
+                    logWebSocketServer.wss.handleUpgrade(
+                        request,
+                        socket,
+                        head,
+                        (ws) => {
+                            logWebSocketServer.wss.emit(
+                                'connection',
+                                ws,
+                                request
+                            );
+                        }
+                    );
+                } else {
+                    console.log(
+                        `[WebSocket] Unknown path for upgrade: ${pathname}, destroying socket.`
+                    );
+                    socket.destroy();
+                }
+            }
+        );
 
         server.listen(PORT, '0.0.0.0', () => {
             console.log(`User Service running on port ${PORT}`);
             console.log(
                 `WebSocket endpoint available at ws://localhost:${PORT}/ws/logs`
             );
+            console.log(
+                `Keygen WebSocket endpoint available at ws://localhost:${PORT}/ws/keygen`
+            );
         });
 
         process.on('SIGTERM', () => {
             console.log('SIGTERM received, shutting down gracefully');
-            logWebSocketServer.stop();
+            // logWebSocketServer.stop();
+            keygenWebSocketServer.stop();
             server.close(() => {
                 process.exit(0);
             });
@@ -106,7 +157,8 @@ const startServer = async () => {
 
         process.on('SIGINT', () => {
             console.log('SIGINT received, shutting down gracefully');
-            logWebSocketServer.stop();
+            // logWebSocketServer.stop();
+            keygenWebSocketServer.stop();
             server.close(() => {
                 process.exit(0);
             });

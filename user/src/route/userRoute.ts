@@ -31,7 +31,6 @@ router.get('/login', loginLimiter, async (req: Request, res: Response) => {
             const data = await response.json();
             if (data.success) {
                 res.redirect('/mypage');
-                return;
             }
         }
     } catch (error) {

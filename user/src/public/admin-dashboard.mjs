@@ -7,6 +7,8 @@ import WebSocketClient from './module/websocket.js';
 let logMonitoringInterval = null;
 let isLogMonitoringActive = false;
 let logWebSocket = null;
+let keygenWebSocket = null;
+let isKeygenMonitoringActive = false;
 
 async function loadDashboardStats() {
     try {
@@ -394,30 +396,136 @@ function clearLogs() {
     new NoticeBox('로그가 지워졌습니다.', 'success').show();
 }
 
+function initializeKeygenWebSocket() {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+        new NoticeBox('로그인이 필요합니다.', 'error').show();
+        return;
+    }
+
+    if (keygenWebSocket) {
+        keygenWebSocket.disconnect();
+        keygenWebSocket = null;
+    }
+
+    keygenWebSocket = new WebSocketClient();
+
+    keygenWebSocket.on('connected', () => {
+        isKeygenMonitoringActive = true;
+        updateKeygenToggleButton(true);
+        new NoticeBox('실시간 키 모니터링이 연결되었습니다.', 'success').show();
+    });
+
+    keygenWebSocket.on('disconnected', (event) => {
+        isKeygenMonitoringActive = false;
+        updateKeygenToggleButton(false);
+
+        if (event && event.code === 1006) {
+            new NoticeBox(
+                '연결이 불안정합니다. 자동으로 재연결을 시도합니다.',
+                'warning'
+            ).show();
+        } else {
+            new NoticeBox(
+                '실시간 키 모니터링 연결이 해제되었습니다.',
+                'warning'
+            ).show();
+        }
+    });
+
+    keygenWebSocket.on('error', (error) => {
+        console.error('Keygen WebSocket 오류:', error);
+        isKeygenMonitoringActive = false;
+        updateKeygenToggleButton(false);
+        new NoticeBox(
+            '실시간 키 모니터링 중 오류가 발생했습니다.',
+            'error'
+        ).show();
+    });
+
+    keygenWebSocket.on('auth-success', (message) => {
+        console.log('Keygen WebSocket 인증 성공:', message.message);
+    });
+
+    keygenWebSocket.on('auth-failed', (message) => {
+        console.error('Keygen WebSocket 인증 실패:', message.message);
+        isKeygenMonitoringActive = false;
+        updateKeygenToggleButton(false);
+        new NoticeBox(
+            `키 모니터링 인증 실패: ${message.message || '알 수 없는 오류'}`,
+            'error'
+        ).show();
+
+        if (keygenWebSocket) {
+            keygenWebSocket.disconnect();
+            keygenWebSocket = null;
+        }
+    });
+
+    keygenWebSocket.on('new-key', (message) => {
+        const { data } = message;
+        if (data && data.key) {
+            updateCurrentKeyDisplay(data.key, data.timestamp);
+        }
+    });
+
+    keygenWebSocket.connect('/ws/keygen', token);
+}
+
+function updateKeygenToggleButton(isActive) {
+    const toggleBtn = document.getElementById('keygen-toggle-btn');
+    const icon = document.getElementById('keygen-toggle-icon');
+    const text = document.getElementById('keygen-toggle-text');
+
+    if (toggleBtn && icon && text) {
+        if (isActive) {
+            toggleBtn.classList.add('active');
+            icon.textContent = 'sync_disabled';
+            text.textContent = '중지';
+        } else {
+            toggleBtn.classList.remove('active');
+            icon.textContent = 'sync';
+            text.textContent = '실시간';
+        }
+    }
+}
+
+function updateCurrentKeyDisplay(key, timestamp) {
+    const currentTime = timestamp
+        ? new Date(timestamp).toLocaleString('ko-KR')
+        : new Date().toLocaleString('ko-KR');
+
+    const subHeaderElement = document.getElementById(
+        'current-key-sub-header-text'
+    );
+    if (subHeaderElement) {
+        subHeaderElement.textContent = `키 시점: ${currentTime}`;
+        subHeaderElement.style.color = `rgb(100, 100, 100)`;
+        subHeaderElement.style.fontStyle = `italic`;
+    }
+
+    const currentKeyElement = document.getElementById('current-key');
+    if (currentKeyElement) {
+        currentKeyElement.style.transition = 'background-color 0.3s ease';
+        currentKeyElement.style.backgroundColor = 'rgb(220, 252, 231)';
+
+        currentKeyElement.title = key;
+        currentKeyElement.textContent = key;
+        currentKeyElement.setAttribute('data-key', key);
+
+        setTimeout(() => {
+            currentKeyElement.style.backgroundColor = '';
+        }, 1000);
+    }
+}
+
 async function loadCurrentKey() {
     try {
         const response = await apiClient.get('/api/v1/auth/current-key');
 
         if (response.ok) {
             const data = await response.json();
-            const currentTime = new Date().toLocaleString('ko-KR');
-
-            const subHeaderElement = document.getElementById(
-                'current-key-sub-header-text'
-            );
-            if (subHeaderElement) {
-                subHeaderElement.textContent = `키 시점: ${currentTime}`;
-                subHeaderElement.style.color = `rgb(100, 100, 100)`;
-                subHeaderElement.style.fontStyle = `italic`;
-            }
-
-            const currentKeyElement = document.getElementById('current-key');
-            if (currentKeyElement) {
-                const key = data.key;
-                currentKeyElement.title = key;
-                currentKeyElement.textContent = key;
-                currentKeyElement.setAttribute('data-key', key);
-            }
+            updateCurrentKeyDisplay(data.key);
         } else {
             document.getElementById('current-key').textContent = '키 로드 실패';
             document.getElementById('current-key-sub-header-text').textContent =
@@ -475,15 +583,52 @@ async function copyCurrentKey() {
     }
 }
 
+function toggleKeygenMonitoring() {
+    const toggleBtn = document.getElementById('keygen-toggle-btn');
+    const icon = document.getElementById('keygen-toggle-icon');
+    const text = document.getElementById('keygen-toggle-text');
+
+    if (isKeygenMonitoringActive) {
+        if (keygenWebSocket) {
+            keygenWebSocket.disconnect();
+            keygenWebSocket = null;
+        }
+
+        isKeygenMonitoringActive = false;
+        updateKeygenToggleButton(false);
+
+        new NoticeBox('실시간 키 모니터링이 중지되었습니다.', 'info').show();
+    } else {
+        initializeKeygenWebSocket();
+    }
+}
+
+async function manualRefreshKey() {
+    try {
+        await loadCurrentKey();
+        new NoticeBox('키가 새로고침되었습니다.', 'success').show();
+    } catch (error) {
+        console.error('수동 키 새로고침 실패:', error);
+        new NoticeBox('키 새로고침에 실패했습니다.', 'error').show();
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboardStats();
     loadRecentActivity();
     loadCurrentKey();
+
+    setTimeout(() => {
+        initializeKeygenWebSocket();
+    }, 1000);
 });
 
 window.addEventListener('beforeunload', () => {
     if (logWebSocket) {
         logWebSocket.disconnect();
+    }
+    if (keygenWebSocket) {
+        keygenWebSocket.disconnect();
     }
 });
 
@@ -491,3 +636,5 @@ window.loadRecentActivity = loadRecentActivity;
 window.toggleLogMonitoring = toggleLogMonitoring;
 window.clearLogs = clearLogs;
 window.copyCurrentKey = copyCurrentKey;
+window.toggleKeygenMonitoring = toggleKeygenMonitoring;
+window.manualRefreshKey = manualRefreshKey;
