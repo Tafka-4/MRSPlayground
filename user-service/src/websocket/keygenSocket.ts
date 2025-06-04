@@ -201,7 +201,7 @@ class KeygenWebSocketServer {
     private startKeyGeneration() {
         this.keyInterval = setInterval(() => {
             this.broadcastCurrentKey();
-        }, 1000);
+        }, 5000);
     }
 
     private broadcastCurrentKey() {

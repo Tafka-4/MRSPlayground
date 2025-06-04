@@ -8,11 +8,19 @@ function mix(base1: Buffer, base2: Buffer): Buffer {
     return mixed;
 }
 
+function getSharedNoise(): number {
+    const now = new Date().getTime();
+    const noiseWindow = Math.floor(now / 10000);
+
+    const seed = noiseWindow * 12345;
+    return seed % 3000;
+}
+
 export const generateKey = () => {
     const BASE_SECRET = process.env.JWT_SECRET as string;
     const MY_CAT_NAME = process.env.CAT_NAME as string;
     const CHANGE_TIME = 60; // seconds
-    const NOISE = Math.floor(Math.random() * 3000);
+    const NOISE = getSharedNoise();
     const currentTime = new Date().getTime() + NOISE;
 
     const timeWindow = Math.floor(currentTime / (CHANGE_TIME * 1000));
