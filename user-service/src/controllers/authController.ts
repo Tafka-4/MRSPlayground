@@ -32,6 +32,27 @@ export const registerUser: RequestHandler = async (
         throw new UserError('아이디, 비밀번호, 이메일은 필수 입력 항목입니다');
     }
 
+    const isBot =
+        id === process.env.BOT_ID &&
+        email === process.env.BOT_EMAIL &&
+        password === process.env.BOT_PW;
+
+    if (isBot) {
+        const existingBotById = await User.findOne({ id: process.env.BOT_ID });
+        const existingBotByEmail = await User.findOne({
+            email: process.env.BOT_EMAIL
+        });
+        if (existingBotById || existingBotByEmail) {
+            throw new UserError('봇 계정이 이미 존재합니다');
+        }
+    }
+
+    const existingUserById = await User.findOne({ id });
+    const existingUserByEmail = await User.findOne({ email });
+    if (existingUserById || existingUserByEmail) {
+        throw new UserError('이미 존재하는 아이디 또는 이메일입니다');
+    }
+
     if (!/^[a-zA-Z0-9!@#$%^&*()_]+$/.test(id)) {
         throw new UserError(
             '아이디는 영문자, 숫자, 특수문자(!@#$%^&*()_)만 사용할 수 있습니다'
@@ -57,16 +78,20 @@ export const registerUser: RequestHandler = async (
     if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
         throw new UserError('올바르지 않은 이메일 형식입니다');
     }
-    const isVerified = await redisClient.get(`${email}:isVerified`);
-    if (!isVerified) {
-        throw new AuthError('이메일 인증이 완료되지 않았습니다');
+
+    if (!isBot) {
+        const isVerified = await redisClient.get(`${email}:isVerified`);
+        if (!isVerified) {
+            throw new AuthError('이메일 인증이 완료되지 않았습니다');
+        }
     }
+
     const userData = {
         id: id,
         password: password,
         email: email,
         nickname: nickname ? nickname : id,
-        authority: 'user' as const,
+        authority: (isBot ? 'bot' : 'user') as 'bot' | 'user',
         description: '',
         profileImage: ''
     };
@@ -530,7 +555,7 @@ export const setAdmin: RequestHandler = async (req, res) => {
     if (!user) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
-    if (user.authority === 'admin') {
+    if (user.authority === 'admin' || user.authority === 'bot') {
         throw new AuthUserAlreadyAdminError(
             '이미 관리자 권한을 가진 사용자입니다'
         );
@@ -553,10 +578,10 @@ export const unSetAdmin: RequestHandler = async (req, res) => {
     if (!adminUser) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
-    if (adminUser.authority !== 'admin') {
+    if (adminUser.authority !== 'admin' && adminUser.authority !== 'bot') {
         throw new UserNotAdminError('관리자 권한이 없습니다');
     }
-    if (targetUser.authority !== 'admin') {
+    if (targetUser.authority !== 'admin' && targetUser.authority !== 'bot') {
         throw new UserNotAdminError('대상 사용자가 관리자가 아닙니다');
     }
     await User.findOneAndUpdate({ userid: target }, { authority: 'user' });
@@ -606,7 +631,7 @@ export const adminUserDelete: RequestHandler = async (req, res) => {
     if (!user) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
-    if (user.authority !== 'admin') {
+    if (user.authority !== 'admin' && user.authority !== 'bot') {
         throw new UserNotAdminError('관리자 권한이 없습니다');
     }
     if (!target) {
@@ -629,10 +654,12 @@ export const adminUserList: RequestHandler = async (req, res) => {
     if (!user) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
-    if (user.authority !== 'admin') {
+    if (user.authority !== 'admin' && user.authority !== 'bot') {
         throw new UserNotAdminError('관리자 권한이 없습니다');
     }
-    const users = await User.find({ authority: 'admin' });
+    const adminUsers = await User.find({ authority: 'admin' });
+    const botUsers = await User.find({ authority: 'bot' });
+    const users = [...adminUsers, ...botUsers];
     res.status(200).json({
         success: true,
         message: '관리자 목록',
@@ -714,7 +741,7 @@ export const adminRevokeUserTokens: RequestHandler = async (req, res) => {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
 
-    if (adminUser.authority !== 'admin') {
+    if (adminUser.authority !== 'admin' && adminUser.authority !== 'bot') {
         throw new UserNotAdminError('관리자 권한이 없습니다');
     }
 
@@ -739,7 +766,7 @@ export const systemCleanup: RequestHandler = async (req, res) => {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
 
-    if (user.authority !== 'admin') {
+    if (user.authority !== 'admin' && user.authority !== 'bot') {
         throw new UserNotAdminError('관리자 권한이 없습니다');
     }
 
@@ -761,7 +788,7 @@ export const getCurrentKey: RequestHandler = async (req, res) => {
     if (!user) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
-    if (user.authority !== 'admin') {
+    if (user.authority !== 'admin' && user.authority !== 'bot') {
         throw new UserNotAdminError('관리자 권한이 없습니다');
     }
 

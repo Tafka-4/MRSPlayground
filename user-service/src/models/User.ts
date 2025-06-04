@@ -23,7 +23,7 @@ export interface IUser {
     password: string;
     email: string;
     isVerified: boolean;
-    authority: 'user' | 'admin';
+    authority: 'user' | 'admin' | 'bot';
     description?: string;
     profileImage?: string;
     createdAt?: Date;

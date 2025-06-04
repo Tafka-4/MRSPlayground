@@ -148,7 +148,7 @@ const startServer = async () => {
 
         process.on('SIGTERM', () => {
             console.log('SIGTERM received, shutting down gracefully');
-            // logWebSocketServer.stop();
+            logWebSocketServer.stop();
             keygenWebSocketServer.stop();
             server.close(() => {
                 process.exit(0);
@@ -157,7 +157,7 @@ const startServer = async () => {
 
         process.on('SIGINT', () => {
             console.log('SIGINT received, shutting down gracefully');
-            // logWebSocketServer.stop();
+            logWebSocketServer.stop();
             keygenWebSocketServer.stop();
             server.close(() => {
                 process.exit(0);

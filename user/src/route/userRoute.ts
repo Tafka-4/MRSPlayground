@@ -82,7 +82,7 @@ router.get(
     adminAccessLogger,
     authMiddleware,
     (req: Request, res: Response) => {
-        if (req.userAuthority !== 'admin') {
+        if (req.userAuthority !== 'admin' && req.userAuthority !== 'bot') {
             res.redirect('/mypage');
             return;
         }
@@ -96,7 +96,7 @@ router.get(
     adminAccessLogger,
     authMiddleware,
     (req: Request, res: Response) => {
-        if (req.userAuthority !== 'admin') {
+        if (req.userAuthority !== 'admin' && req.userAuthority !== 'bot') {
             res.redirect('/mypage');
             return;
         }
@@ -110,7 +110,7 @@ router.get(
     adminAccessLogger,
     authMiddleware,
     (req: Request, res: Response) => {
-        if (req.userAuthority !== 'admin') {
+        if (req.userAuthority !== 'admin' && req.userAuthority !== 'bot') {
             res.redirect('/mypage');
             return;
         }
@@ -124,7 +124,7 @@ router.get(
     adminAccessLogger,
     authMiddleware,
     (req: Request, res: Response) => {
-        if (req.userAuthority !== 'admin') {
+        if (req.userAuthority !== 'admin' && req.userAuthority !== 'bot') {
             res.redirect('/mypage');
             return;
         }
@@ -138,7 +138,7 @@ router.get(
     adminAccessLogger,
     authMiddleware,
     (req: Request, res: Response) => {
-        if (req.userAuthority !== 'admin') {
+        if (req.userAuthority !== 'admin' && req.userAuthority !== 'bot') {
             res.redirect('/mypage');
             return;
         }

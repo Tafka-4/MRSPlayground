@@ -51,7 +51,7 @@ export const checkRequestDatabaseConnection = async (): Promise<boolean> => {
 };
 
 export const waitForDatabase = async (
-    maxRetries: number = 30,
+    maxRetries: number = 50,
     retryInterval: number = 2000
 ): Promise<void> => {
     let retries = 0;
@@ -102,7 +102,7 @@ export const initDatabase = async () => {
                 password VARCHAR(255) NOT NULL,
                 email VARCHAR(255) UNIQUE NOT NULL,
                 isVerified BOOLEAN DEFAULT FALSE,
-                authority ENUM('user', 'admin') DEFAULT 'user',
+                authority ENUM('user', 'admin', 'bot') DEFAULT 'user',
                 description TEXT,
                 profileImage VARCHAR(500) DEFAULT '',
                 createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

@@ -77,7 +77,7 @@ export const adminRequired = async (
     next: NextFunction
 ) => {
     try {
-        if (req.user?.authority !== 'admin') {
+        if (req.user?.authority !== 'admin' && req.user?.authority !== 'bot') {
             return next(new authError.AuthUserNotAdminError('Forbidden'));
         }
         next();

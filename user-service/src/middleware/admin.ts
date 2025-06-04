@@ -17,8 +17,8 @@ export const adminRequired = asyncWrapper(
         if (!user) {
             return next(new UserNotLoginError('Unauthorized'));
         }
-        if (user.authority !== 'admin') {
-            return next(new UserNotAdminError('Unauthorized'));
+        if (user.authority !== 'admin' && user.authority !== 'bot') {
+            throw new UserNotAdminError('관리자 권한이 필요합니다');
         }
         next();
     }

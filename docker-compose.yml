@@ -60,6 +60,9 @@ services:
             - CAT_NAME=${CAT_NAME}
             - EMAIL_USER=${EMAIL_USER}
             - EMAIL_PASS=${EMAIL_PASS}
+            - BOT_ID=${BOT_ID}
+            - BOT_PW=${BOT_PW}
+            - BOT_EMAIL=${BOT_EMAIL}
         depends_on:
             - userdb
             - redis
@@ -98,6 +101,24 @@ services:
         volumes:
             - userdb_data:/var/lib/mysql
             - ./userdb/init:/docker-entrypoint-initdb.d
+        restart: unless-stopped
+        networks:
+            - app-network
+
+    bot:
+        build:
+            context: ./bot
+            dockerfile: Dockerfile
+        environment:
+            - NODE_ENV=${NODE_ENV}
+            - USER_SERVICE_URL=${USER_SERVICE_URL}
+            - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+            - DISCORD_BOT_CLIENT_ID=${DISCORD_BOT_CLIENT_ID}
+            - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
+            - BOT_ID=${BOT_ID}
+            - BOT_EMAIL=${BOT_EMAIL}
+            - BOT_PW=${BOT_PW}
+            - BOT_NICKNAME=${BOT_NICKNAME}
         restart: unless-stopped
         networks:
             - app-network

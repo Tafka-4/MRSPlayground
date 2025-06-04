@@ -189,7 +189,8 @@ export const getLogs = async (req: Request, res: Response) => {
         );
         const currentUserId = req.user?.userid;
 
-        const isAdmin = req.user?.authority === 'admin';
+        const isAdmin =
+            req.user?.authority === 'admin' || req.user?.authority === 'bot';
         const isMyLogsRequest = onlyMine === 'true';
 
         if (!isAdmin && !isMyLogsRequest) {

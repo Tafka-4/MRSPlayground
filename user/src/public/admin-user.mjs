@@ -63,6 +63,8 @@ function displayUsers(users) {
                     ${
                         user.authority === 'admin'
                             ? '<span class="admin-badge">관리자</span>'
+                            : user.authority === 'bot'
+                            ? '<span class="bot-badge">봇</span>'
                             : ''
                     }
                     ${
@@ -78,7 +80,11 @@ function displayUsers(users) {
                         'ko-KR'
                     )}</span>
                     <span>권한: ${
-                        user.authority === 'admin' ? '관리자' : '일반 사용자'
+                        user.authority === 'admin'
+                            ? '관리자'
+                            : user.authority === 'bot'
+                            ? '봇'
+                            : '일반 사용자'
                     }</span>
                 </div>
             </div>
@@ -90,12 +96,16 @@ function displayUsers(users) {
                     보기
                 </button>
                 ${
-                    user.authority === 'admin'
+                    user.authority === 'admin' || user.authority === 'bot'
                         ? `<button class="action-button admin-button" onclick="confirmAdminAction('${escape(
                               user.userid
                           )}', '${escape(user.nickname)}', 'unset')">
                         <span class="material-symbols-outlined">remove_moderator</span>
-                        관리자 해제
+                        ${
+                            user.authority === 'bot'
+                                ? '봇 권한 해제'
+                                : '관리자 해제'
+                        }
                        </button>`
                         : `<button class="action-button admin-button" onclick="confirmAdminAction('${escape(
                               user.userid

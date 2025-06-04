@@ -1,0 +1,24 @@
+{
+    "name": "mrsplayground-discord-bot",
+    "version": "0.1.0",
+    "description": "bot for mrsplayground",
+    "license": "MIT",
+    "author": "Tafka_4",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "build": "tsc",
+        "start": "node ./dist/index.js",
+        "dev": "nodemon --watch src --ext ts,json --exec \"tsx ./src/index.ts\"",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "discord.js": "^14.14.1",
+        "dotenv": "^16.5.0",
+        "uuid": "^11.1.0",
+        "ws": "^8.18.2"
+    },
+    "devDependencies": {
+        "@types/ws": "^8.18.1"
+    }
+}

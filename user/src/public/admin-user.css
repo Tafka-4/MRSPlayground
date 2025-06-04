@@ -466,6 +466,7 @@ body {
 }
 
 .admin-badge,
+.bot-badge,
 .verified-badge,
 .unverified-badge {
     display: inline-block;
@@ -478,6 +479,11 @@ body {
 
 .admin-badge {
     background-color: #8b5cf6;
+    color: white;
+}
+
+.bot-badge {
+    background-color: #06b6d4;
     color: white;
 }
 

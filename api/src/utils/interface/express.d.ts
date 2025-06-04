@@ -3,7 +3,7 @@ export interface IUser {
     id: string;
     nickname: string;
     email: string;
-    authority: 'user' | 'admin';
+    authority: 'user' | 'admin' | 'bot';
     isVerified: boolean;
     description?: string;
     profileImage?: string;

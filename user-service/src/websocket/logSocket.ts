@@ -63,7 +63,7 @@ class LogWebSocketServer {
                 return { success: false, error: '사용자를 찾을 수 없습니다.' };
             }
 
-            if (user.authority !== 'admin') {
+            if (user.authority !== 'admin' && user.authority !== 'bot') {
                 return { success: false, error: '관리자 권한이 필요합니다.' };
             }
 
