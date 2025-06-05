@@ -50,7 +50,13 @@ function displayAdmins(admins) {
             <div class="user-info">
                 <div class="user-name">
                     ${escape(admin.nickname)}
-                    <span class="admin-badge">관리자</span>
+                    ${
+                        admin.authority === 'admin'
+                            ? '<span class="admin-badge">관리자</span>'
+                            : admin.authority === 'bot'
+                            ? '<span class="bot-badge">오토마타</span>'
+                            : ''
+                    }
                     ${
                         admin.isVerified
                             ? '<span class="verified-badge">인증됨</span>'
@@ -63,7 +69,13 @@ function displayAdmins(admins) {
                     <span>가입일: ${new Date(
                         admin.createdAt
                     ).toLocaleDateString('ko-KR')}</span>
-                    <span>권한: 관리자</span>
+                    <span>권한: ${
+                        admin.authority === 'admin'
+                            ? '관리자'
+                            : admin.authority === 'bot'
+                            ? '오토마타'
+                            : '일반 사용자'
+                    }</span>
                 </div>
             </div>
             <div class="user-actions">

@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
 import { deployCommands, redeployCommands } from './deploy.js';
 import { RequestClient } from './utils/unifiedClient.js';
+import { broadcastKeygen } from './internal/keygenBroadcasting.js';
 
 dotenv.config();
 
@@ -116,7 +117,26 @@ client.once('ready', async () => {
     }
 });
 
+try {
+    console.log('🔑 키젠 브로드캐스팅 시스템을 시작합니다...');
+    await broadcastKeygen(client);
+} catch (error) {
+    console.error('❌ 키젠 브로드캐스팅 시스템 시작 실패:', error);
+}
+
 client
     .login(process.env.DISCORD_BOT_TOKEN)
     .then(() => console.log('🤖 bot is ready'))
     .catch(console.error);
+
+process.on('SIGTERM', () => {
+    console.log('SIGTERM received, shutting down gracefully');
+    client.requestClient.disconnectWebSocket();
+    process.exit(0);
+});
+
+process.on('SIGINT', () => {
+    console.log('SIGINT received, shutting down gracefully');
+    client.requestClient.disconnectWebSocket();
+    process.exit(0);
+});

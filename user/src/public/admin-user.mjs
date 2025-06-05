@@ -64,7 +64,7 @@ function displayUsers(users) {
                         user.authority === 'admin'
                             ? '<span class="admin-badge">관리자</span>'
                             : user.authority === 'bot'
-                            ? '<span class="bot-badge">봇</span>'
+                            ? '<span class="bot-badge">오토마타</span>'
                             : ''
                     }
                     ${
@@ -83,7 +83,7 @@ function displayUsers(users) {
                         user.authority === 'admin'
                             ? '관리자'
                             : user.authority === 'bot'
-                            ? '봇'
+                            ? '오토마타'
                             : '일반 사용자'
                     }</span>
                 </div>
@@ -103,7 +103,7 @@ function displayUsers(users) {
                         <span class="material-symbols-outlined">remove_moderator</span>
                         ${
                             user.authority === 'bot'
-                                ? '봇 권한 해제'
+                                ? '오토마타 권한 해제'
                                 : '관리자 해제'
                         }
                        </button>`
