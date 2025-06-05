@@ -14,7 +14,9 @@ export const extractToken = (req: Request): string | null => {
 };
 
 export const verifyToken = (token: string): JwtPayload => {
-    return jwt.verify(token, process.env.JWT_SECRET as string) as JwtPayload;
+    return jwt.verify(token, process.env.JWT_SECRET as string, {
+        algorithms: ['HS256']
+    }) as JwtPayload;
 };
 
 export const getUserFromToken = async (

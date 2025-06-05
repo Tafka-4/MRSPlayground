@@ -48,7 +48,8 @@ class KeygenWebSocketServer {
 
             const decoded = jwt.verify(
                 token,
-                process.env.JWT_SECRET as string
+                process.env.JWT_SECRET as string,
+                { algorithms: ['HS256'] }
             ) as jwt.JwtPayload;
 
             const cachedUser = await redisClient.get(`user:${decoded.userid}`);

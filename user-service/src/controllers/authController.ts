@@ -222,10 +222,9 @@ export const refreshToken: RequestHandler = async (
         throw new UserNotLoginError('리프레시 토큰을 찾을 수 없습니다');
     }
 
-    const decoded = jwt.verify(
-        refreshToken,
-        process.env.JWT_SECRET as string
-    ) as JwtPayloadWithUserId;
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET as string, {
+        algorithms: ['HS256']
+    }) as JwtPayloadWithUserId;
 
     const user = await User.findOne({ userid: decoded.userid });
 
@@ -276,10 +275,9 @@ export const checkToken: RequestHandler = async (
         throw new UserNotLoginError('리프레시 토큰을 찾을 수 없습니다');
     }
 
-    const decoded = jwt.verify(
-        refreshToken,
-        process.env.JWT_SECRET as string
-    ) as JwtPayloadWithUserId;
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET as string, {
+        algorithms: ['HS256']
+    }) as JwtPayloadWithUserId;
 
     const forceRefresh = req.query.forceRefresh === 'true';
 

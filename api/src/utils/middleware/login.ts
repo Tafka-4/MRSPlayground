@@ -32,10 +32,9 @@ export const loginRequired = async (
             return next(new userError.UserNotLoginError('Unauthorized'));
         }
 
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET as string
-        ) as jwt.JwtPayload;
+        const decoded = jwt.verify(token, process.env.JWT_SECRET as string, {
+            algorithms: ['HS256']
+        }) as jwt.JwtPayload;
 
         const user = await callUserService(`/api/v1/users/${decoded.userid}`);
         if (!user) {

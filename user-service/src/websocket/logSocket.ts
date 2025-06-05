@@ -51,14 +51,16 @@ class LogWebSocketServer {
 
             const decoded = jwt.verify(
                 token,
-                process.env.JWT_SECRET as string
+                process.env.JWT_SECRET as string,
+                { algorithms: ['HS256'] }
             ) as jwt.JwtPayload;
+
             const cachedUser = await redisClient.get(`user:${decoded.userid}`);
             if (cachedUser) {
                 return { success: true, user: JSON.parse(cachedUser) };
             }
-            const user = await User.findOne({ userid: decoded.userid });
 
+            const user = await User.findOne({ userid: decoded.userid });
             if (!user) {
                 return { success: false, error: '사용자를 찾을 수 없습니다.' };
             }
@@ -110,49 +112,7 @@ class LogWebSocketServer {
                     }
 
                     if (message.type === 'auth' && !ws.isAuthenticated) {
-                        const authResult = await this.authenticateToken(
-                            message.token
-                        );
-
-                        if (authResult.success) {
-                            clearTimeout(authTimeout);
-                            ws.user = authResult.user;
-                            ws.isAuthenticated = true;
-                            this.clients.add(ws);
-
-                            console.log(
-                                `관리자 WebSocket 클라이언트 인증 성공: ${
-                                    authResult.user.nickname ||
-                                    authResult.user.id
-                                }`
-                            );
-
-                            this.sendToClient(ws, {
-                                type: 'auth-success',
-                                message: '인증이 완료되었습니다.'
-                            });
-                            await this.sendRecentLogs(ws);
-
-                            this.sendToClient(ws, {
-                                type: 'new-log',
-                                data: {
-                                    connected: true,
-                                    message:
-                                        '실시간 로그 모니터링이 연결되었습니다.'
-                                }
-                            });
-                        } else {
-                            console.log(
-                                'WebSocket 인증 실패:',
-                                authResult.error
-                            );
-                            this.sendToClient(ws, {
-                                type: 'auth-failed',
-                                message:
-                                    authResult.error || '인증에 실패했습니다.'
-                            });
-                            ws.close(1008, 'Authentication failed');
-                        }
+                        await this.handleAuthMessage(ws, message, authTimeout);
                         return;
                     }
 
@@ -183,6 +143,50 @@ class LogWebSocketServer {
             console.error('WebSocket 연결 처리 오류:', error);
             ws.close(1011, 'Internal server error');
         }
+    }
+
+    private async handleAuthMessage(
+        ws: AuthenticatedWebSocket,
+        message: any,
+        authTimeout: NodeJS.Timeout
+    ) {
+        const authResult = await this.authenticateToken(message.token);
+
+        if (!authResult.success) {
+            console.log('WebSocket 인증 실패:', authResult.error);
+            this.sendToClient(ws, {
+                type: 'auth-failed',
+                message: authResult.error || '인증에 실패했습니다.'
+            });
+            ws.close(1008, 'Authentication failed');
+            return;
+        }
+
+        clearTimeout(authTimeout);
+        ws.user = authResult.user;
+        ws.isAuthenticated = true;
+        this.clients.add(ws);
+
+        console.log(
+            `관리자 WebSocket 클라이언트 인증 성공: ${
+                authResult.user.nickname || authResult.user.id
+            }`
+        );
+
+        this.sendToClient(ws, {
+            type: 'auth-success',
+            message: '인증이 완료되었습니다.'
+        });
+
+        await this.sendRecentLogs(ws);
+
+        this.sendToClient(ws, {
+            type: 'new-log',
+            data: {
+                connected: true,
+                message: '실시간 로그 모니터링이 연결되었습니다.'
+            }
+        });
     }
 
     private async sendRecentLogs(ws: AuthenticatedWebSocket) {
@@ -252,7 +256,10 @@ class LogWebSocketServer {
         const authenticatedClients = Array.from(this.clients).filter(
             (client) => client.isAuthenticated
         );
-        if (authenticatedClients.length === 0) return;
+
+        if (authenticatedClients.length === 0) {
+            return;
+        }
 
         try {
             const [logs] = (await requestPool.execute(
@@ -260,52 +267,54 @@ class LogWebSocketServer {
                 [this.lastCheckTime]
             )) as any[];
 
-            if (logs.length > 0) {
-                const userIds = [
-                    ...new Set(
-                        logs
-                            .map((log: any) => log.user_id)
-                            .filter(
-                                (id: any) =>
-                                    id && typeof id === 'string' && id.trim()
-                            )
-                    )
-                ];
-
-                let usersData: any = {};
-                if (userIds.length > 0) {
-                    const placeholders = userIds.map(() => '?').join(',');
-                    const [users] = (await pool.execute(
-                        `SELECT userid, id, nickname, email FROM users WHERE userid IN (${placeholders})`,
-                        userIds
-                    )) as any[];
-
-                    usersData = users.reduce((acc: any, user: any) => {
-                        if (user.userid) {
-                            acc[user.userid] = {
-                                username: user.nickname || null,
-                                email: user.email || null,
-                                login_id: user.id || null
-                            };
-                        }
-                        return acc;
-                    }, {});
-                }
-
-                const enrichedLogs = logs.map((log: any) => ({
-                    ...log,
-                    username: usersData[log.user_id]?.username || null,
-                    email: usersData[log.user_id]?.email || null,
-                    login_id: usersData[log.user_id]?.login_id || null
-                }));
-
-                this.broadcast({
-                    type: 'new-log',
-                    data: { logs: enrichedLogs, new: true }
-                });
-
-                this.lastCheckTime = new Date();
+            if (logs.length === 0) {
+                return;
             }
+
+            const userIds = [
+                ...new Set(
+                    logs
+                        .map((log: any) => log.user_id)
+                        .filter(
+                            (id: any) =>
+                                id && typeof id === 'string' && id.trim()
+                        )
+                )
+            ];
+
+            let usersData: any = {};
+            if (userIds.length > 0) {
+                const placeholders = userIds.map(() => '?').join(',');
+                const [users] = (await pool.execute(
+                    `SELECT userid, id, nickname, email FROM users WHERE userid IN (${placeholders})`,
+                    userIds
+                )) as any[];
+
+                usersData = users.reduce((acc: any, user: any) => {
+                    if (user.userid) {
+                        acc[user.userid] = {
+                            username: user.nickname || null,
+                            email: user.email || null,
+                            login_id: user.id || null
+                        };
+                    }
+                    return acc;
+                }, {});
+            }
+
+            const enrichedLogs = logs.map((log: any) => ({
+                ...log,
+                username: usersData[log.user_id]?.username || null,
+                email: usersData[log.user_id]?.email || null,
+                login_id: usersData[log.user_id]?.login_id || null
+            }));
+
+            this.broadcast({
+                type: 'new-log',
+                data: { logs: enrichedLogs, new: true }
+            });
+
+            this.lastCheckTime = new Date();
         } catch (error) {
             console.error('새로운 로그 확인 오류:', error);
             this.broadcast({

@@ -220,12 +220,12 @@ export class User {
         const accessToken = jwt.sign(
             { userid: this.data.userid },
             process.env.JWT_SECRET as string,
-            { expiresIn: '5m' }
+            { expiresIn: '5m', algorithm: 'HS256' }
         );
         const refreshToken = jwt.sign(
             { userid: this.data.userid },
             process.env.JWT_SECRET as string,
-            { expiresIn: '7d' }
+            { expiresIn: '7d', algorithm: 'HS256' }
         );
 
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -251,10 +251,9 @@ export class User {
 
     async verifyToken(token: string): Promise<jwt.JwtPayload> {
         try {
-            return jwt.verify(
-                token,
-                process.env.JWT_SECRET as string
-            ) as jwt.JwtPayload;
+            return jwt.verify(token, process.env.JWT_SECRET as string, {
+                algorithms: ['HS256']
+            }) as jwt.JwtPayload;
         } catch (error) {
             throw new UserTokenVerificationFailedError(
                 'Token verification failed'
@@ -283,7 +282,7 @@ export class User {
             const accessToken = jwt.sign(
                 { userid: this.data.userid },
                 process.env.JWT_SECRET as string,
-                { expiresIn: '15m' }
+                { expiresIn: '15m', algorithm: 'HS256' }
             );
             await redisClient.del(`user:${this.data.userid}`);
             return accessToken;
@@ -325,7 +324,7 @@ export class User {
         const accessToken = jwt.sign(
             { userid: this.data.userid },
             process.env.JWT_SECRET as string,
-            { expiresIn: '15m' }
+            { expiresIn: '15m', algorithm: 'HS256' }
         );
         await redisClient.del(`user:${this.data.userid}`);
         return accessToken;
