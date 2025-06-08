@@ -57,6 +57,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', userRoute);
 
+// for debug
 app.use('*', (req: express.Request, res: express.Response) => {
     console.log(req.originalUrl);
     if (req.originalUrl.startsWith('/api')) {

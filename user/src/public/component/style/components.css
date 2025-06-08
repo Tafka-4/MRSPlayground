@@ -1,0 +1,407 @@
+/* Common component styles */
+
+.page-centered {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.page-scrollable {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Containers */
+.container {
+    width: 100%;
+    max-width: 720px;
+    background: var(--card-background);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
+.form-container {
+    width: 100%;
+    max-width: 400px;
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
+/* Typography */
+.title {
+    display: flex;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    font-weight: 500;
+    margin: 0 0 1rem 0;
+}
+
+.subtitle {
+    display: flex;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    color: var(--secondary-color);
+    margin: 0.5rem 0 1rem 0;
+    font-size: 0.85rem;
+    font-weight: 300;
+}
+
+.subtitle a {
+    color: var(--primary-color);
+    text-decoration: none;
+    margin-left: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color var(--transition);
+}
+
+.subtitle a:hover {
+    color: rgb(50, 50, 50);
+}
+
+/* Form Elements */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+.input-wrapper .material-symbols-outlined {
+    position: absolute;
+    left: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+    font-weight: 20;
+    z-index: 10;
+}
+
+.form-input {
+    font-size: 1rem;
+    font-weight: 400;
+    display: flex;
+    box-sizing: border-box;
+    position: relative;
+    width: 100%;
+    height: 2.15rem;
+    margin: 0;
+    padding: 0.5rem 0.5rem 0.5rem 2.5rem;
+    outline: none;
+    border: solid 1px var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--background-color);
+    transition: background-color var(--transition);
+}
+
+.form-input::placeholder {
+    color: var(--secondary-color);
+    padding-right: 0.5rem;
+    font-size: 1rem;
+    font-weight: 300;
+}
+
+.form-input:focus {
+    background: rgb(230, 230, 230);
+    color: var(--primary-color);
+    outline: none;
+}
+
+.form-input:focus::placeholder {
+    color: var(--secondary-color);
+}
+
+.form-input[type='password'] {
+    font-family: 'pass', 'Roboto', Helvetica, Arial, sans-serif;
+}
+
+.form-input[type='password']::placeholder {
+    font-family: 'ONE-Mobile-POP', sans-serif;
+    font-size: 1rem;
+    opacity: 1;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition);
+    text-decoration: none;
+    height: 2.5rem;
+    min-width: 0;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Form container에서는 버튼이 전체 너비를 차지 */
+.form-container .btn-primary {
+    width: 100%;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: rgb(50, 50, 50);
+}
+
+.btn-secondary {
+    background-color: rgb(230, 230, 230);
+    color: var(--primary-color);
+    border: 1px solid var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: rgb(220, 220, 220);
+}
+
+.btn-error,
+.btn-danger {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.btn-error:hover:not(:disabled),
+.btn-danger:hover:not(:disabled) {
+    background-color: #e66b6b;
+}
+
+.btn-warning {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.btn-warning:hover:not(:disabled) {
+    background-color: #d69a2b;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+    background-color: #20b958;
+}
+
+.btn-small,
+.btn-sm {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    height: 1.8rem;
+}
+
+.btn-medium,
+.btn-md {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    height: 2.15rem;
+}
+
+.btn-lg {
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    height: 2.8rem;
+}
+
+/* Outline button variants */
+.btn-outline-primary {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-outline-secondary {
+    background-color: transparent;
+    color: rgb(100, 100, 100);
+    border: 1px solid rgb(200, 200, 200);
+}
+
+.btn-outline-secondary:hover:not(:disabled) {
+    background-color: rgb(230, 230, 230);
+    color: var(--primary-color);
+}
+
+.btn-outline-danger {
+    background-color: transparent;
+    color: var(--error-color);
+    border: 1px solid var(--error-color);
+}
+
+.btn-outline-danger:hover:not(:disabled) {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.btn-outline-success {
+    background-color: transparent;
+    color: var(--success-color);
+    border: 1px solid var(--success-color);
+}
+
+.btn-outline-success:hover:not(:disabled) {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.btn-outline-warning {
+    background-color: transparent;
+    color: var(--warning-color);
+    border: 1px solid var(--warning-color);
+}
+
+.btn-outline-warning:hover:not(:disabled) {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+/* Password visibility toggle */
+.visibility-container {
+    position: absolute;
+    right: 2.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.visibility-container .material-symbols-outlined {
+    color: var(--secondary-color);
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 20;
+    transition: color var(--transition);
+}
+
+.visibility-container .material-symbols-outlined:hover {
+    color: var(--primary-color);
+}
+
+/* Dividers */
+.divider {
+    width: 100%;
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 0.5rem 0;
+}
+
+/* Utility components */
+.util-container {
+    display: flex;
+    box-sizing: border-box;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: start;
+    margin: 0.5rem 0;
+}
+
+/* Custom checkbox */
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    color: var(--secondary-color);
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+.checkbox-wrapper input[type='checkbox'] {
+    display: none;
+}
+
+.checkbox-wrapper input[type='checkbox'] + label {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-wrapper input[type='checkbox'] + label:before {
+    content: '';
+    display: flex;
+    width: 0.85rem;
+    height: 0.85rem;
+    margin-right: 0.25rem;
+    border: 2px solid var(--error-color);
+    border-radius: 0.2rem;
+    vertical-align: middle;
+}
+
+.checkbox-wrapper input[type='checkbox']:checked + label:before {
+    content: '🗸';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background-color: var(--error-color);
+    border-color: var(--error-color);
+}
+
+/* Links */
+.link {
+    color: var(--secondary-color);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: color var(--transition);
+}
+
+.link:hover {
+    color: var(--primary-color);
+}
+
+/* Notice container placeholder */
+.notice-container {
+    margin-top: 1rem;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+        margin: 1rem;
+    }
+
+    .form-container {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+}
