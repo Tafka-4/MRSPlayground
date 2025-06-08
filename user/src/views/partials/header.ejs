@@ -1,0 +1,276 @@
+<%
+const headerData = {
+    brandText: locals.brandText || 'MRS Playground',
+    brandHref: locals.brandHref || '/',
+    userName: locals.userName || 'User',
+    userRole: locals.userRole || '사용자',
+    notificationCount: locals.notificationCount || 0,
+    showAdminMenu: locals.showAdminMenu || false,
+    ...locals
+};
+%>
+
+<link rel="stylesheet" href="/partials/header.css">
+
+<header class="main-header">
+    <div class="header-container">
+        <div class="header-brand">
+            <a href="<%= headerData.brandHref %>" class="brand-link">
+                <span class="brand-icon">🔮</span>
+                <span class="brand-text"><%= headerData.brandText %></span>
+            </a>
+        </div>
+
+        <nav class="header-nav">
+            <ul class="nav-list">
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle" id="servicesDropdown">
+                        <span class="material-symbols-outlined">apps</span>
+                        <span>서비스</span>
+                        <span class="material-symbols-outlined dropdown-arrow">expand_more</span>
+                    </a>
+                    <ul class="dropdown-menu" id="servicesMenu">
+                        <li>
+                            <a href="/dashboard" class="dropdown-link">
+                                <span class="material-symbols-outlined">dashboard</span>
+                                <span>대시보드</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/community" class="dropdown-link">
+                                <span class="material-symbols-outlined">groups</span>
+                                <span>커뮤니티</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/research" class="dropdown-link">
+                                <span class="material-symbols-outlined">science</span>
+                                <span>연구실</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/library" class="dropdown-link">
+                                <span class="material-symbols-outlined">library_books</span>
+                                <span>자료실</span>
+                            </a>
+                        </li>
+                        <% if (headerData.showAdminMenu) { %>
+                        <li class="dropdown-divider"></li>
+                        <li>
+                            <a href="/admin" class="dropdown-link admin-link">
+                                <span class="material-symbols-outlined">admin_panel_settings</span>
+                                <span>관리자</span>
+                            </a>
+                        </li>
+                        <% } %>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+
+        <div class="header-actions">
+            <button class="action-btn notification-btn" id="notificationBtn">
+                <span class="material-symbols-outlined">notifications</span>
+                <% if (headerData.notificationCount > 0) { %>
+                <span class="notification-badge"><%= headerData.notificationCount %></span>
+                <% } %>
+            </button>
+
+            <div class="user-menu dropdown">
+                <button class="user-menu-toggle dropdown-toggle" id="userMenuToggle">
+                    <div class="user-avatar">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name"><%= headerData.userName %></span>
+                        <span class="user-role"><%= headerData.userRole %></span>
+                    </div>
+                    <span class="material-symbols-outlined dropdown-arrow">expand_more</span>
+                </button>
+                <ul class="dropdown-menu user-dropdown" id="userMenu">
+                    <li>
+                        <a href="/mypage" class="dropdown-link">
+                            <span class="material-symbols-outlined">person</span>
+                            <span>마이페이지</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/settings" class="dropdown-link">
+                            <span class="material-symbols-outlined">settings</span>
+                            <span>설정</span>
+                        </a>
+                    </li>
+                    <li class="dropdown-divider"></li>
+                    <li>
+                        <button class="dropdown-link logout-link" id="logoutBtn">
+                            <span class="material-symbols-outlined">logout</span>
+                            <span>로그아웃</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <button class="action-btn theme-toggle" id="themeToggle">
+                <span class="material-symbols-outlined">dark_mode</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<script>
+document.body.classList.add('has-header');
+
+if (!window.headerEventsSetup) {
+    window.headerEventsSetup = true;
+    
+    function setupDropdowns() {
+        const dropdowns = document.querySelectorAll('.dropdown');
+        
+        dropdowns.forEach(dropdown => {
+            const toggle = dropdown.querySelector('.dropdown-toggle');
+            const menu = dropdown.querySelector('.dropdown-menu');
+            
+            if (toggle && menu) {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    dropdowns.forEach(otherDropdown => {
+                        if (otherDropdown !== dropdown) {
+                            otherDropdown.classList.remove('open');
+                        }
+                    });
+                    
+                    dropdown.classList.toggle('open');
+                });
+            }
+        });
+        
+        document.addEventListener('click', () => {
+            dropdowns.forEach(dropdown => {
+                dropdown.classList.remove('open');
+            });
+        });
+    }
+
+    function setupThemeToggle() {
+        const themeToggle = document.getElementById('themeToggle');
+        if (!themeToggle) return;
+        
+        const icon = themeToggle.querySelector('.material-symbols-outlined');
+        
+        function updateThemeIcon(theme) {
+            icon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+        
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        updateThemeIcon(savedTheme);
+    }
+
+    function setupLogout() {
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (confirm('정말 로그아웃하시겠습니까?')) {
+                    window.location.href = '/logout';
+                }
+            });
+        }
+    }
+
+    function setupNotifications() {
+        const notificationBtn = document.getElementById('notificationBtn');
+        if (notificationBtn) {
+            notificationBtn.addEventListener('click', () => {
+                console.log('알림 버튼 클릭됨');
+            });
+        }
+    }
+
+    function setupHeaderScroll() {
+        let lastScrollY = window.scrollY;
+        let ticking = false;
+        const header = document.querySelector('.main-header');
+        if (!header) return;
+        
+        function updateHeader() {
+            const scrollY = window.scrollY;
+            const scrollDirection = scrollY > lastScrollY ? 'down' : 'up';
+            const scrollDelta = Math.abs(scrollY - lastScrollY);
+            
+            if (scrollY === 0) {
+                header.classList.remove('header-hidden');
+            }
+            else if (scrollY > 50 && scrollDirection === 'up' && scrollDelta > 2) {
+                header.classList.add('header-hidden');
+            }
+            else if (scrollDirection === 'down' && scrollDelta > 1) {
+                header.classList.remove('header-hidden');
+            }
+            
+            if (scrollY > 50) {
+                header.classList.add('header-shadow');
+            } else {
+                header.classList.remove('header-shadow');
+            }
+            
+            lastScrollY = scrollY;
+            ticking = false;
+        }
+        
+        function requestTick() {
+            if (!ticking) {
+                requestAnimationFrame(updateHeader);
+                ticking = true;
+            }
+        }
+        
+        window.addEventListener('scroll', requestTick, { passive: true });
+        
+        let touchStartY = 0;
+        let touchEndY = 0;
+        
+        window.addEventListener('touchstart', (e) => {
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+        
+        window.addEventListener('touchend', (e) => {
+            touchEndY = e.changedTouches[0].screenY;
+            const touchDelta = touchStartY - touchEndY;
+            
+            if (Math.abs(touchDelta) > 50) {
+                if (touchDelta < 0) {
+                    header.classList.add('header-hidden');
+                } else {
+                    header.classList.remove('header-hidden');
+                }
+            }
+        }, { passive: true });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setupDropdowns();
+            setupThemeToggle();
+            setupLogout();
+            setupNotifications();
+            setupHeaderScroll();
+        });
+    } else {
+        setupDropdowns();
+        setupThemeToggle();
+        setupLogout();
+        setupNotifications();
+        setupHeaderScroll();
+    }
+}
+</script> 

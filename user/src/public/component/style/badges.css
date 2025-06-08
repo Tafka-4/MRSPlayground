@@ -1,0 +1,359 @@
+/* Badge Base Styles */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    max-width: 100px;
+    justify-content: center;
+}
+
+.badge-small {
+    padding: 0.125rem 0.375rem;
+    font-size: 0.625rem;
+}
+
+.badge-large {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.badge .material-symbols-outlined {
+    font-size: 1em;
+}
+
+/* Badge Variants */
+.badge-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.badge-secondary {
+    background-color: rgb(230, 230, 230);
+    color: var(--primary-color);
+}
+
+.badge-success {
+    background-color: var(--success-color, #28a745);
+    color: white;
+}
+
+.badge-warning {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.badge-danger {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.badge-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+/* Verification Badges */
+.verified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.5rem;
+    background-color: #4caf50;
+    color: white;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+    animation: none;
+    max-width: 80px;
+    justify-content: center;
+}
+
+.verified-badge .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+.unverified-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.5rem;
+    background-color: #ff6b6b;
+    color: white;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    animation: pulse 2s infinite;
+    max-width: 80px;
+    justify-content: center;
+}
+
+.unverified-badge .material-symbols-outlined {
+    font-size: 1rem;
+}
+
+.unverified-badge.clickable:hover {
+    background-color: #e66b6b;
+    cursor: pointer;
+}
+
+/* Admin Style Badges */
+.admin-badge,
+.bot-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.admin-badge {
+    background-color: #8b5cf6;
+    color: white;
+}
+
+.bot-badge {
+    background-color: #06b6d4;
+    color: white;
+}
+
+/* Status Badges */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+    max-width: 80px;
+    justify-content: center;
+}
+
+.status-badge.success {
+    background-color: #10b981;
+    color: white;
+    max-width: 60px;
+}
+
+.status-badge.failed {
+    background-color: #f47c7c;
+    color: white;
+    max-width: 60px;
+}
+
+.status-badge.pending {
+    background-color: #f59e0b;
+    color: white;
+    max-width: 60px;
+}
+
+.status-badge.online {
+    background-color: var(--success-color);
+    color: rgb(20, 20, 20);
+}
+
+.status-badge.offline {
+    background-color: rgb(100, 100, 100);
+    color: var(--text-primary);
+}
+
+.status-badge.away {
+    background-color: var(--warning-color);
+    color: rgb(20, 20, 20);
+}
+
+.status-badge.busy {
+    background-color: var(--error-color);
+    color: white;
+}
+
+/* Role Badges */
+.role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+    line-height: 1;
+    max-width: 80px;
+    justify-content: center;
+}
+
+.role-badge .material-symbols-outlined {
+    font-size: 0.875rem;
+    line-height: 1;
+}
+
+.role-badge.role-admin {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.role-badge.role-moderator {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.role-badge.role-premium {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.role-badge.role-user {
+    background-color: rgb(230, 230, 230);
+    color: var(--primary-color);
+}
+
+/* Verification Status Badges */
+.verification-badge.verified {
+    background-color: var(--success-color);
+    color: rgb(20, 20, 20);
+}
+
+.verification-badge.unverified {
+    background-color: rgb(100, 100, 100);
+    color: var(--text-primary);
+}
+
+.verification-badge.pending {
+    background-color: var(--warning-color);
+    color: rgb(20, 20, 20);
+}
+
+/* Badge Container */
+.badge-container {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+/* Pulse Animation */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Dark Theme Badge Styles */
+[data-theme="dark"] .badge {
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .badge-primary {
+    background-color: var(--primary-color);
+    color: rgb(20, 20, 20);
+}
+
+[data-theme="dark"] .badge-secondary {
+    background-color: var(--card-background);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .badge-success {
+    background-color: var(--success-color);
+    color: rgb(20, 20, 20);
+}
+
+[data-theme="dark"] .badge-danger {
+    background-color: var(--error-color);
+    color: white;
+}
+
+[data-theme="dark"] .badge-warning {
+    background-color: var(--warning-color);
+    color: rgb(20, 20, 20);
+}
+
+[data-theme="dark"] .badge-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+[data-theme="dark"] .badge-light {
+    background-color: rgb(60, 60, 60);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .badge-dark {
+    background-color: var(--text-primary);
+    color: rgb(40, 40, 40);
+}
+
+[data-theme="dark"] .role-badge.admin {
+    background-color: var(--error-color);
+    color: white;
+}
+
+[data-theme="dark"] .role-badge.moderator {
+    background-color: var(--warning-color);
+    color: rgb(20, 20, 20);
+}
+
+[data-theme="dark"] .role-badge.user {
+    background-color: var(--card-background);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .role-badge.premium {
+    background-color: #6f42c1;
+    color: white;
+}
+
+[data-theme="dark"] .role-badge.vip {
+    background-color: #fd7e14;
+    color: white;
+}
+
+[data-theme="dark"] .status-badge.online {
+    background-color: var(--success-color);
+    color: rgb(20, 20, 20);
+}
+
+[data-theme="dark"] .status-badge.offline {
+    background-color: rgb(100, 100, 100);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .status-badge.away {
+    background-color: var(--warning-color);
+    color: rgb(20, 20, 20);
+}
+
+[data-theme="dark"] .status-badge.busy {
+    background-color: var(--error-color);
+    color: white;
+}
+
+[data-theme="dark"] .verification-badge.verified {
+    background-color: var(--success-color);
+    color: rgb(20, 20, 20);
+}
+
+[data-theme="dark"] .verification-badge.unverified {
+    background-color: rgb(100, 100, 100);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .verification-badge.pending {
+    background-color: var(--warning-color);
+    color: rgb(20, 20, 20);
+} 

@@ -1,0 +1,199 @@
+<%
+const footerData = {
+    brandText: locals.brandText || 'MRS Playground',
+    description: locals.description || '마법연구회 통합 플랫폼',
+    features: locals.features || ['연구실', '커뮤니티', '자료실', 'Discord 봇'],
+    copyrightYear: locals.copyrightYear || new Date().getFullYear(),
+    copyrightOwner: locals.copyrightOwner || 'Tafka',
+    showScrollToTop: locals.showScrollToTop !== false,
+    ...locals
+};
+%>
+
+<link rel="stylesheet" href="/partials/footer.css">
+
+<footer class="main-footer">
+    <div class="footer-container">
+        <div class="footer-content">
+            <div class="footer-section service-info">
+                <div class="footer-brand">
+                    <span class="brand-icon">🔮</span>
+                    <span class="brand-name"><%= footerData.brandText %></span>
+                </div>
+                <p class="service-description">
+                    <%= footerData.description %>
+                </p>
+                <div class="service-features">
+                    <% footerData.features.forEach(feature => { %>
+                    <span class="feature-tag"><%= feature %></span>
+                    <% }); %>
+                </div>
+            </div>
+
+            <div class="footer-section quick-links">
+                <h4 class="section-title">빠른 링크</h4>
+                <ul class="link-list">
+                    <li>
+                        <a href="/dashboard" class="footer-link">
+                            <span class="material-symbols-outlined">dashboard</span>
+                            <span>대시보드</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/community" class="footer-link">
+                            <span class="material-symbols-outlined">groups</span>
+                            <span>커뮤니티</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/research" class="footer-link">
+                            <span class="material-symbols-outlined">science</span>
+                            <span>연구실</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/library" class="footer-link">
+                            <span class="material-symbols-outlined">library_books</span>
+                            <span>자료실</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="footer-section support">
+                <h4 class="section-title">지원</h4>
+                <ul class="link-list">
+                    <li>
+                        <a href="/help" class="footer-link">
+                            <span class="material-symbols-outlined">help</span>
+                            <span>도움말</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/contact" class="footer-link">
+                            <span class="material-symbols-outlined">contact_support</span>
+                            <span>문의하기</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/feedback" class="footer-link">
+                            <span class="material-symbols-outlined">feedback</span>
+                            <span>피드백</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/bug-report" class="footer-link">
+                            <span class="material-symbols-outlined">bug_report</span>
+                            <span>버그 신고</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="footer-section dev-info">
+                <h4 class="section-title">개발</h4>
+                <ul class="link-list">
+                    <li>
+                        <a href="https://github.com/Tafka-4/MRSPlayground" 
+                           class="footer-link external-link" 
+                           target="_blank" 
+                           rel="noopener noreferrer">
+                            <span class="material-symbols-outlined">code</span>
+                            <span>GitHub Repository</span>
+                            <span class="material-symbols-outlined external-icon">open_in_new</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/notice" class="footer-link">
+                            <span class="material-symbols-outlined">history</span>
+                            <span>공지사항</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <div class="footer-bottom-content">
+                <div class="copyright">
+                    <span class="copyright-text">© <%= footerData.copyrightYear %> <%= footerData.copyrightOwner %></span>
+                    <span class="separator">•</span>
+                    <span class="service-name"><%= footerData.brandText %></span>
+                </div>
+
+                <div class="footer-bottom-links">
+                    <a href="/privacy" class="bottom-link">개인정보처리방침</a>
+                    <span class="separator">•</span>
+                    <a href="/terms" class="bottom-link">이용약관</a>
+                    <span class="separator">•</span>
+                    <a href="/license" class="bottom-link">라이선스</a>
+                </div>
+
+                <div class="social-links">
+                    <a href="https://github.com/Tafka-4" 
+                       class="social-link" 
+                       target="_blank" 
+                       rel="noopener noreferrer"
+                       title="GitHub">
+                        <span class="material-symbols-outlined">code</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<% if (footerData.showScrollToTop) { %>
+<button class="scroll-to-top" id="scrollToTop" title="맨 위로">
+    <span class="material-symbols-outlined">keyboard_arrow_up</span>
+</button>
+<% } %>
+
+<script>
+if (!window.footerEventsSetup) {
+    window.footerEventsSetup = true;
+    
+    function setupScrollToTop() {
+        const scrollButton = document.getElementById('scrollToTop');
+        if (!scrollButton) return;
+        
+        function toggleScrollButton() {
+            if (window.scrollY > 200) {
+                scrollButton.classList.add('visible');
+            } else {
+                scrollButton.classList.remove('visible');
+            }
+        }
+        
+        window.addEventListener('scroll', toggleScrollButton);
+        
+        scrollButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        toggleScrollButton();
+    }
+
+    function setupExternalLinks() {
+        const externalLinks = document.querySelectorAll('.external-link');
+        externalLinks.forEach(link => {
+            link.addEventListener('click', (e) => {
+                console.log('External link clicked:', link.href);
+            });
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setupScrollToTop();
+            setupExternalLinks();
+        });
+    } else {
+        setupScrollToTop();
+        setupExternalLinks();
+    }
+}
+</script> 

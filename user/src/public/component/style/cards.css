@@ -1,0 +1,487 @@
+/* Card Base Styles */
+.card {
+    background: var(--card-background, white);
+    border-radius: var(--border-radius, 0.5rem);
+    box-shadow: var(--shadow, 0 4px 6px rgba(0, 0, 0, 0.1));
+    overflow: hidden;
+    transition: box-shadow var(--transition);
+}
+
+.card-outlined {
+    border: 1px solid var(--border-color);
+    box-shadow: none;
+}
+
+.card-elevated {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.card-clickable:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+.card-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background-color: rgba(0, 0, 0, 0.02);
+    display: flex;
+    gap: 1rem;
+    justify-content: stretch;
+    flex-wrap: wrap;
+}
+
+.card-footer .btn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.action-buttons .btn {
+    flex: 1;
+    min-width: 150px;
+    justify-content: center;
+}
+
+/* User Profile Card */
+.user-profile-card .profile-section {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.user-profile-card .profile-image-container {
+    flex-shrink: 0;
+}
+
+.user-profile-card .profile-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: rgb(230, 230, 230);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid var(--border-color);
+}
+
+.user-profile-card .profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-profile-card .profile-image .material-symbols-outlined {
+    font-size: 2rem;
+    color: rgb(100, 100, 100);
+}
+
+.user-profile-card .profile-info {
+    flex: 1;
+}
+
+.user-profile-card .username-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.user-profile-card .username {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.user-profile-card .user-email {
+    margin: 0 0 0.25rem 0;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+.user-profile-card .join-date {
+    margin: 0;
+    color: var(--secondary-color);
+    font-size: 0.8rem;
+}
+
+/* Stats Card */
+.stats-card .stats-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stats-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.stats-icon-primary {
+    background-color: rgba(10, 10, 10, 0.1);
+    color: var(--primary-color);
+}
+
+.stats-icon-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--success-color, #28a745);
+}
+
+.stats-icon-warning {
+    background-color: rgba(238, 167, 60, 0.1);
+    color: var(--warning-color);
+}
+
+.stats-icon-danger {
+    background-color: rgba(244, 124, 124, 0.1);
+    color: var(--error-color);
+}
+
+.stats-icon .material-symbols-outlined {
+    font-size: 1.5rem;
+}
+
+.stats-info {
+    flex: 1;
+}
+
+.stats-title {
+    margin: 0 0 0.25rem 0;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--secondary-color);
+}
+
+.stats-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 0.25rem;
+}
+
+.stats-trend {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.stats-trend-up {
+    color: var(--success-color, #28a745);
+}
+
+.stats-trend-down {
+    color: var(--error-color);
+}
+
+.stats-trend-stable {
+    color: var(--secondary-color);
+}
+
+.stats-trend .material-symbols-outlined {
+    font-size: 1em;
+}
+
+/* Notification Card */
+.notification-card .notification-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.notification-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    margin-top: 0.125rem;
+}
+
+.notification-text {
+    flex: 1;
+}
+
+.notification-title {
+    margin: 0 0 0.25rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.notification-message {
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+.notification-info {
+    border-left: 4px solid #17a2b8;
+}
+
+.notification-info .notification-icon {
+    color: #17a2b8;
+}
+
+.notification-success {
+    border-left: 4px solid var(--success-color, #28a745);
+}
+
+.notification-success .notification-icon {
+    color: var(--success-color, #28a745);
+}
+
+.notification-warning {
+    border-left: 4px solid var(--warning-color);
+}
+
+.notification-warning .notification-icon {
+    color: var(--warning-color);
+}
+
+.notification-error {
+    border-left: 4px solid var(--error-color);
+}
+
+.notification-error .notification-icon {
+    color: var(--error-color);
+}
+
+.notification-dismiss {
+    background: none;
+    border: none;
+    color: var(--secondary-color);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: background-color var(--transition);
+}
+
+.notification-dismiss:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Empty State Card */
+.empty-state-card {
+    text-align: center;
+}
+
+.empty-state-content {
+    padding: 2rem 1rem;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    color: var(--secondary-color);
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.empty-state-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.empty-state-message {
+    margin: 0 0 1.5rem 0;
+    color: var(--secondary-color);
+    line-height: 1.5;
+}
+
+/* Card Grid */
+.card-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+/* Profile Components */
+.profile-section {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.profile-image-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.profile-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: rgb(230, 230, 230);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid var(--border-color);
+}
+
+.profile-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-image .material-symbols-outlined {
+    font-size: 3rem;
+    color: var(--secondary-color);
+}
+
+.profile-image-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-direction: column;
+}
+
+.image-upload-button,
+.image-delete-button {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 0.3rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color var(--transition);
+}
+
+.image-upload-button {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.image-upload-button:hover {
+    background-color: rgb(50, 50, 50);
+}
+
+.image-delete-button {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.image-delete-button:hover {
+    background-color: #e66b6b;
+}
+
+.profile-info {
+    flex: 1;
+    min-width: 300px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--light-border-color);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-item label {
+    font-weight: 500;
+    color: var(--secondary-color);
+    min-width: 80px;
+}
+
+.info-value {
+    color: var(--text-primary);
+    font-weight: 400;
+    text-align: right;
+    word-break: break-all;
+}
+
+.username-container {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.username-container.clickable {
+    cursor: pointer;
+    transition: background-color var(--transition);
+}
+
+.username-container.clickable:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Dashboard Components */
+.dashboard-section {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.dashboard-card {
+    background: var(--card-background);
+    border: 1px solid var(--light-border-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    transition: box-shadow var(--transition);
+    cursor: pointer;
+}
+
+.dashboard-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-value {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0.5rem 0;
+}
+
+.card-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+} 

@@ -3,6 +3,7 @@ import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
 import userRoute from './route/userRoute.js';
+import testRoute from './route/test.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -56,6 +57,7 @@ app.set('public', path.join(__dirname, 'public'));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', userRoute);
+app.use('/test', testRoute);
 
 // for debug
 app.use('*', (req: express.Request, res: express.Response) => {

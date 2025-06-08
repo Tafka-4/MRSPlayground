@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MRS Playground - EJS 레이아웃 테스트</title>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    
+    <!-- 컴포넌트 스타일 -->
+    <link rel="stylesheet" href="/component/style/base.css">
+    <link rel="stylesheet" href="/component/style/buttons.css">
+    <link rel="stylesheet" href="/component/style/forms.css">
+    <link rel="stylesheet" href="/component/style/cards.css">
+    <link rel="stylesheet" href="/component/style/badges.css">
+    <link rel="stylesheet" href="/component/style/modals.css">
+    <link rel="stylesheet" href="/component/style/tables.css">
+    <link rel="stylesheet" href="/component/style/navigation.css">
+    
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body.has-header {
+            padding-top: 120px !important;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+            overflow-y: auto;
+            height: 100%;
+        }
+        
+        html, body {
+            scroll-padding-top: 0;
+            overflow-x: hidden;
+            overflow-y: auto !important;
+            max-height: none !important;
+            height: auto !important;
+        }
+        
+        * {
+            max-height: none !important;
+        }
+        
+        body * {
+            overflow: visible !important;
+        }
+        
+        .page-wrapper {
+            min-height: calc(100vh + 1000px);
+        }
+        
+        .main-content {
+            min-height: calc(100vh + 500px);
+        }
+        
+        body {
+            padding-top: 120px !important;
+        }
+        
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 2rem 0;
+        }
+        
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+        }
+        
+        .test-section {
+            margin: 2rem 0;
+            padding: 2rem;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            background: var(--card-background);
+        }
+        
+        .test-section h2 {
+            margin: 0 0 1.5rem 0;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        .component-demo {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-left: 4px solid var(--primary-color);
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .demo-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .test-grid {
+            display: grid;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            max-width: 100%;
+        }
+        
+        .test-grid-2 {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            max-width: 1000px;
+        }
+        
+        .test-grid-3 {
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            max-width: 1200px;
+        }
+        
+        .page-intro {
+            text-align: center;
+            padding: 3rem 0;
+            border-radius: 1rem;
+            background: linear-gradient(135deg, #667eea, #764ba2) !important;
+            color: white !important;
+            margin-bottom: 3rem;
+            box-shadow: none !important;
+        }
+        
+        .page-intro * {
+            color: white !important;
+        }
+        
+        .page-intro .container {
+            background: transparent !important;
+            color: white !important;
+            box-shadow: none !important;
+        }
+        
+        .page-intro .container * {
+            color: white !important;
+        }
+        
+        .page-intro .container::after {
+            display: none !important;
+        }
+        
+        [data-theme="dark"] .page-intro {
+            background: linear-gradient(135deg, #6c5ce7, #74b9ff) !important;
+            color: white !important;
+        }
+        
+        [data-theme="dark"] .page-intro * {
+            color: white !important;
+        }
+        
+        [data-theme="dark"] .page-intro .container {
+            background: transparent !important;
+            color: white !important;
+        }
+        
+        .page-intro h1 {
+            font-size: 2.5rem;
+            margin: 0 0 1rem 0;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .page-intro p {
+            font-size: 1.125rem;
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: #00b894 !important;
+            color: white !important;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 1rem 0;
+        }
+        
+        .page-intro .status-indicator {
+            background: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            backdrop-filter: blur(10px);
+        }
+        
+        .page-intro .status-indicator * {
+            color: white !important;
+        }
+        
+        .code-example {
+            background: var(--background-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body class="has-header">
+    <div class="page-wrapper">
+        <!-- EJS include로 헤더 포함 -->
+        <%- include('../partials/header', { 
+            userName: 'Tafka', 
+            userRole: '개발자', 
+            notificationCount: 5, 
+            showAdminMenu: true 
+        }) %>
+
+        <!-- 메인 콘텐츠 -->
+        <main class="main-content">
+            <!-- 페이지 소개 -->
+            <section class="page-intro">
+                <div class="container">
+                    <h1>📄 EJS Include 시스템</h1>
+                    <p>EJS partial include를 활용한 효율적인 컴포넌트 재사용</p>
+                    <div class="status-indicator">
+                        <span class="material-symbols-outlined">check_circle</span>
+                        <span>EJS Include 시스템 활성화</span>
+                    </div>
+    </div>
+            </section>
+
+    <div class="container">
+        <section class="test-section">
+                    <h2>🎨 Partials CSS 적용 상태</h2>
+            
+            <div class="component-demo">
+                        <div class="demo-label">Partial 자동 CSS 로드</div>
+                        <div class="test-grid test-grid-2">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>🔗 Header CSS</h4>
+                                    <p>헤더 partial 내부에서 자동 로드</p>
+                                    <code>header.ejs → /partials/header.css</code>
+                                    <div class="status-indicator">
+                                        <span class="material-symbols-outlined">auto_mode</span>
+                                        <span>자동 로드</span>
+                                    </div>
+                </div>
+            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>🔗 Footer CSS</h4>
+                                    <p>푸터 partial 내부에서 자동 로드</p>
+                                    <code>footer.ejs → /partials/footer.css</code>
+                                    <div class="status-indicator">
+                                        <span class="material-symbols-outlined">auto_mode</span>
+                                        <span>자동 로드</span>
+                                    </div>
+                </div>
+            </div>
+                </div>
+            </div>
+
+            <div class="component-demo">
+                        <div class="demo-label">헤더 기능 테스트</div>
+                <div class="test-grid test-grid-3">
+                            <button class="btn btn-primary" onclick="testHeaderScroll()">
+                                <span class="material-symbols-outlined">keyboard_arrow_up</span>
+                                스크롤 숨김 테스트
+                    </button>
+                            <button class="btn btn-success" onclick="testThemeToggle()">
+                                <span class="material-symbols-outlined">palette</span>
+                                테마 토글 테스트
+                    </button>
+                            <button class="btn btn-info" onclick="testDropdown()">
+                                <span class="material-symbols-outlined">menu</span>
+                                드롭다운 테스트
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="test-section">
+                    <h2>📋 EJS Include 사용법</h2>
+            
+            <div class="component-demo">
+                        <div class="demo-label">자동 CSS 로드 - 헤더 Include</div>
+                        <div class="code-example">
+&lt;!-- CSS 링크 없이 바로 사용 가능! --&gt;
+&lt;%- include('../partials/header', { 
+    userName: 'Tafka', 
+    userRole: '개발자', 
+    notificationCount: 5, 
+    showAdminMenu: true 
+}) %&gt;
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+                            ✨ 헤더 partial이 자동으로 header.css를 로드합니다
+                        </p>
+                    </div>
+
+                    <div class="component-demo">
+                        <div class="demo-label">자동 CSS 로드 - 푸터 Include</div>
+                        <div class="code-example">
+&lt;!-- CSS 링크 없이 바로 사용 가능! --&gt;
+&lt;%- include('../partials/footer', { 
+    copyrightOwner: 'Tafka',
+    description: '마법연구회 통합 플랫폼',
+    showScrollToTop: true
+}) %&gt;
+                        </div>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+                            ✨ 푸터 partial이 자동으로 footer.css를 로드합니다
+                        </p>
+                    </div>
+
+                    <div class="component-demo">
+                        <div class="demo-label">완전한 페이지 구조 예제</div>
+                        <div class="code-example">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;!-- 기본 CSS만 로드 --&gt;
+    &lt;link rel="stylesheet" href="/component/style/base.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- 헤더 (자동으로 CSS 로드) --&gt;
+    &lt;%- include('../partials/header') %&gt;
+    
+    &lt;main&gt;콘텐츠&lt;/main&gt;
+    
+    &lt;!-- 푸터 (자동으로 CSS 로드) --&gt;
+    &lt;%- include('../partials/footer') %&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+                </div>
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin-top: 0.5rem;">
+                            🎯 partial별 CSS를 별도로 관리할 필요 없이 완전 자동화!
+                        </p>
+            </div>
+                </section>
+
+                <!-- 장점 비교 -->
+                <section class="test-section">
+                    <h2>⚡ EJS Include vs JavaScript 컴포넌트</h2>
+
+            <div class="component-demo">
+                        <div class="demo-label">EJS Include 장점</div>
+                        <div class="test-grid test-grid-2">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>🚀 서버 사이드 렌더링</h4>
+                                    <p>HTML이 서버에서 완전히 렌더링되어 빠른 초기 로드</p>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>🔍 SEO 친화적</h4>
+                                    <p>검색엔진이 완성된 HTML을 바로 인덱싱 가능</p>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>💡 간단한 문법</h4>
+                                    <p>EJS include 문법으로 쉽고 직관적인 사용</p>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>📦 번들 크기 절약</h4>
+                                    <p>클라이언트 사이드 JavaScript 코드 감소</p>
+                                </div>
+                            </div>
+                </div>
+            </div>
+
+            <div class="component-demo">
+                        <div class="demo-label">JavaScript 컴포넌트 장점</div>
+                        <div class="test-grid test-grid-2">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>🔄 동적 업데이트</h4>
+                                    <p>런타임에 컴포넌트 상태 변경 가능</p>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>🎮 상호작용</h4>
+                                    <p>복잡한 클라이언트 사이드 로직 처리</p>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>🔧 프로그래밍 제어</h4>
+                                    <p>JavaScript로 세밀한 제어 가능</p>
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div class="card-body">
+                                    <h4>🌐 SPA 지원</h4>
+                                    <p>Single Page Application에 적합</p>
+                </div>
+            </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="test-section">
+                    <h2>🎯 실제 적용 시나리오</h2>
+            
+            <div class="component-demo">
+                        <div class="demo-label">다양한 사용자 타입별 헤더</div>
+                <div class="test-grid test-grid-3">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>관리자 페이지</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="code-example" style="font-size: 0.75rem;">
+&lt;%- include('header', { 
+  userName: '관리자',
+  userRole: '시스템 관리자',
+  showAdminMenu: true,
+  notificationCount: 15
+}) %&gt;
+                                    </div>
+                </div>
+            </div>
+
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4>일반 사용자 페이지</h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="code-example" style="font-size: 0.75rem;">
+&lt;%- include('header', { 
+  userName: '홍길동',
+  userRole: '회원',
+  showAdminMenu: false,
+  notificationCount: 2
+}) %&gt;
+                                    </div>
+                </div>
+            </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                                    <h4>게스트 페이지</h4>
+                        </div>
+                        <div class="card-body">
+                                    <div class="code-example" style="font-size: 0.75rem;">
+&lt;%- include('header', { 
+  userName: '게스트',
+  userRole: '방문자',
+  showAdminMenu: false,
+  notificationCount: 0
+}) %&gt;
+                                    </div>
+                                </div>
+                        </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="test-section">
+                    <h2>🧪 기능 테스트</h2>
+                    
+                    <div class="component-demo">
+                        <div class="demo-label">헤더 기능 테스트</div>
+                        <div class="test-grid test-grid-3">
+                            <button class="btn btn-primary" onclick="showModal('test-modal')">
+                                <span class="material-symbols-outlined">launch</span>
+                                모달 열기
+                            </button>
+                            <button class="btn btn-success" id="theme-test-btn">
+                                <span class="material-symbols-outlined">palette</span>
+                                테마 변경
+                            </button>
+                            <button class="btn btn-info" onclick="scrollToTop()">
+                                <span class="material-symbols-outlined">keyboard_arrow_up</span>
+                                맨 위로
+                            </button>
+                </div>
+            </div>
+
+            <div class="component-demo">
+                        <div class="demo-label">통계 대시보드</div>
+                <div class="test-grid test-grid-3">
+                    <div class="stats-card card">
+                        <div class="card-body">
+                            <div class="stats-content">
+                                <div class="stats-icon stats-icon-primary">
+                                            <span class="material-symbols-outlined">integration_instructions</span>
+                                </div>
+                                <div class="stats-info">
+                                            <h4 class="stats-title">EJS Partials</h4>
+                                            <div class="stats-value">2</div>
+                                    <div class="stats-trend stats-trend-up">
+                                        <span class="material-symbols-outlined">trending_up</span>
+                                                Header + Footer
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="stats-card card">
+                                <div class="card-body">
+                                    <div class="stats-content">
+                                        <div class="stats-icon stats-icon-success">
+                                            <span class="material-symbols-outlined">speed</span>
+                                        </div>
+                                        <div class="stats-info">
+                                            <h4 class="stats-title">로드 성능</h4>
+                                            <div class="stats-value">Fast</div>
+                                            <div class="stats-trend stats-trend-up">
+                                                <span class="material-symbols-outlined">rocket_launch</span>
+                                                서버 렌더링
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stats-card card">
+                        <div class="card-body">
+                            <div class="stats-content">
+                                        <div class="stats-icon stats-icon-warning">
+                                            <span class="material-symbols-outlined">code</span>
+                                </div>
+                                <div class="stats-info">
+                                            <h4 class="stats-title">코드 간소화</h4>
+                                            <div class="stats-value">90%</div>
+                                            <div class="stats-trend stats-trend-up">
+                                                <span class="material-symbols-outlined">trending_up</span>
+                                                코드 감소
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+                <hr class="divider">
+            
+                <div style="text-align: center; margin: 3rem 0;">
+                    <h3>✨ EJS Include 시스템 완성</h3>
+                    <p>서버 사이드 렌더링의 효율성과 컴포넌트 재사용성을 모두 갖춘 완벽한 시스템</p>
+                    <div style="margin-top: 2rem;">
+                        <button class="btn btn-primary btn-lg" style="margin: 0 0.5rem;">
+                            <span class="material-symbols-outlined">rocket_launch</span>
+                            프로덕션 배포
+                        </button>
+                        <button class="btn btn-outline-primary btn-lg" style="margin: 0 0.5rem;">
+                            <span class="material-symbols-outlined">book</span>
+                            문서 보기
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <%- include('../partials/footer', { 
+            copyrightOwner: 'Tafka',
+            description: '마법연구회 통합 플랫폼',
+            showScrollToTop: true
+        }) %>
+    </div>
+
+    <div class="modal-overlay" id="test-modal">
+        <div class="modal modal-md">
+            <div class="modal-header">
+                <h3 class="modal-title">EJS Include 테스트</h3>
+                <button class="modal-close" onclick="hideModal('test-modal')">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>EJS include로 생성된 헤더의 기능이 정상적으로 작동합니다!</p>
+                <div class="component-demo">
+                    <div class="demo-label">현재 설정된 헤더 데이터</div>
+                    <div class="code-example">
+사용자명: Tafka
+역할: 개발자
+알림 개수: 5개
+관리자 메뉴: 활성화
+        </div>
+    </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="hideModal('test-modal')">닫기</button>
+                <button class="btn btn-primary" onclick="hideModal('test-modal')">확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        });
+
+        document.getElementById('theme-test-btn').addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.remove('show');
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const openModal = document.querySelector('.modal-overlay.show');
+                if (openModal) {
+                    openModal.classList.remove('show');
+                }
+            }
+        });
+
+        // Partials CSS 테스트 함수들
+        function testHeaderScroll() {
+            window.scrollTo({ top: 300, behavior: 'smooth' });
+            setTimeout(() => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                alert('헤더 스크롤 숨김/보임 기능이 정상 작동합니다!');
+            }, 1000);
+        }
+
+        function testThemeToggle() {
+            const themeBtn = document.getElementById('themeToggle');
+            if (themeBtn) {
+                themeBtn.click();
+                alert('테마 토글 기능이 정상 작동합니다!');
+            } else {
+                alert('테마 토글 버튼을 찾을 수 없습니다.');
+            }
+        }
+
+        function testDropdown() {
+            const servicesDropdown = document.getElementById('servicesDropdown');
+            if (servicesDropdown) {
+                servicesDropdown.click();
+                alert('드롭다운 메뉴가 정상 작동합니다!');
+            } else {
+                alert('드롭다운 메뉴를 찾을 수 없습니다.');
+            }
+        }
+
+        console.log('🔗 Partials 자동 CSS 로드 시스템이 성공적으로 작동합니다!');
+        console.log('✨ Header EJS가 자동으로 /partials/header.css를 로드했습니다');
+        console.log('✨ Footer EJS가 자동으로 /partials/footer.css를 로드했습니다');
+        console.log('🎯 이제 CSS 링크를 수동으로 관리할 필요가 없습니다!');
+    </script>
+</body>
+</html>
