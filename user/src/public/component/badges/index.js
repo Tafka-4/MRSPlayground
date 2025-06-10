@@ -14,12 +14,12 @@ export function createBadge(text = '', className = 'badge-primary') {
     if (typeof text === 'object' && text !== null) {
         return createBadgeAdvanced(text);
     }
-    
+
     // 간단한 방식
     const badge = document.createElement('span');
     badge.className = `badge ${className}`;
     badge.textContent = text;
-    
+
     return badge;
 }
 
@@ -45,18 +45,18 @@ export function createBadgeAdvanced(options = {}) {
     } = options;
 
     const badge = document.createElement('span');
-    
+
     // 기본 클래스 설정
     const classes = ['badge', `badge-${variant}`];
-    
+
     if (size !== 'medium') {
         classes.push(`badge-${size}`);
     }
-    
+
     if (className) {
         classes.push(className);
     }
-    
+
     badge.className = classes.join(' ');
 
     // 아이콘 추가
@@ -92,10 +92,9 @@ export function createVerificationBadge(isVerified = false, onClick = null) {
     if (isVerified) {
         return createBadgeAdvanced({
             text: '인증됨',
-            variant: 'success',
+            variant: 'custom-verified',
             icon: 'verified',
-            tooltip: '이메일 인증이 완료되었습니다.',
-            className: 'verified-badge'
+            tooltip: '이메일 인증이 완료되었습니다.'
         });
     } else {
         const badge = createBadgeAdvanced({
@@ -149,7 +148,7 @@ export function createRoleBadge(role = 'user') {
     };
 
     const config = roleConfig[role] || roleConfig.user;
-    
+
     return createBadgeAdvanced({
         ...config,
         className: `role-badge role-${role}`
@@ -178,9 +177,9 @@ export function createOnlineBadge(isOnline = false) {
  */
 export function createNotificationBadge(count = 0) {
     if (count === 0) return null;
-    
+
     const displayCount = count > 99 ? '99+' : count.toString();
-    
+
     return createBadgeAdvanced({
         text: displayCount,
         variant: 'danger',
@@ -219,7 +218,7 @@ export function createStatusBadge(status = 'active') {
     };
 
     const config = statusConfig[status] || statusConfig.active;
-    
+
     return createBadgeAdvanced({
         ...config,
         className: `status-badge status-${status}`
@@ -249,12 +248,12 @@ export function createCustomBadge(options = {}) {
 export function createBadgeContainer(badges = [], className = '') {
     const container = document.createElement('div');
     container.className = `badge-container ${className}`;
-    
-    badges.forEach(badge => {
+
+    badges.forEach((badge) => {
         if (badge) {
             container.appendChild(badge);
         }
     });
-    
+
     return container;
-} 
+}

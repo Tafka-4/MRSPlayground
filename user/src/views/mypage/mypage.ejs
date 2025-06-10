@@ -3,174 +3,92 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>마이페이지</title>
-        <script src="/mypage.mjs" type="module"></script>
-        <link rel="stylesheet" href="/mypage.css" />
+        <title>마이페이지 - 마법연구회</title>
+
         <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
             rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
+
+        <link rel="stylesheet" href="/component/style/base.css" />
+        <link rel="stylesheet" href="/component/style/badges.css" />
+        <link rel="stylesheet" href="/component/style/buttons.css" />
+        <link rel="stylesheet" href="/component/style/modals.css" />
+        <link rel="stylesheet" href="/mypage.css" />
     </head>
     <body>
-        <div class="container">
-            <div class="mypage-header">
-                <h1 class="title" id="title">마이페이지</h1>
-                <div class="admin-button-container">
-                    <button class="admin-button" id="admin-button">
-                        <span class="material-symbols-outlined"
-                            >admin_panel_settings</span
-                        >
-                        관리자 페이지
-                    </button>
-                    <button class="logout-button" id="logout-button">
-                        <span class="material-symbols-outlined">logout</span>
-                        로그아웃
-                    </button>
-                </div>
-            </div>
+        <div id="root">
+            <%- include('../partials/header') %>
 
-            <div class="profile-section">
-                <div class="profile-image-container">
-                    <div class="profile-image" id="profile-image">
-                        <span class="material-symbols-outlined">person</span>
+            <main class="main-content">
+                <div class="container">
+                    <div class="mypage-header">
+                        <h1 class="title">마이페이지</h1>
+                        <div id="admin-button-container"></div>
                     </div>
-                    <div class="profile-image-actions">
-                        <button
-                            class="image-upload-button"
-                            id="image-upload-button"
-                        >
-                            <span class="material-symbols-outlined"
-                                >photo_camera</span
-                            >
-                            사진 변경
-                        </button>
-                        <button
-                            class="image-delete-button"
-                            id="image-delete-button"
-                        >
-                            <span class="material-symbols-outlined"
-                                >delete</span
-                            >
-                            사진 삭제
-                        </button>
-                    </div>
-                    <input
-                        type="file"
-                        id="profile-image-input"
-                        accept="image/*"
-                        style="display: none"
-                    />
-                </div>
 
-                <div class="profile-info">
-                    <div class="info-item">
-                        <label>아이디</label>
-                        <div class="info-value" id="userid">로딩 중...</div>
-                    </div>
-                    <div class="info-item">
-                        <label>닉네임</label>
-                        <div
-                            class="info-value username-container"
-                            id="username-container"
-                        >
-                            <span id="username">로딩 중...</span>
-                            <span
-                                class="verified-badge"
-                                id="verified-badge"
-                                style="display: none"
-                            >
+                    <div class="profile-section">
+                        <div class="profile-image-container">
+                            <div id="profile-image" class="profile-image">
                                 <span class="material-symbols-outlined"
-                                    >verified</span
+                                    >person</span
                                 >
-                                인증됨
-                            </span>
-                            <span
-                                class="unverified-badge"
-                                id="unverified-badge"
-                                style="display: none"
-                            >
-                                <span class="material-symbols-outlined"
-                                    >error</span
+                            </div>
+                            <div class="profile-image-actions">
+                                <input
+                                    type="file"
+                                    id="profile-image-input"
+                                    hidden
+                                    accept="image/*"
+                                />
+                            </div>
+                        </div>
+
+                        <div class="profile-info">
+                            <div class="info-item">
+                                <label>닉네임</label>
+                                <div
+                                    id="username-container"
+                                    class="username-container"
                                 >
-                                미인증
-                            </span>
+                                    <span id="username" class="info-value"
+                                        >...</span
+                                    >
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <label>이메일</label>
+                                <div id="email" class="info-value">...</div>
+                            </div>
+                            <div class="info-item">
+                                <label>소개</label>
+                                <div id="description" class="info-value">
+                                    ...
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <label>가입일</label>
+                                <div id="created-at" class="info-value">
+                                    ...
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <label>UID</label>
+                                <div id="uid" class="info-value">...</div>
+                            </div>
                         </div>
                     </div>
-                    <div class="info-item">
-                        <label>이메일</label>
-                        <div class="info-value" id="email">로딩 중...</div>
-                    </div>
-                    <div class="info-item">
-                        <label>소개</label>
-                        <div class="info-value" id="description">
-                            소개가 없습니다.
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <label>가입일</label>
-                        <div class="info-value" id="created-at">로딩 중...</div>
-                    </div>
-                    <div class="info-item">
-                        <label>UID</label>
-                        <div class="info-value" id="uid">로딩 중...</div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="action-buttons">
-                <button
-                    class="edit-button"
-                    onclick="location.href='/mypage/edit'"
-                >
-                    <span class="material-symbols-outlined">edit</span>
-                    프로필 수정
-                </button>
-                <button
-                    class="password-button"
-                    onclick="location.href='/mypage/edit/password'"
-                >
-                    <span class="material-symbols-outlined">lock</span>
-                    비밀번호 변경
-                </button>
-                <button
-                    class="delete-account-button"
-                    id="delete-account-button"
-                >
-                    <span class="material-symbols-outlined"
-                        >delete_forever</span
-                    >
-                    계정 삭제
-                </button>
-            </div>
+                    <div
+                        id="action-buttons-container"
+                        class="action-buttons"
+                    ></div>
+                </div>
+            </main>
         </div>
 
-        <div class="notice-container"></div>
+        <%- include('../partials/footer') %>
 
-        <div
-            class="modal-overlay"
-            id="delete-modal-overlay"
-            style="display: none"
-        >
-            <div class="modal">
-                <div class="modal-header">
-                    <h3>계정 삭제 확인</h3>
-                    <button class="modal-close" id="modal-close">
-                        <span class="material-symbols-outlined">close</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <p>정말로 계정을 삭제하시겠습니까?</p>
-                    <p class="warning">이 작업은 되돌릴 수 없습니다.</p>
-                </div>
-                <div class="modal-footer">
-                    <button class="cancel-button" id="cancel-delete">
-                        취소
-                    </button>
-                    <button class="confirm-delete-button" id="confirm-delete">
-                        삭제
-                    </button>
-                </div>
-            </div>
-        </div>
+        <script type="module" src="/mypage.mjs"></script>
     </body>
 </html>

@@ -58,6 +58,16 @@
     color: white;
 }
 
+.badge-custom-verified {
+    background-color: #4caf50;
+    color: white !important;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
 /* Verification Badges */
 .verified-badge {
     display: inline-flex;
@@ -220,7 +230,7 @@
 /* Verification Status Badges */
 .verification-badge.verified {
     background-color: var(--success-color);
-    color: rgb(20, 20, 20);
+    color: white;
 }
 
 .verification-badge.unverified {
@@ -243,7 +253,8 @@
 
 /* Pulse Animation */
 @keyframes pulse {
-    0%, 100% {
+    0%,
+    100% {
         opacity: 1;
     }
     50% {
@@ -252,108 +263,108 @@
 }
 
 /* Dark Theme Badge Styles */
-[data-theme="dark"] .badge {
+[data-theme='dark'] .badge {
     border: 1px solid var(--border-color);
 }
 
-[data-theme="dark"] .badge-primary {
+[data-theme='dark'] .badge-primary {
     background-color: var(--primary-color);
     color: rgb(20, 20, 20);
 }
 
-[data-theme="dark"] .badge-secondary {
+[data-theme='dark'] .badge-secondary {
     background-color: var(--card-background);
     color: var(--text-primary);
     border-color: var(--border-color);
 }
 
-[data-theme="dark"] .badge-success {
+[data-theme='dark'] .badge-success {
     background-color: var(--success-color);
     color: rgb(20, 20, 20);
 }
 
-[data-theme="dark"] .badge-danger {
+[data-theme='dark'] .badge-danger {
     background-color: var(--error-color);
     color: white;
 }
 
-[data-theme="dark"] .badge-warning {
+[data-theme='dark'] .badge-warning {
     background-color: var(--warning-color);
     color: rgb(20, 20, 20);
 }
 
-[data-theme="dark"] .badge-info {
+[data-theme='dark'] .badge-info {
     background-color: #17a2b8;
     color: white;
 }
 
-[data-theme="dark"] .badge-light {
+[data-theme='dark'] .badge-light {
     background-color: rgb(60, 60, 60);
     color: var(--text-primary);
 }
 
-[data-theme="dark"] .badge-dark {
+[data-theme='dark'] .badge-dark {
     background-color: var(--text-primary);
     color: rgb(40, 40, 40);
 }
 
-[data-theme="dark"] .role-badge.admin {
+[data-theme='dark'] .role-badge.admin {
     background-color: var(--error-color);
     color: white;
 }
 
-[data-theme="dark"] .role-badge.moderator {
+[data-theme='dark'] .role-badge.moderator {
     background-color: var(--warning-color);
     color: rgb(20, 20, 20);
 }
 
-[data-theme="dark"] .role-badge.user {
+[data-theme='dark'] .role-badge.user {
     background-color: var(--card-background);
     color: var(--text-primary);
     border-color: var(--border-color);
 }
 
-[data-theme="dark"] .role-badge.premium {
+[data-theme='dark'] .role-badge.premium {
     background-color: #6f42c1;
     color: white;
 }
 
-[data-theme="dark"] .role-badge.vip {
+[data-theme='dark'] .role-badge.vip {
     background-color: #fd7e14;
     color: white;
 }
 
-[data-theme="dark"] .status-badge.online {
+[data-theme='dark'] .status-badge.online {
     background-color: var(--success-color);
     color: rgb(20, 20, 20);
 }
 
-[data-theme="dark"] .status-badge.offline {
+[data-theme='dark'] .status-badge.offline {
     background-color: rgb(100, 100, 100);
     color: var(--text-primary);
 }
 
-[data-theme="dark"] .status-badge.away {
+[data-theme='dark'] .status-badge.away {
     background-color: var(--warning-color);
     color: rgb(20, 20, 20);
 }
 
-[data-theme="dark"] .status-badge.busy {
+[data-theme='dark'] .status-badge.busy {
     background-color: var(--error-color);
     color: white;
 }
 
-[data-theme="dark"] .verification-badge.verified {
+[data-theme='dark'] .verification-badge.verified {
     background-color: var(--success-color);
     color: rgb(20, 20, 20);
 }
 
-[data-theme="dark"] .verification-badge.unverified {
+[data-theme='dark'] .verification-badge.unverified {
     background-color: rgb(100, 100, 100);
     color: var(--text-primary);
 }
 
-[data-theme="dark"] .verification-badge.pending {
+[data-theme='dark'] .verification-badge.pending {
     background-color: var(--warning-color);
     color: rgb(20, 20, 20);
-} 
+}

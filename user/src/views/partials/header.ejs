@@ -1,16 +1,9 @@
-<%
-const headerData = {
-    brandText: locals.brandText || 'MRS Playground',
-    brandHref: locals.brandHref || '/',
-    userName: locals.userName || 'User',
-    userRole: locals.userRole || '사용자',
-    notificationCount: locals.notificationCount || 0,
-    showAdminMenu: locals.showAdminMenu || false,
-    ...locals
-};
-%>
+<% const headerData = { brandText: locals.brandText || '마법연구회', brandHref:
+locals.brandHref || '/', userName: locals.userName || 'User', userRole:
+locals.userRole || '사용자', notificationCount: locals.notificationCount || 0,
+showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
 
-<link rel="stylesheet" href="/partials/header.css">
+<link rel="stylesheet" href="/partials/header.css" />
 
 <header class="main-header">
     <div class="header-container">
@@ -22,88 +15,170 @@ const headerData = {
         </div>
 
         <nav class="header-nav">
-            <ul class="nav-list">
-                <li class="nav-item dropdown">
-                    <a href="#" class="nav-link dropdown-toggle" id="servicesDropdown">
-                        <span class="material-symbols-outlined">apps</span>
-                        <span>서비스</span>
-                        <span class="material-symbols-outlined dropdown-arrow">expand_more</span>
+            <!-- Desktop Navigation -->
+            <ul class="nav-list desktop-nav">
+                <li class="nav-item">
+                    <a href="/novel" class="nav-link">
+                        <span class="material-symbols-outlined"
+                            >library_books</span
+                        >
+                        <span>아카이브</span>
                     </a>
-                    <ul class="dropdown-menu" id="servicesMenu">
-                        <li>
-                            <a href="/dashboard" class="dropdown-link">
-                                <span class="material-symbols-outlined">dashboard</span>
-                                <span>대시보드</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/community" class="dropdown-link">
-                                <span class="material-symbols-outlined">groups</span>
-                                <span>커뮤니티</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/research" class="dropdown-link">
-                                <span class="material-symbols-outlined">science</span>
-                                <span>연구실</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a href="/library" class="dropdown-link">
-                                <span class="material-symbols-outlined">library_books</span>
-                                <span>자료실</span>
-                            </a>
-                        </li>
-                        <% if (headerData.showAdminMenu) { %>
-                        <li class="dropdown-divider"></li>
-                        <li>
-                            <a href="/admin" class="dropdown-link admin-link">
-                                <span class="material-symbols-outlined">admin_panel_settings</span>
-                                <span>관리자</span>
-                            </a>
-                        </li>
-                        <% } %>
-                    </ul>
                 </li>
+                <li class="nav-item">
+                    <a href="/community" class="nav-link">
+                        <span class="material-symbols-outlined">groups</span>
+                        <span>커뮤니티</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/emojis" class="nav-link">
+                        <span class="material-symbols-outlined">Glyphs</span>
+                        <span>마연회콘</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/research" class="nav-link">
+                        <span class="material-symbols-outlined">science</span>
+                        <span>마법연구소</span>
+                    </a>
+                </li>
+                <% if (headerData.showAdminMenu) { %>
+                <li class="nav-item">
+                    <a href="/admin" class="nav-link admin-link">
+                        <span class="material-symbols-outlined"
+                            >admin_panel_settings</span
+                        >
+                        <span>관리자</span>
+                    </a>
+                </li>
+                <% } %>
             </ul>
+
+            <!-- Mobile Navigation -->
+            <div class="mobile-nav dropdown">
+                <button class="nav-toggle dropdown-toggle" id="mobileNavToggle">
+                    <span class="material-symbols-outlined">apps</span>
+                    <span>서비스</span>
+                    <span class="material-symbols-outlined dropdown-arrow"
+                        >expand_more</span
+                    >
+                </button>
+                <ul class="dropdown-menu mobile-nav-menu" id="mobileNavMenu">
+                    <li>
+                        <a href="/novel" class="dropdown-link">
+                            <span class="material-symbols-outlined"
+                                >library_books</span
+                            >
+                            <span>아카이브</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/community" class="dropdown-link">
+                            <span class="material-symbols-outlined"
+                                >groups</span
+                            >
+                            <span>커뮤니티</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/emojis" class="dropdown-link">
+                            <span class="material-symbols-outlined"
+                                >Glyphs</span
+                            >
+                            <span>마연회콘</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/research" class="dropdown-link">
+                            <span class="material-symbols-outlined"
+                                >science</span
+                            >
+                            <span>마법연구소</span>
+                        </a>
+                    </li>
+                    <% if (headerData.showAdminMenu) { %>
+                    <li class="dropdown-divider"></li>
+                    <li>
+                        <a href="/admin" class="dropdown-link admin-link">
+                            <span class="material-symbols-outlined"
+                                >admin_panel_settings</span
+                            >
+                            <span>관리자</span>
+                        </a>
+                    </li>
+                    <% } %>
+                </ul>
+            </div>
         </nav>
 
         <div class="header-actions">
             <button class="action-btn notification-btn" id="notificationBtn">
                 <span class="material-symbols-outlined">notifications</span>
                 <% if (headerData.notificationCount > 0) { %>
-                <span class="notification-badge"><%= headerData.notificationCount %></span>
+                <span class="notification-badge"
+                    ><%= headerData.notificationCount %></span
+                >
                 <% } %>
             </button>
 
             <div class="user-menu dropdown">
-                <button class="user-menu-toggle dropdown-toggle" id="userMenuToggle">
+                <button
+                    class="user-menu-toggle dropdown-toggle"
+                    id="userMenuToggle"
+                >
                     <div class="user-avatar">
                         <span class="material-symbols-outlined">person</span>
                     </div>
-                    <div class="user-info">
-                        <span class="user-name"><%= headerData.userName %></span>
-                        <span class="user-role"><%= headerData.userRole %></span>
+                    <div class="header-user-info">
+                        <span class="user-name"
+                            ><%= headerData.userName %></span
+                        >
+                        <span class="user-role"
+                            ><%= headerData.userRole %></span
+                        >
                     </div>
-                    <span class="material-symbols-outlined dropdown-arrow">expand_more</span>
+                    <span class="material-symbols-outlined dropdown-arrow"
+                        >expand_more</span
+                    >
                 </button>
                 <ul class="dropdown-menu user-dropdown" id="userMenu">
                     <li>
                         <a href="/mypage" class="dropdown-link">
-                            <span class="material-symbols-outlined">person</span>
+                            <span class="material-symbols-outlined"
+                                >person</span
+                            >
                             <span>마이페이지</span>
                         </a>
                     </li>
                     <li>
                         <a href="/settings" class="dropdown-link">
-                            <span class="material-symbols-outlined">settings</span>
+                            <span class="material-symbols-outlined"
+                                >settings</span
+                            >
                             <span>설정</span>
                         </a>
                     </li>
+                    <li>
+                        <button
+                            class="dropdown-link mobile-theme-toggle"
+                            id="mobileThemeToggle"
+                        >
+                            <span class="material-symbols-outlined"
+                                >dark_mode</span
+                            >
+                            <span>다크모드</span>
+                        </button>
+                    </li>
                     <li class="dropdown-divider"></li>
                     <li>
-                        <button class="dropdown-link logout-link" id="logoutBtn">
-                            <span class="material-symbols-outlined">logout</span>
+                        <button
+                            class="dropdown-link logout-link"
+                            id="logoutBtn"
+                        >
+                            <span class="material-symbols-outlined"
+                                >logout</span
+                            >
                             <span>로그아웃</span>
                         </button>
                     </li>
@@ -118,159 +193,271 @@ const headerData = {
 </header>
 
 <script>
-document.body.classList.add('has-header');
+    document.body.classList.add('has-header');
 
-if (!window.headerEventsSetup) {
-    window.headerEventsSetup = true;
-    
-    function setupDropdowns() {
-        const dropdowns = document.querySelectorAll('.dropdown');
-        
-        dropdowns.forEach(dropdown => {
-            const toggle = dropdown.querySelector('.dropdown-toggle');
-            const menu = dropdown.querySelector('.dropdown-menu');
-            
-            if (toggle && menu) {
-                toggle.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    
-                    dropdowns.forEach(otherDropdown => {
-                        if (otherDropdown !== dropdown) {
-                            otherDropdown.classList.remove('open');
-                        }
+    if (!window.headerEventsSetup) {
+        window.headerEventsSetup = true;
+
+        function setupDropdowns() {
+            const dropdowns = document.querySelectorAll('.dropdown');
+
+            dropdowns.forEach((dropdown) => {
+                const toggle = dropdown.querySelector('.dropdown-toggle');
+                const menu = dropdown.querySelector('.dropdown-menu');
+
+                if (toggle && menu) {
+                    toggle.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Close other dropdowns
+                        dropdowns.forEach((otherDropdown) => {
+                            if (otherDropdown !== dropdown) {
+                                otherDropdown.classList.remove('open');
+                            }
+                        });
+
+                        dropdown.classList.toggle('open');
                     });
-                    
-                    dropdown.classList.toggle('open');
+                }
+            });
+
+            document.addEventListener('click', () => {
+                dropdowns.forEach((dropdown) => {
+                    dropdown.classList.remove('open');
+                });
+            });
+        }
+
+        function setupThemeToggle() {
+            const themeToggle = document.getElementById('themeToggle');
+            const mobileThemeToggle =
+                document.getElementById('mobileThemeToggle');
+
+            const desktopIcon = themeToggle?.querySelector(
+                '.material-symbols-outlined'
+            );
+            const mobileIcon = mobileThemeToggle?.querySelector(
+                '.material-symbols-outlined'
+            );
+
+            function updateThemeIcon(theme) {
+                const iconText = theme === 'dark' ? 'light_mode' : 'dark_mode';
+                if (desktopIcon) desktopIcon.textContent = iconText;
+                if (mobileIcon) mobileIcon.textContent = iconText;
+            }
+
+            function toggleTheme() {
+                const currentTheme =
+                    document.documentElement.getAttribute('data-theme') ||
+                    'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            }
+
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+            }
+
+            if (mobileThemeToggle) {
+                mobileThemeToggle.addEventListener('click', toggleTheme);
+            }
+
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            updateThemeIcon(savedTheme);
+        }
+
+        function setupLogout() {
+            const logoutBtn = document.getElementById('logoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', async () => {
+                    try {
+                        window.location.href = '/logout';
+                    } catch (error) {
+                        console.error('Logout failed', error);
+                    }
                 });
             }
-        });
-        
-        document.addEventListener('click', () => {
-            dropdowns.forEach(dropdown => {
-                dropdown.classList.remove('open');
-            });
-        });
-    }
-
-    function setupThemeToggle() {
-        const themeToggle = document.getElementById('themeToggle');
-        if (!themeToggle) return;
-        
-        const icon = themeToggle.querySelector('.material-symbols-outlined');
-        
-        function updateThemeIcon(theme) {
-            icon.textContent = theme === 'dark' ? 'light_mode' : 'dark_mode';
         }
-        
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-        });
-        
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        updateThemeIcon(savedTheme);
-    }
 
-    function setupLogout() {
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (confirm('정말 로그아웃하시겠습니까?')) {
-                    window.location.href = '/logout';
+        async function fetchAndUpdateUserData() {
+            if (window.headerUserDataSetup) return;
+            window.headerUserDataSetup = true;
+
+            try {
+                const { default: apiClient } = await import('/module/api.js');
+                const res = await apiClient.get('/api/v1/auth/me', {
+                    noRedirectOnFail: true
+                });
+
+                if (!res.ok) {
+                    throw new Error('인증 정보를 가져오는데 실패했습니다.');
                 }
-            });
-        }
-    }
+                const data = await res.json();
+                const user = data.user;
 
-    function setupNotifications() {
-        const notificationBtn = document.getElementById('notificationBtn');
-        if (notificationBtn) {
-            notificationBtn.addEventListener('click', () => {
-                console.log('알림 버튼 클릭됨');
-            });
-        }
-    }
+                document
+                    .querySelectorAll('.user-name')
+                    .forEach((el) => (el.textContent = user.nickname));
+                const userRole =
+                    user.authority === 'admin' ? '관리자' : '사용자';
+                document
+                    .querySelectorAll('.user-role')
+                    .forEach((el) => (el.textContent = userRole));
 
-    function setupHeaderScroll() {
-        let lastScrollY = window.scrollY;
-        let ticking = false;
-        const header = document.querySelector('.main-header');
-        if (!header) return;
-        
-        function updateHeader() {
-            const scrollY = window.scrollY;
-            const scrollDirection = scrollY > lastScrollY ? 'down' : 'up';
-            const scrollDelta = Math.abs(scrollY - lastScrollY);
-            
-            if (scrollY === 0) {
-                header.classList.remove('header-hidden');
-            }
-            else if (scrollY > 50 && scrollDirection === 'up' && scrollDelta > 2) {
-                header.classList.add('header-hidden');
-            }
-            else if (scrollDirection === 'down' && scrollDelta > 1) {
-                header.classList.remove('header-hidden');
-            }
-            
-            if (scrollY > 50) {
-                header.classList.add('header-shadow');
-            } else {
-                header.classList.remove('header-shadow');
-            }
-            
-            lastScrollY = scrollY;
-            ticking = false;
-        }
-        
-        function requestTick() {
-            if (!ticking) {
-                requestAnimationFrame(updateHeader);
-                ticking = true;
+                const notificationBadge = document.querySelector(
+                    '.notification-badge'
+                );
+                if (notificationBadge) {
+                    const count = user.notificationCount || 0;
+                    notificationBadge.textContent = count;
+                    notificationBadge.style.display =
+                        count > 0 ? 'inline' : 'none';
+                }
+
+                document.querySelectorAll('.admin-link').forEach((link) => {
+                    link.style.display =
+                        user.authority === 'admin' ? 'block' : 'none';
+                });
+
+                const avatarDiv = document.querySelector('.user-avatar');
+                if (avatarDiv && user.profileImage) {
+                    avatarDiv.innerHTML = `<img src="${user.profileImage}" alt="${user.nickname}님의 프로필 사진" class="profile-picture">`;
+                }
+
+                document.dispatchEvent(
+                    new CustomEvent('userLoaded', { detail: { user } })
+                );
+            } catch (error) {
+                console.error('Header user data update failed:', error);
+                updateUIForGuest();
             }
         }
-        
-        window.addEventListener('scroll', requestTick, { passive: true });
-        
-        let touchStartY = 0;
-        let touchEndY = 0;
-        
-        window.addEventListener('touchstart', (e) => {
-            touchStartY = e.changedTouches[0].screenY;
-        }, { passive: true });
-        
-        window.addEventListener('touchend', (e) => {
-            touchEndY = e.changedTouches[0].screenY;
-            const touchDelta = touchStartY - touchEndY;
-            
-            if (Math.abs(touchDelta) > 50) {
-                if (touchDelta < 0) {
+
+        function updateUIForGuest() {
+            document
+                .querySelectorAll('.user-name')
+                .forEach((el) => (el.textContent = '게스트'));
+            document
+                .querySelectorAll('.user-role')
+                .forEach((el) => (el.textContent = '로그인 필요'));
+
+            const avatarDiv = document.querySelector('.user-avatar');
+            if (avatarDiv) {
+                avatarDiv.innerHTML = `<span class="material-symbols-outlined">person</span>`;
+            }
+
+            const userMenu = document.getElementById('userMenu');
+            if (userMenu) {
+                userMenu.innerHTML = `
+                    <li>
+                        <a href="/login" class="dropdown-link">
+                            <span class="material-symbols-outlined">login</span>
+                            <span>로그인</span>
+                        </a>
+                    </li>
+                `;
+            }
+        }
+
+        function setupNotifications() {
+            const notificationBtn = document.getElementById('notificationBtn');
+            if (notificationBtn) {
+                notificationBtn.addEventListener('click', () => {
+                    console.log('알림 버튼 클릭됨');
+                });
+            }
+        }
+
+        function setupHeaderScroll() {
+            let lastScrollY = window.scrollY;
+            let ticking = false;
+            const header = document.querySelector('.main-header');
+            if (!header) return;
+
+            function updateHeader() {
+                const scrollY = window.scrollY;
+                const scrollDirection = scrollY > lastScrollY ? 'down' : 'up';
+                const scrollDelta = Math.abs(scrollY - lastScrollY);
+
+                if (scrollY === 0) {
+                    header.classList.remove('header-hidden');
+                } else if (
+                    scrollY > 50 &&
+                    scrollDirection === 'up' &&
+                    scrollDelta > 2
+                ) {
                     header.classList.add('header-hidden');
-                } else {
+                } else if (scrollDirection === 'down' && scrollDelta > 1) {
                     header.classList.remove('header-hidden');
                 }
-            }
-        }, { passive: true });
-    }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
+                if (scrollY > 50) {
+                    header.classList.add('header-shadow');
+                } else {
+                    header.classList.remove('header-shadow');
+                }
+
+                lastScrollY = scrollY;
+                ticking = false;
+            }
+
+            function requestTick() {
+                if (!ticking) {
+                    requestAnimationFrame(updateHeader);
+                    ticking = true;
+                }
+            }
+
+            window.addEventListener('scroll', requestTick, { passive: true });
+
+            let touchStartY = 0;
+            let touchEndY = 0;
+
+            window.addEventListener(
+                'touchstart',
+                (e) => {
+                    touchStartY = e.changedTouches[0].screenY;
+                },
+                { passive: true }
+            );
+
+            window.addEventListener(
+                'touchend',
+                (e) => {
+                    touchEndY = e.changedTouches[0].screenY;
+                    const touchDelta = touchStartY - touchEndY;
+
+                    if (Math.abs(touchDelta) > 50) {
+                        if (touchDelta < 0) {
+                            header.classList.add('header-hidden');
+                        } else {
+                            header.classList.remove('header-hidden');
+                        }
+                    }
+                },
+                { passive: true }
+            );
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => {
+                setupDropdowns();
+                setupThemeToggle();
+                setupLogout();
+                fetchAndUpdateUserData();
+                setupNotifications();
+                setupHeaderScroll();
+            });
+        } else {
             setupDropdowns();
             setupThemeToggle();
             setupLogout();
+            fetchAndUpdateUserData();
             setupNotifications();
             setupHeaderScroll();
-        });
-    } else {
-        setupDropdowns();
-        setupThemeToggle();
-        setupLogout();
-        setupNotifications();
-        setupHeaderScroll();
+        }
     }
-}
-</script> 
+</script>

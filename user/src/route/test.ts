@@ -11,4 +11,10 @@ router.get('/component', (req, res) => {
     });
 });
 
-export default router; 
+router.get('/mypage', (req, res) => {
+    res.render('test/mypage-refactored', {
+        title: '마이페이지 테스트 페이지'
+    });
+});
+
+export default router;

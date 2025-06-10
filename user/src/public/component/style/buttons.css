@@ -332,92 +332,68 @@
 }
 
 /* Dark Theme Button Styles */
-[data-theme="dark"] .cancel-button,
-[data-theme="dark"] .btn-secondary {
+[data-theme='dark'] .cancel-button,
+[data-theme='dark'] .btn-secondary {
     background-color: rgb(60, 60, 60);
     color: var(--text-primary);
     border: 1px solid var(--border-color);
 }
 
-[data-theme="dark"] .cancel-button:hover,
-[data-theme="dark"] .btn-secondary:hover {
+[data-theme='dark'] .cancel-button:hover,
+[data-theme='dark'] .btn-secondary:hover {
     background-color: rgb(80, 80, 80);
     color: var(--text-primary);
     border-color: var(--text-secondary);
 }
 
-[data-theme="dark"] .btn-primary {
+[data-theme='dark'] .btn-primary {
     background-color: rgb(220, 220, 220);
     color: rgb(20, 20, 20);
     border: 1px solid rgb(200, 200, 200);
 }
 
-[data-theme="dark"] .btn-primary:hover {
+[data-theme='dark'] .btn-primary:hover {
     background-color: rgb(240, 240, 240);
     color: rgb(20, 20, 20);
     border-color: rgb(240, 240, 240);
 }
 
-[data-theme="dark"] .btn-outline-primary {
+[data-theme='dark'] .btn-outline-primary {
     background-color: transparent;
     color: rgb(220, 220, 220);
     border: 1px solid rgb(220, 220, 220);
 }
 
-[data-theme="dark"] .btn-outline-primary:hover {
+[data-theme='dark'] .btn-outline-primary:hover {
     background-color: rgb(220, 220, 220);
     color: rgb(20, 20, 20);
     border-color: rgb(220, 220, 220);
 }
 
-[data-theme="dark"] .btn-outline-secondary {
-    background-color: transparent;
-    color: var(--text-secondary);
-    border: 1px solid var(--border-color);
-}
-
-[data-theme="dark"] .btn-outline-secondary:hover {
+[data-theme='dark'] .btn-outline-secondary:hover {
     background-color: rgb(60, 60, 60);
     color: var(--text-primary);
     border-color: var(--text-secondary);
 }
 
-[data-theme="dark"] .btn-outline-success {
+[data-theme='dark'] .btn-danger {
+    background-color: #a73c3c;
+}
+
+[data-theme='dark'] .btn-danger:hover:not(:disabled) {
+    background-color: #8b3030;
+}
+
+[data-theme='dark'] .btn-warning {
+    background-color: #b58a3f;
+}
+
+[data-theme='dark'] .btn-warning:hover:not(:disabled) {
+    background-color: #9c7536;
+}
+
+[data-theme='dark'] .btn-outline-success {
     background-color: transparent;
     color: #28a745;
     border: 1px solid #28a745;
 }
-
-[data-theme="dark"] .admin-button {
-    background-color: var(--warning-color);
-    color: rgb(20, 20, 20);
-    border: 1px solid var(--warning-color);
-}
-
-[data-theme="dark"] .back-button,
-[data-theme="dark"] .nav-button {
-    background-color: rgb(60, 60, 60);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-}
-
-[data-theme="dark"] .back-button:hover,
-[data-theme="dark"] .nav-button:hover {
-    background-color: rgb(80, 80, 80);
-    color: var(--text-primary);
-    border-color: var(--text-secondary);
-}
-
-[data-theme="dark"] .search-button,
-[data-theme="dark"] .refresh-button {
-    background-color: rgb(220, 220, 220);
-    color: rgb(20, 20, 20);
-    border: 1px solid rgb(200, 200, 200);
-}
-
-[data-theme="dark"] .search-button:hover,
-[data-theme="dark"] .refresh-button:hover {
-    background-color: rgb(240, 240, 240);
-    color: rgb(20, 20, 20);
-    border-color: rgb(240, 240, 240);
-} 

@@ -3,6 +3,8 @@
  * 다양한 모달 컴포넌트들을 제공합니다.
  */
 
+import { createButton } from '../buttons/index.js';
+
 /**
  * 기본 모달 생성
  */
@@ -39,7 +41,8 @@ export function createModal(options = {}) {
     if (showCloseButton) {
         const closeButton = document.createElement('button');
         closeButton.className = 'modal-close';
-        closeButton.innerHTML = '<span class="material-symbols-outlined">close</span>';
+        closeButton.innerHTML =
+            '<span class="material-symbols-outlined">close</span>';
         closeButton.addEventListener('click', () => {
             closeModal(overlay);
             if (onCancel) onCancel();
@@ -67,40 +70,30 @@ export function createModal(options = {}) {
     footer.style.justifyContent = 'stretch';
 
     if (onCancel || cancelText) {
-        const cancelButton = window.Components?.createButton ? 
-            window.Components.createButton({
-                text: cancelText,
-                variant: 'secondary',
-                onClick: () => {
-                    closeModal(overlay);
-                    if (onCancel) onCancel();
-                }
-            }) :
-            createFallbackButton(cancelText, 'cancel-button', () => {
+        const cancelButton = createButton({
+            text: cancelText,
+            variant: 'secondary',
+            onClick: () => {
                 closeModal(overlay);
                 if (onCancel) onCancel();
-            });
-        
-        cancelButton.style.flex = '1';  // 1:1 비율
+            }
+        });
+
+        cancelButton.style.flex = '1'; // 1:1 비율
         footer.appendChild(cancelButton);
     }
 
     if (onConfirm || confirmText) {
-        const confirmButton = window.Components?.createButton ?
-            window.Components.createButton({
-                text: confirmText,
-                variant: 'primary',
-                onClick: () => {
-                    closeModal(overlay);
-                    if (onConfirm) onConfirm();
-                }
-            }) :
-            createFallbackButton(confirmText, 'confirm-button', () => {
+        const confirmButton = createButton({
+            text: confirmText,
+            variant: options._internal?.confirmButtonVariant || 'primary',
+            onClick: () => {
                 closeModal(overlay);
                 if (onConfirm) onConfirm();
-            });
-        
-        confirmButton.style.flex = '1';  // 1:1 비율
+            }
+        });
+
+        confirmButton.style.flex = '1'; // 1:1 비율
         footer.appendChild(confirmButton);
     }
 
@@ -132,8 +125,8 @@ export function createModal(options = {}) {
 
     // 모달 열기
     setTimeout(() => {
-        overlay.classList.add('active');
-        modal.classList.add('active');
+        overlay.classList.add('show');
+        modal.classList.add('show');
     }, 10);
 
     // cleanup 함수 추가
@@ -159,7 +152,9 @@ export function createConfirmModal(options = {}) {
     const modal = createModal({
         title,
         content: `<div class="modal-message modal-message-${variant}">
-            <span class="material-symbols-outlined">${getModalIcon(variant)}</span>
+            <span class="material-symbols-outlined">${getModalIcon(
+                variant
+            )}</span>
             <p>${message}</p>
         </div>`,
         confirmText,
@@ -185,16 +180,24 @@ export function createConfirmCancelModal(options = {}) {
         variant = 'warning'
     } = options;
 
+    const confirmButtonVariant =
+        variant === 'danger' || variant === 'warning' ? variant : 'primary';
+
     const modal = createModal({
         title,
         content: `<div class="modal-message modal-message-${variant}">
-            <span class="material-symbols-outlined">${getModalIcon(variant)}</span>
+            <span class="material-symbols-outlined">${getModalIcon(
+                variant
+            )}</span>
             <p>${message}</p>
         </div>`,
         confirmText,
         cancelText,
         onConfirm,
-        onCancel
+        onCancel,
+        _internal: {
+            confirmButtonVariant
+        }
     });
 
     return modal;
@@ -217,7 +220,7 @@ export function createFormModal(options = {}) {
     const form = document.createElement('form');
     form.className = 'modal-form';
 
-    fields.forEach(field => {
+    fields.forEach((field) => {
         const fieldContainer = document.createElement('div');
         fieldContainer.className = 'form-group';
 
@@ -228,13 +231,15 @@ export function createFormModal(options = {}) {
             fieldContainer.appendChild(label);
         }
 
-        const input = document.createElement(field.type === 'textarea' ? 'textarea' : 'input');
+        const input = document.createElement(
+            field.type === 'textarea' ? 'textarea' : 'input'
+        );
         input.className = 'form-input';
-        
+
         if (field.type !== 'textarea') {
             input.type = field.type || 'text';
         }
-        
+
         if (field.name) input.name = field.name;
         if (field.value) input.value = field.value;
         if (field.placeholder) input.placeholder = field.placeholder;
@@ -266,10 +271,7 @@ export function createFormModal(options = {}) {
  * 로딩 모달 생성
  */
 export function createLoadingModal(options = {}) {
-    const {
-        title = '처리 중...',
-        message = '잠시만 기다려주세요.'
-    } = options;
+    const { title = '처리 중...', message = '잠시만 기다려주세요.' } = options;
 
     const loadingContent = `
         <div class="loading-container">
@@ -293,11 +295,7 @@ export function createLoadingModal(options = {}) {
  * 이미지 모달 생성
  */
 export function createImageModal(options = {}) {
-    const {
-        title = '이미지',
-        src = '',
-        alt = 'Image'
-    } = options;
+    const { title = '이미지', src = '', alt = 'Image' } = options;
 
     const imageContent = `
         <div class="image-container">
@@ -323,11 +321,11 @@ export function createImageModal(options = {}) {
 export function closeModal(modal) {
     if (!modal) return;
 
-    const modalElement = modal.querySelector('.modal');
-    if (modalElement) {
-        modalElement.classList.remove('active');
+    const modalContent = modal.querySelector('.modal');
+    if (modalContent) {
+        modalContent.classList.remove('show');
     }
-    modal.classList.remove('active');
+    modal.classList.remove('show');
 
     setTimeout(() => {
         if (modal._cleanup) {
@@ -344,14 +342,14 @@ export function closeModal(modal) {
  */
 export function showModal(modal) {
     if (!modal) return;
-    
+
     document.body.appendChild(modal);
-    
+
     // 포커스 트랩
     const focusableElements = modal.querySelectorAll(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
-    
+
     if (focusableElements.length > 0) {
         focusableElements[0]?.focus();
     }
@@ -427,22 +425,15 @@ export function showWarning(message, title = '경고') {
 
 // 헬퍼 함수들
 function getModalIcon(variant) {
-    const icons = {
-        info: 'info',
-        success: 'check_circle',
-        warning: 'warning',
-        danger: 'error'
-    };
-    return icons[variant] || 'info';
-}
-
-function createFallbackButton(text, className, onClick) {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = `btn ${className}`;
-    button.textContent = text;
-    if (onClick) {
-        button.addEventListener('click', onClick);
+    switch (variant) {
+        case 'success':
+            return 'check_circle';
+        case 'danger':
+            return 'error';
+        case 'warning':
+            return 'warning';
+        case 'info':
+        default:
+            return 'info';
     }
-    return button;
-} 
+}
