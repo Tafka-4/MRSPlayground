@@ -129,7 +129,7 @@ function renderComponents() {
 
         const uploadBtn = createButton({
             id: 'image-upload-button',
-            text: '업로드',
+            text: '이미지 업로드',
             icon: 'upload',
             size: 'sm',
             variant: 'primary',
@@ -141,11 +141,11 @@ function renderComponents() {
 
         const deleteBtn = createButton({
             id: 'image-delete-button',
-            text: '삭제',
+            text: '이미지 삭제',
             icon: 'delete',
             size: 'sm',
             variant: 'danger',
-            className: 'image-delete-button',
+            className: 'image-delete-button always-light',
             onClick: showImageDeleteModal
         });
         imageActionsContainer.append(uploadBtn, deleteBtn);
@@ -175,6 +175,7 @@ function renderComponents() {
             text: '회원 탈퇴',
             variant: 'danger',
             size: 'md',
+            className: 'always-light',
             onClick: showAccountDeleteModal
         });
 
@@ -191,6 +192,7 @@ function renderComponents() {
             text: '관리자 페이지',
             variant: 'warning',
             icon: 'admin_panel_settings',
+            className: 'always-light',
             onClick: () => (window.location.href = '/admin')
         });
         adminBtnContainer.appendChild(adminBtn);

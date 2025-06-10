@@ -97,7 +97,8 @@ export function createVerificationBadge(isVerified = false, onClick = null) {
             text: '인증됨',
             variant: 'custom-verified',
             icon: 'verified',
-            tooltip: '이메일 인증이 완료되었습니다.'
+            tooltip: '이메일 인증이 완료되었습니다.',
+            className: 'verification-badge'
         });
     } else {
         const badge = createBadgeAdvanced({
@@ -105,12 +106,11 @@ export function createVerificationBadge(isVerified = false, onClick = null) {
             variant: 'warning',
             icon: 'warning',
             tooltip: '이메일 인증이 필요합니다. 클릭하여 인증하세요.',
-            className: 'unverified-badge clickable'
+            className: 'verification-badge clickable'
         });
 
         if (onClick) {
             badge.addEventListener('click', onClick);
-            badge.style.cursor = 'pointer';
         }
 
         return badge;

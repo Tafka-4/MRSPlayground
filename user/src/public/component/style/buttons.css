@@ -397,3 +397,49 @@
     color: #28a745;
     border: 1px solid #28a745;
 }
+
+/* Dark mode adjustments */
+[data-theme='dark'] .btn {
+    filter: brightness(0.8);
+}
+
+[data-theme='dark'] .btn.always-light {
+    filter: none;
+}
+
+[data-theme='dark'] .btn-primary {
+    background-color: var(--primary-color);
+    color: var(--background-color);
+}
+
+[data-theme='dark'] .btn-secondary {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+[data-theme='dark'] .btn-danger {
+    background-color: var(--error-color);
+    color: white;
+}
+
+/* Specific overrides for always-light buttons in dark mode */
+[data-theme='dark'] .btn-primary.always-light {
+    background-color: rgb(10, 10, 10);
+    color: white;
+}
+
+[data-theme='dark'] .btn-secondary.always-light {
+    background-color: rgb(240, 240, 240);
+    color: rgb(10, 10, 10);
+    border: 1px solid rgb(220, 220, 220);
+}
+
+[data-theme='dark'] .btn-warning.always-light {
+    background-color: #eea73c; /* --warning-color light theme */
+    color: white;
+}
+
+[data-theme='dark'] .btn-danger.always-light {
+    background-color: #f47c7c; /* --error-color light theme */
+    color: white;
+}
