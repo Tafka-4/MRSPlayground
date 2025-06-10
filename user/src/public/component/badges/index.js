@@ -1,21 +1,22 @@
 /**
- * Badge Components
- * 사용자 상태, 역할 등을 표시하는 뱃지 컴포넌트들을 제공합니다.
+ * @file Badge Components
+ * @description 사용자 상태, 역할 등을 시각적으로 표시하는 뱃지(Badge) 컴포넌트를 생성하는 함수들을 제공합니다.
+ * @module components/badges
  */
 
 /**
- * 간단한 뱃지 생성 (텍스트와 클래스만)
- * @param {string} text - 뱃지 텍스트
- * @param {string} className - CSS 클래스
- * @returns {HTMLSpanElement} 뱃지 엘리먼트
+ * 다양한 옵션을 사용하여 뱃지 엘리먼트를 생성합니다.
+ * 모든 뱃지 생성의 기반이 되는 함수입니다.
+ *
+ * @param {object | string} options - 뱃지 생성을 위한 옵션 객체 또는 뱃지 텍스트.
+ * @param {string} [className] - (텍스트 방식일 때) 뱃지에 추가할 CSS 클래스.
+ * @returns {HTMLSpanElement} 생성된 뱃지 엘리먼트.
  */
 export function createBadge(text = '', className = 'badge-primary') {
-    // 첫 번째 매개변수가 객체인 경우 (기존 방식)
     if (typeof text === 'object' && text !== null) {
         return createBadgeAdvanced(text);
     }
 
-    // 간단한 방식
     const badge = document.createElement('span');
     badge.className = `badge ${className}`;
     badge.textContent = text;
@@ -24,15 +25,16 @@ export function createBadge(text = '', className = 'badge-primary') {
 }
 
 /**
- * 고급 뱃지 생성 (객체 옵션)
- * @param {Object} options - 뱃지 옵션
- * @param {string} options.text - 뱃지 텍스트
- * @param {string} options.variant - 뱃지 스타일 ('primary', 'secondary', 'success', 'warning', 'danger', 'info')
- * @param {string} options.size - 뱃지 크기 ('small', 'medium', 'large')
- * @param {string} options.icon - Material Icons 아이콘 이름
- * @param {string} options.className - 추가 CSS 클래스
- * @param {string} options.tooltip - 툴팁 텍스트
- * @returns {HTMLSpanElement} 뱃지 엘리먼트
+ * 고급 뱃지 생성을 위한 내부 헬퍼 함수입니다. `createBadge`를 통해 호출됩니다.
+ * @private
+ * @param {object} options - 뱃지 생성을 위한 옵션 객체.
+ * @param {string} [options.text=''] - 뱃지에 표시될 텍스트.
+ * @param {string} [options.variant='primary'] - 뱃지의 색상 스타일 (e.g., 'primary', 'secondary', 'success').
+ * @param {string} [options.size='medium'] - 뱃지의 크기 ('small', 'medium', 'large').
+ * @param {string|null} [options.icon=null] - 뱃지에 표시될 Material Symbols Outlined 아이콘의 이름.
+ * @param {string} [options.className=''] - 뱃지에 추가할 커스텀 CSS 클래스.
+ * @param {string|null} [options.tooltip=null] - 뱃지에 마우스를 올렸을 때 표시될 툴팁 텍스트.
+ * @returns {HTMLSpanElement} 생성된 뱃지 엘리먼트.
  */
 export function createBadgeAdvanced(options = {}) {
     const {
@@ -83,10 +85,11 @@ export function createBadgeAdvanced(options = {}) {
 }
 
 /**
- * 인증 상태 뱃지 생성
- * @param {boolean} isVerified - 인증 여부
- * @param {Function} onClick - 클릭 이벤트 핸들러 (미인증 시)
- * @returns {HTMLSpanElement} 인증 상태 뱃지
+ * 사용자의 이메일 인증 상태를 나타내는 뱃지를 생성합니다.
+ *
+ * @param {boolean} [isVerified=false] - 사용자의 인증 여부.
+ * @param {Function|null} [onClick=null] - '미인증' 뱃지 클릭 시 실행될 콜백 함수 (인증 페이지 이동 등).
+ * @returns {HTMLSpanElement} 생성된 인증 상태 뱃지.
  */
 export function createVerificationBadge(isVerified = false, onClick = null) {
     if (isVerified) {
@@ -115,9 +118,10 @@ export function createVerificationBadge(isVerified = false, onClick = null) {
 }
 
 /**
- * 역할 뱃지 생성
- * @param {string} role - 사용자 역할 ('admin', 'moderator', 'user', 'premium')
- * @returns {HTMLSpanElement} 역할 뱃지
+ * 사용자의 역할을 나타내는 뱃지를 생성합니다.
+ *
+ * @param {string} [role='user'] - 사용자 역할 ('admin', 'moderator', 'premium', 'user').
+ * @returns {HTMLSpanElement} 생성된 역할 뱃지.
  */
 export function createRoleBadge(role = 'user') {
     const roleConfig = {
@@ -156,9 +160,10 @@ export function createRoleBadge(role = 'user') {
 }
 
 /**
- * 온라인 상태 뱃지 생성
- * @param {boolean} isOnline - 온라인 여부
- * @returns {HTMLSpanElement} 온라인 상태 뱃지
+ * 사용자의 온라인/오프라인 상태를 나타내는 뱃지를 생성합니다.
+ *
+ * @param {boolean} [isOnline=false] - 온라인 상태 여부.
+ * @returns {HTMLSpanElement} 생성된 온라인 상태 뱃지.
  */
 export function createOnlineBadge(isOnline = false) {
     return createBadgeAdvanced({
@@ -171,9 +176,11 @@ export function createOnlineBadge(isOnline = false) {
 }
 
 /**
- * 새 알림 뱃지 생성
- * @param {number} count - 알림 개수
- * @returns {HTMLSpanElement} 알림 뱃지
+ * 새로운 알림의 개수를 표시하는 뱃지를 생성합니다.
+ * 99개를 초과하면 '99+'로 표시됩니다.
+ *
+ * @param {number} [count=0] - 새로운 알림의 개수. 0이면 null을 반환합니다.
+ * @returns {HTMLSpanElement|null} 생성된 알림 뱃지 또는 null.
  */
 export function createNotificationBadge(count = 0) {
     if (count === 0) return null;
@@ -189,9 +196,10 @@ export function createNotificationBadge(count = 0) {
 }
 
 /**
- * 상태 뱃지 생성
- * @param {string} status - 상태 ('active', 'inactive', 'pending', 'suspended')
- * @returns {HTMLSpanElement} 상태 뱃지
+ * 계정이나 콘텐츠의 상태(활성, 비활성 등)를 나타내는 뱃지를 생성합니다.
+ *
+ * @param {string} [status='active'] - 상태 ('active', 'inactive', 'pending', 'suspended').
+ * @returns {HTMLSpanElement} 생성된 상태 뱃지.
  */
 export function createStatusBadge(status = 'active') {
     const statusConfig = {
@@ -226,9 +234,10 @@ export function createStatusBadge(status = 'active') {
 }
 
 /**
- * 커스텀 뱃지 생성 (특별한 이벤트나 기념일용)
- * @param {Object} options - 커스텀 뱃지 옵션
- * @returns {HTMLSpanElement} 커스텀 뱃지
+ * 특별한 이벤트나 기념일을 위한 커스텀 뱃지를 생성합니다.
+ *
+ * @param {object} options - `createBadgeAdvanced`와 동일한 옵션을 사용하여 커스텀 뱃지를 설정합니다.
+ * @returns {HTMLSpanElement} 생성된 커스텀 뱃지.
  */
 export function createCustomBadge(options = {}) {
     return createBadgeAdvanced({
@@ -240,10 +249,11 @@ export function createCustomBadge(options = {}) {
 }
 
 /**
- * 뱃지 컨테이너 생성
- * @param {Array} badges - 뱃지 배열
- * @param {string} className - 추가 CSS 클래스
- * @returns {HTMLDivElement} 뱃지 컨테이너
+ * 여러 뱃지를 담는 컨테이너 엘리먼트를 생성합니다.
+ *
+ * @param {HTMLSpanElement[]} [badges=[]] - 컨테이너에 추가할 뱃지 엘리먼트의 배열.
+ * @param {string} [className=''] - 컨테이너에 추가할 커스텀 CSS 클래스.
+ * @returns {HTMLDivElement} 생성된 뱃지 컨테이너.
  */
 export function createBadgeContainer(badges = [], className = '') {
     const container = document.createElement('div');

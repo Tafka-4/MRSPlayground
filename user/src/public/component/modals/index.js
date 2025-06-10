@@ -1,12 +1,26 @@
 /**
- * Modal Components
- * 다양한 모달 컴포넌트들을 제공합니다.
+ * @file Modal Components
+ * @description 다양한 종류의 모달(팝업) 창을 생성하고 관리하는 함수들을 제공합니다.
+ * @module components/modals
  */
 
 import { createButton } from '../buttons/index.js';
 
 /**
- * 기본 모달 생성
+ * 모든 모달의 기반이 되는 기본 모달 엘리먼트를 생성합니다.
+ * 내부적으로 다른 모달 생성 함수들(`createConfirmModal`, `createFormModal` 등)에 의해 사용됩니다.
+ *
+ * @param {object} options - 모달 생성을 위한 옵션 객체.
+ * @param {string} [options.title='알림'] - 모달의 제목.
+ * @param {string|HTMLElement} [options.content=''] - 모달의 주 내용. 문자열 또는 HTML 엘리먼트.
+ * @param {string|null} [options.cancelText='취소'] - 취소 버튼의 텍스트. null일 경우 버튼이 생성되지 않음.
+ * @param {string|null} [options.confirmText='확인'] - 확인 버튼의 텍스트. null일 경우 버튼이 생성되지 않음.
+ * @param {string} [options.size='md'] - 모달의 크기 ('sm', 'md', 'lg', 'xl').
+ * @param {Function|null} [options.onCancel=null] - 취소 버튼 클릭 또는 모달이 닫힐 때 실행될 콜백 함수.
+ * @param {Function|null} [options.onConfirm=null] - 확인 버튼 클릭 시 실행될 콜백 함수.
+ * @param {boolean} [options.showCloseButton=true] - 헤더의 닫기(X) 버튼 표시 여부.
+ * @param {string} [options.className=''] - 모달 컨테이너에 추가할 커스텀 CSS 클래스.
+ * @returns {HTMLElement} 생성된 모달의 최상위 엘리먼트 (overlay).
  */
 export function createModal(options = {}) {
     const {
@@ -138,7 +152,15 @@ export function createModal(options = {}) {
 }
 
 /**
- * 확인 모달 생성 (확인 버튼만)
+ * 아이콘과 메시지, 확인 버튼만 포함된 간단한 확인용 모달을 생성합니다.
+ *
+ * @param {object} options - 모달 옵션.
+ * @param {string} [options.title='알림'] - 모달 제목.
+ * @param {string} [options.message=''] - 표시될 메시지.
+ * @param {string} [options.confirmText='확인'] - 확인 버튼 텍스트.
+ * @param {Function|null} [options.onConfirm=null] - 확인 버튼 클릭 콜백.
+ * @param {string} [options.variant='info'] - 모달의 상태를 나타내는 스타일 ('info', 'success', 'warning', 'danger'). 아이콘과 색상에 영향을 줍니다.
+ * @returns {HTMLElement} 생성된 모달 엘리먼트.
  */
 export function createConfirmModal(options = {}) {
     const {
@@ -167,7 +189,18 @@ export function createConfirmModal(options = {}) {
 }
 
 /**
- * 확인/취소 모달 생성
+ * 아이콘, 메시지, 그리고 확인/취소 버튼을 포함한 모달을 생성합니다.
+ * 사용자에게 중요한 작업을 확인받을 때 사용됩니다.
+ *
+ * @param {object} options - 모달 옵션.
+ * @param {string} [options.title='확인'] - 모달 제목.
+ * @param {string} [options.message=''] - 표시될 메시지.
+ * @param {string} [options.confirmText='확인'] - 확인 버튼 텍스트.
+ * @param {string} [options.cancelText='취소'] - 취소 버튼 텍스트.
+ * @param {Function|null} [options.onConfirm=null] - 확인 버튼 클릭 콜백.
+ * @param {Function|null} [options.onCancel=null] - 취소 버튼 클릭 콜백.
+ * @param {string} [options.variant='warning'] - 모달의 상태 스타일 ('info', 'success', 'warning', 'danger'). 아이콘과 확인 버튼 색상에 영향을 줍니다.
+ * @returns {HTMLElement} 생성된 모달 엘리먼트.
  */
 export function createConfirmCancelModal(options = {}) {
     const {
@@ -204,7 +237,16 @@ export function createConfirmCancelModal(options = {}) {
 }
 
 /**
- * 폼 모달 생성
+ * 여러 입력 필드를 포함하는 폼(Form) 형태의 모달을 생성합니다.
+ *
+ * @param {object} options - 모달 옵션.
+ * @param {string} [options.title='입력'] - 모달 제목.
+ * @param {Array<object>} [options.fields=[]] - 폼에 포함될 입력 필드 정보 배열.
+ * @param {string} [options.submitText='저장'] - 제출 버튼 텍스트.
+ * @param {string} [options.cancelText='취소'] - 취소 버튼 텍스트.
+ * @param {Function|null} [options.onSubmit=null] - 폼 제출 시 실행될 콜백. 폼 데이터를 인자로 받습니다.
+ * @param {Function|null} [options.onCancel=null] - 취소 버튼 클릭 콜백.
+ * @returns {HTMLElement} 생성된 모달 엘리먼트.
  */
 export function createFormModal(options = {}) {
     const {
@@ -316,7 +358,8 @@ export function createImageModal(options = {}) {
 }
 
 /**
- * 모달 닫기
+ * 모달을 부드럽게 닫고 DOM에서 제거합니다.
+ * @param {HTMLElement} modal - 닫을 모달의 최상위 엘리먼트 (overlay).
  */
 export function closeModal(modal) {
     if (!modal) return;
@@ -338,7 +381,8 @@ export function closeModal(modal) {
 }
 
 /**
- * 모달 표시
+ * 생성된 모달을 `document.body`에 추가하고 화면에 표시합니다.
+ * @param {HTMLElement} modal - 표시할 모달의 최상위 엘리먼트.
  */
 export function showModal(modal) {
     if (!modal) return;
@@ -356,7 +400,9 @@ export function showModal(modal) {
 }
 
 /**
- * 알림 모달 (간편 함수)
+ * 내장된 간단한 경고창(alert)을 띄웁니다.
+ * @param {string} message - 표시할 메시지.
+ * @param {string} [title='알림'] - 창의 제목.
  */
 export function alert(message, title = '알림') {
     const modal = createConfirmModal({
@@ -369,7 +415,10 @@ export function alert(message, title = '알림') {
 }
 
 /**
- * 확인 모달 (간편 함수)
+ * 내장된 간단한 확인창(confirm)을 띄웁니다.
+ * @param {string} message - 표시할 메시지.
+ * @param {string} [title='확인'] - 창의 제목.
+ * @returns {Promise<boolean>} 사용자가 '확인'을 누르면 resolve(true), '취소'를 누르면 resolve(false)되는 프로미스.
  */
 export function confirm(message, title = '확인') {
     return new Promise((resolve) => {
