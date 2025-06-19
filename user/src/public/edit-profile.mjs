@@ -1,298 +1,273 @@
-import NoticeBox from './module/notice.js';
-import apiClient from './module/api.js';
-import escape from './module/escape.js';
+import NoticeBox from '/module/notice.js';
+import apiClient from '/module/api.js';
+import {
+    initializeComponents,
+    loadSavedTheme,
+    createButton,
+    createInput
+} from '/component/index.js';
 
-class EditProfile {
+class EditProfilePage {
     constructor() {
-        this.currentUser = null;
+        this.userData = null;
         this.hasChanges = false;
-        this.init();
+        this.cacheDOM();
+        this.attachEventListeners();
+        this.fetchUserData();
     }
 
-    async init() {
-        await this.loadUserData();
-        this.setupEventListeners();
+    cacheDOM() {
+        this.formContainer = document.querySelector('#profile-form-container');
+        this.actionsContainer = document.querySelector('#form-actions');
+        this.profileImage = document.querySelector('#profile-image');
+        this.profileImageInput = document.querySelector('#profile-image-input');
+        this.sideNav = document.querySelector('.side-nav');
+        this.navBackdrop = document.querySelector('.nav-backdrop');
+        this.mobileNavToggle = document.querySelector('.mobile-nav-toggle');
     }
 
-    async loadUserData() {
+    attachEventListeners() {
+        this.mobileNavToggle.addEventListener('click', () =>
+            this.toggleSideNav()
+        );
+        this.navBackdrop.addEventListener('click', () => this.closeSideNav());
+        this.profileImageInput.addEventListener('change', (e) =>
+            this.handleImageUpload(e.target.files[0])
+        );
+    }
+
+    toggleSideNav() {
+        const isOpen = document.body.classList.contains('side-nav-open');
+        if (isOpen) {
+            this.closeSideNav();
+        } else {
+            document.body.classList.add('side-nav-open');
+            this.navBackdrop.style.display = 'block';
+        }
+    }
+
+    closeSideNav() {
+        document.body.classList.remove('side-nav-open');
+        this.navBackdrop.style.display = 'none';
+    }
+
+    async fetchUserData() {
         try {
-            const response = await apiClient.get('/api/v1/auth/me');
-
-            if (!response.ok) {
-                return;
-            }
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.currentUser = data.user;
-                this.displayUserData();
-            } else {
-                console.error(
-                    '사용자 정보 로드 실패:',
-                    response.status,
-                    response.statusText
+            const userData = await apiClient.get('/api/v1/auth/me');
+            if (!userData) {
+                throw new Error(
+                    'User data is null or undefined in API response.'
                 );
-                if (response.status !== 401) {
-                    new NoticeBox(
-                        '사용자 정보를 불러오는데 실패했습니다.',
-                        'error'
-                    ).show();
-                }
             }
+            this.userData = (await userData.json()).user;
+            this.render();
         } catch (error) {
-            console.error('사용자 정보 로드 실패:', error);
+            console.error('Error fetching user data:', error);
             new NoticeBox(
-                '사용자 정보를 불러오는데 실패했습니다.',
+                '사용자 정보를 불러오는 데 실패했습니다.',
                 'error'
             ).show();
         }
     }
 
-    displayUserData() {
-        if (!this.currentUser) return;
-
-        document.getElementById('userid').textContent =
-            this.currentUser.id || '정보 없음';
-        document.getElementById('email').textContent =
-            this.currentUser.email || '정보 없음';
-
-        document.getElementById('username-input').value =
-            escape(this.currentUser.nickname) || '';
-        document.getElementById('description-input').value =
-            escape(this.currentUser.description) || '';
-
+    render() {
         this.updateProfileImage();
+        this.renderForm();
+        this.renderButtons();
     }
 
     updateProfileImage() {
-        const profileImageElement = document.getElementById('profile-image');
-
-        if (this.currentUser.profileImage) {
-            profileImageElement.innerHTML = `<img src="${this.currentUser.profileImage}" alt="프로필 이미지" />`;
+        if (this.userData.profileImage) {
+            this.profileImage.innerHTML = `<img src="${this.userData.profileImage}" alt="Profile Image">`;
         } else {
-            profileImageElement.innerHTML =
-                '<span class="material-symbols-outlined">person</span>';
+            this.profileImage.innerHTML = `<span class="material-symbols-outlined">person</span>`;
         }
     }
 
-    setupEventListeners() {
-        document
-            .getElementById('username-input')
-            .addEventListener('input', this.handleInputChange.bind(this));
-        document
-            .getElementById('description-input')
-            .addEventListener('input', this.handleInputChange.bind(this));
+    renderForm() {
+        this.formContainer.innerHTML = '';
+        this.formContainer.className = 'form-content';
 
-        document
-            .getElementById('image-upload-button')
-            .addEventListener('click', () => {
-                document.getElementById('profile-image-input').click();
-            });
+        const usernameInputEl = createInput({
+            id: 'username',
+            label: '닉네임',
+            type: 'text',
+            placeholder: '사용자 닉네임을 입력하세요',
+            icon: 'person'
+        });
 
-        document
-            .getElementById('profile-image-input')
-            .addEventListener('change', this.handleImageUpload.bind(this));
+        const descriptionInputEl = createInput({
+            id: 'description',
+            label: '자기소개',
+            type: 'text',
+            placeholder: '자기소개를 입력하세요',
+            icon: 'notes',
+            isTextarea: true
+        });
 
-        document
-            .getElementById('image-delete-button')
-            .addEventListener('click', this.handleImageDelete.bind(this));
+        this.formContainer.append(usernameInputEl, descriptionInputEl);
 
-        document
-            .getElementById('save-button')
-            .addEventListener('click', this.handleSave.bind(this));
-
-        window.addEventListener('beforeunload', (e) => {
-            if (this.hasChanges) {
-                e.preventDefault();
-                e.returnValue =
-                    '변경사항이 저장되지 않았습니다. 정말 페이지를 떠나시겠습니까?';
+        const editFormBody = document.querySelector('.edit-form-body');
+        if (editFormBody) {
+            let infoColumn = editFormBody.querySelector('.info-column');
+            if (!infoColumn) {
+                infoColumn = document.createElement('div');
+                infoColumn.className = 'info-column';
+                editFormBody.appendChild(infoColumn);
             }
+            infoColumn.innerHTML = '';
+
+            const idField = this.createReadonlyField(
+                '아이디',
+                this.userData.id
+            );
+            const subDivider1 = document.createElement('hr');
+            subDivider1.className = 'sub-divider';
+
+            const emailField = this.createReadonlyField(
+                '이메일',
+                this.userData.email
+            );
+            const subDivider2 = document.createElement('hr');
+            subDivider2.className = 'sub-divider';
+
+            const useridField = this.createReadonlyField(
+                'UID',
+                this.userData.userid
+            );
+
+            infoColumn.append(
+                idField,
+                subDivider1,
+                emailField,
+                subDivider2,
+                useridField
+            );
+            useridField.querySelector('.info-value').style.color =
+                'rgb(100, 100, 100)';
+            useridField.querySelector('.info-value').style.fontStyle = 'italic';
+        }
+
+        this.usernameInput = this.formContainer.querySelector('#username');
+        this.descriptionInput =
+            this.formContainer.querySelector('#description');
+
+        this.usernameInput.value = this.userData.nickname || '';
+        this.descriptionInput.value = this.userData.description || '';
+
+        [this.usernameInput, this.descriptionInput].forEach((input) => {
+            input.addEventListener('input', () => this.checkForChanges());
         });
     }
 
-    handleInputChange() {
-        const currentUsername = document.getElementById('username-input').value;
-        const currentDescription =
-            document.getElementById('description-input').value;
+    renderButtons() {
+        this.actionsContainer.innerHTML = '';
+        const imageActionsContainer = document.createElement('div');
+        imageActionsContainer.className = 'profile-image-actions';
 
+        const uploadButton = createButton({
+            text: '사진 변경',
+            icon: 'photo_camera',
+            onClick: () => this.profileImageInput.click()
+        });
+        const deleteButton = createButton({
+            text: '사진 삭제',
+            icon: 'delete',
+            variant: 'danger',
+            onClick: () => this.handleImageDelete()
+        });
+
+        imageActionsContainer.append(uploadButton, deleteButton);
+        this.profileImage.parentElement.insertBefore(
+            imageActionsContainer,
+            this.profileImage.nextSibling
+        );
+
+        const saveButton = createButton({
+            id: 'save-changes',
+            text: '변경사항 저장',
+            style: 'primary',
+            disabled: true,
+            onClick: () => this.handleSave()
+        });
+
+        this.actionsContainer.appendChild(saveButton);
+        this.formContainer.appendChild(this.actionsContainer);
+        this.saveButton = saveButton;
+    }
+
+    createReadonlyField(label, value) {
+        const infoItem = document.createElement('div');
+        infoItem.className = 'info-item';
+        infoItem.innerHTML = `<label>${label}</label><div class="info-value">${value}</div>`;
+        return infoItem;
+    }
+
+    checkForChanges() {
+        const initialNickname = this.userData.nickname || '';
+        const initialDescription = this.userData.description || '';
         this.hasChanges =
-            currentUsername !== (this.currentUser.nickname || '') ||
-            currentDescription !== (this.currentUser.description || '');
-
-        this.updateSaveButton();
+            this.usernameInput.value !== initialNickname ||
+            this.descriptionInput.value !== initialDescription;
+        this.saveButton.disabled = !this.hasChanges;
     }
 
-    updateSaveButton() {
-        const saveButton = document.getElementById('save-button');
-        saveButton.disabled = !this.hasChanges;
-    }
-
-    async handleImageUpload(event) {
-        const file = event.target.files[0];
+    async handleImageUpload(file) {
         if (!file) return;
-
-        if (file.size > 5 * 1024 * 1024) {
-            new NoticeBox('파일 크기는 5MB 이하여야 합니다.', 'error').show();
-            return;
-        }
-
-        if (!file.type.startsWith('image/')) {
-            new NoticeBox('이미지 파일만 업로드 가능합니다.', 'error').show();
-            return;
-        }
-
         const formData = new FormData();
         formData.append('profileImage', file);
 
         try {
-            const response = await apiClient.post(
+            const result = await apiClient.post(
                 '/api/v1/users/upload-profile',
                 formData
             );
-
-            if (!response) return;
-
-            if (response.ok) {
-                const result = await response.json();
-                this.currentUser.profileImage = result.profileImage;
-                this.updateProfileImage();
-                new NoticeBox(
-                    result.message || '프로필 이미지가 업데이트되었습니다.',
-                    'success'
-                ).show();
-            } else {
-                const error = await response.json();
-                new NoticeBox(
-                    error.message || '이미지 업로드에 실패했습니다.',
-                    'error'
-                ).show();
-            }
+            this.userData.profileImage = result.profileImage;
+            this.updateProfileImage();
+            new NoticeBox('프로필 이미지가 변경되었습니다.', 'success').show();
         } catch (error) {
-            console.error('이미지 업로드 실패:', error);
-            new NoticeBox(
-                '이미지 업로드 중 오류가 발생했습니다.',
-                'error'
-            ).show();
+            console.error(error);
+            new NoticeBox('이미지 업로드에 실패했습니다.', 'error').show();
         }
-
-        event.target.value = '';
     }
 
     async handleImageDelete() {
-        if (!this.currentUser.profileImage) {
-            new NoticeBox('삭제할 프로필 이미지가 없습니다.', 'warning').show();
-            return;
-        }
-
         try {
-            const response = await apiClient.delete(
-                '/api/v1/users/delete-profile'
-            );
-
-            if (!response) return;
-
-            if (response.ok) {
-                const result = await response.json();
-                this.currentUser.profileImage = null;
-                this.updateProfileImage();
-                new NoticeBox(
-                    result.message || '프로필 이미지가 삭제되었습니다.',
-                    'success'
-                ).show();
-            } else {
-                const error = await response.json();
-                new NoticeBox(
-                    error.message || '이미지 삭제에 실패했습니다.',
-                    'error'
-                ).show();
-            }
+            await apiClient.delete('/api/v1/users/delete-profile');
+            this.userData.profileImage = null;
+            this.updateProfileImage();
+            new NoticeBox('프로필 이미지가 삭제되었습니다.', 'success').show();
         } catch (error) {
-            console.error('이미지 삭제 실패:', error);
-            new NoticeBox(
-                '이미지 삭제 중 오류가 발생했습니다.',
-                'error'
-            ).show();
+            console.error(error);
+            new NoticeBox('이미지 삭제에 실패했습니다.', 'error').show();
         }
     }
 
     async handleSave() {
-        if (!this.hasChanges) {
-            new NoticeBox('변경된 내용이 없습니다.', 'warning').show();
-            return;
-        }
-
-        const nickname = document.getElementById('username-input').value.trim();
-        const description = document
-            .getElementById('description-input')
-            .value.trim();
-
-        if (!nickname) {
-            new NoticeBox('닉네임을 입력해주세요.', 'error').show();
-            document.getElementById('username-input').focus();
-            return;
-        }
-
-        if (nickname.length < 2 || nickname.length > 20) {
-            new NoticeBox(
-                '닉네임은 2자 이상 20자 이하로 입력해주세요.',
-                'error'
-            ).show();
-            document.getElementById('username-input').focus();
-            return;
-        }
-
-        if (description.length > 500) {
-            new NoticeBox(
-                '자기소개는 500자 이하로 입력해주세요.',
-                'error'
-            ).show();
-            document.getElementById('description-input').focus();
-            return;
-        }
-
-        const saveButton = document.getElementById('save-button');
-        saveButton.disabled = true;
-        saveButton.innerHTML =
-            '<span class="material-symbols-outlined">hourglass_empty</span>저장 중...';
+        const payload = {
+            nickname: this.usernameInput.value,
+            description: this.descriptionInput.value
+        };
 
         try {
-            const response = await apiClient.put('/api/v1/users/update', {
-                nickname: nickname,
-                description: description
-            });
-
-            if (!response) return;
-
-            if (response.ok) {
-                const updatedUser = await response.json();
-                this.currentUser = { ...this.currentUser, ...updatedUser };
-                this.hasChanges = false;
-
-                new NoticeBox(
-                    '프로필이 성공적으로 업데이트되었습니다.',
-                    'success'
-                ).show();
-
-                setTimeout(() => {
-                    window.location.href = '/mypage';
-                }, 1000);
-            } else {
-                const error = await response.json();
-                throw new Error(error.message || '프로필 업데이트 실패');
-            }
+            const result = await apiClient.put('/api/v1/users/update', payload);
+            this.userData.nickname = result.nickname;
+            this.userData.description = result.description;
+            this.hasChanges = false;
+            this.saveButton.disabled = true;
+            new NoticeBox(
+                '프로필이 성공적으로 업데이트되었습니다.',
+                'success'
+            ).show();
         } catch (error) {
-            console.error('프로필 업데이트 실패:', error);
+            console.error(error);
             new NoticeBox('프로필 업데이트에 실패했습니다.', 'error').show();
-        } finally {
-            saveButton.disabled = false;
-            saveButton.innerHTML =
-                '<span class="material-symbols-outlined">save</span>저장';
-            this.updateSaveButton();
         }
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    new EditProfile();
+    initializeComponents();
+    loadSavedTheme();
+    new EditProfilePage();
 });

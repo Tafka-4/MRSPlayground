@@ -1,10 +1,8 @@
 import apiClient from '/module/api.js';
 import NoticeBox from '/module/notice.js';
-import { createButton, createAdminButton } from '/component/buttons/index.js';
-import {
-    createModal,
-    createConfirmCancelModal
-} from '/component/modals/index.js';
+import { initializeComponents, loadSavedTheme } from '/component/index.js';
+import { createButton, createDeleteButton } from '/component/buttons/index.js';
+import { createConfirmCancelModal } from '/component/modals/index.js';
 import {
     createRoleBadge,
     createVerificationBadge
@@ -66,7 +64,9 @@ function renderBadges() {
     const verificationBadge = createVerificationBadge(
         currentUser.isVerified,
         () => {
-            window.location.href = '/verify-internal-member';
+            if (!currentUser.isVerified) {
+                window.location.href = '/verify-internal-member';
+            }
         }
     );
     usernameContainer.appendChild(verificationBadge);
@@ -83,50 +83,11 @@ function updateProfileImage() {
     }
 }
 
-function updateVerificationStatus() {
-    const usernameContainer = document.getElementById('username-container');
-    if (!usernameContainer) return;
-
-    const existingBadges = usernameContainer.querySelectorAll(
-        '.verified-badge, .unverified-badge'
-    );
-    existingBadges.forEach((badge) => badge.remove());
-
-    let statusBadge;
-    if (currentUser && currentUser.isVerified) {
-        statusBadge = document.createElement('span');
-        statusBadge.className = 'verified-badge';
-        statusBadge.innerHTML = `<span class="material-symbols-outlined">verified</span>`;
-        usernameContainer.classList.remove('clickable');
-        usernameContainer.title = '인증된 사용자입니다.';
-    } else {
-        statusBadge = document.createElement('div');
-        statusBadge.className = 'unverified-badge-container';
-        statusBadge.innerHTML = `<span class="unverified-badge"><span class="material-symbols-outlined">unpublished</span></span>
-                                           <div class="unverified-tooltip">미인증 사용자입니다. 내부 구성원이라면 인증을 진행해주세요.</div>`;
-
-        usernameContainer.classList.add('clickable');
-        usernameContainer.title = '내부 사용자 인증하기';
-        usernameContainer.addEventListener(
-            'click',
-            () => {
-                window.location.href = '/verify-internal-member';
-            },
-            { once: true }
-        );
-    }
-    usernameContainer.appendChild(statusBadge);
-}
-
 function renderComponents() {
     const imageActionsContainer = document.querySelector(
         '.profile-image-actions'
     );
     if (imageActionsContainer) {
-        imageActionsContainer
-            .querySelectorAll('button')
-            .forEach((btn) => btn.remove());
-
         const uploadBtn = createButton({
             id: 'image-upload-button',
             text: '이미지 업로드',
@@ -145,7 +106,7 @@ function renderComponents() {
             icon: 'delete',
             size: 'sm',
             variant: 'danger',
-            className: 'image-delete-button always-light',
+            className: 'image-delete-button',
             onClick: showImageDeleteModal
         });
         imageActionsContainer.append(uploadBtn, deleteBtn);
@@ -157,28 +118,18 @@ function renderComponents() {
     if (buttonsContainer) {
         buttonsContainer.innerHTML = '';
         const editProfileBtn = createButton({
-            id: 'edit-profile-button',
             text: '프로필 수정',
             variant: 'primary',
-            size: 'md',
             onClick: () => (window.location.href = '/mypage/edit')
         });
         const editPasswordBtn = createButton({
-            id: 'edit-password-button',
             text: '비밀번호 변경',
-            className: 'password-button',
-            size: 'md',
             onClick: () => (window.location.href = '/mypage/edit/password')
         });
-        const deleteAccountBtn = createButton({
-            id: 'delete-account-button',
+        const deleteAccountBtn = createDeleteButton({
             text: '회원 탈퇴',
-            variant: 'danger',
-            size: 'md',
-            className: 'always-light',
             onClick: showAccountDeleteModal
         });
-
         buttonsContainer.append(
             editProfileBtn,
             editPasswordBtn,
@@ -192,7 +143,6 @@ function renderComponents() {
             text: '관리자 페이지',
             variant: 'warning',
             icon: 'admin_panel_settings',
-            className: 'always-light',
             onClick: () => (window.location.href = '/admin')
         });
         adminBtnContainer.appendChild(adminBtn);
@@ -230,6 +180,12 @@ function setupEventListeners() {
     document
         .getElementById('profile-image-input')
         .addEventListener('change', handleImageUpload);
+
+    const observer = new MutationObserver(updateUidColor);
+    observer.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
 }
 
 async function handleImageUpload(event) {
@@ -255,92 +211,75 @@ async function handleImageUpload(event) {
     try {
         const response = await apiClient.post(
             '/api/v1/users/upload-profile',
-            formData
+            formData,
+            {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            }
         );
-        if (response && response.ok) {
-            const result = await response.json();
-            currentUser.profileImage = result.profileImage;
-            updateProfileImage();
-            new NoticeBox(
-                '프로필 이미지가 업데이트되었습니다.',
-                'success'
-            ).show();
-        } else {
-            throw new Error('이미지 업로드에 실패했습니다.');
-        }
+        const result = await response.json();
+        currentUser.profileImage = result.profileImage;
+        updateProfileImage();
+        new NoticeBox('프로필 이미지가 성공적으로 변경되었습니다.').show();
     } catch (error) {
-        console.error('Image upload failed:', error);
-        new NoticeBox('이미지 업로드 중 오류가 발생했습니다.', 'error').show();
+        console.error('이미지 업로드 실패:', error);
+        new NoticeBox(
+            '이미지 업로드에 실패했습니다. 다시 시도해주세요.',
+            'error'
+        ).show();
     }
 }
 
 async function handleImageDeleteApiCall() {
     try {
-        const response = await apiClient.delete('/api/v1/users/delete-profile');
-        if (response && response.ok) {
-            currentUser.profileImage = null;
-            updateProfileImage();
-            new NoticeBox('프로필 이미지가 삭제되었습니다.', 'success').show();
-        } else {
-            throw new Error('이미지 삭제에 실패했습니다.');
-        }
+        await apiClient.delete('/api/v1/users/delete-profile');
+        new NoticeBox('프로필 이미지가 삭제되었습니다.').show();
+
+        currentUser.profileImage = null;
+        updateProfileImage();
     } catch (error) {
-        console.error('Image delete failed:', error);
-        new NoticeBox('이미지 삭제 중 오류가 발생했습니다.', 'error').show();
+        console.error('프로필 이미지 삭제 실패:', error);
+        new NoticeBox(
+            '이미지 삭제에 실패했습니다. 다시 시도해주세요.',
+            'error'
+        ).show();
     }
 }
 
 async function handleAccountDelete() {
     try {
-        const response = await apiClient.delete('/api/v1/users/delete');
-        if (response && response.ok) {
-            const result = await response.json();
-            localStorage.removeItem('accessToken');
-            new NoticeBox(
-                result.message || '계정이 삭제되었습니다.',
-                'success'
-            ).show();
-            setTimeout(() => {
-                window.location.href = '/login';
-            }, 1500);
-        } else {
-            new NoticeBox('계정 삭제에 실패했습니다.', 'error').show();
-        }
+        await apiClient.delete('/api/v1/users/delete');
+        new NoticeBox('회원 탈퇴가 완료되었습니다.').show();
+        window.location.href = '/login';
     } catch (error) {
-        new NoticeBox('계정 삭제 중 오류가 발생했습니다.', 'error').show();
+        console.error('회원 탈퇴 처리 실패:', error);
+        new NoticeBox(
+            '회원 탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.',
+            'error'
+        ).show();
     }
 }
 
-document.addEventListener('userLoaded', (e) => {
-    const user = e.detail.user;
-    if (user) {
-        displayUserData(user);
-        renderComponents();
-        setupEventListeners();
-
-        const observer = new MutationObserver(updateUidColor);
-        observer.observe(document.documentElement, {
-            attributes: true,
-            attributeFilter: ['data-theme']
-        });
-    }
-});
-
-setTimeout(() => {
-    if (!currentUser) {
-        const mainContainer = document.querySelector('.container');
-        if (mainContainer) {
-            mainContainer.innerHTML =
-                '<h1>로그인 필요</h1><p>마이페이지를 이용하시려면 <a href="/login">로그인</a>이 필요합니다.</p>';
-
-            const isDarkMode =
-                document.documentElement.getAttribute('data-theme') === 'dark';
-            if (isDarkMode) {
-                mainContainer.querySelector('h1').style.color =
-                    'var(--text-primary)';
-                mainContainer.querySelector('p').style.color =
-                    'var(--text-secondary)';
-            }
+async function initializePage() {
+    initializeComponents();
+    loadSavedTheme();
+    try {
+        const response = await apiClient.get('/api/v1/auth/me');
+        const result = await response.json();
+        if (result.success) {
+            displayUserData(result.user);
+            renderComponents();
+            setupEventListeners();
+        } else {
+            throw new Error(result.message || 'Failed to fetch user data');
         }
+    } catch (error) {
+        console.error('사용자 정보 로딩 실패:', error);
+        new NoticeBox(
+            '사용자 정보를 불러오는 데 실패했습니다. 다시 로그인해주세요.',
+            'error'
+        ).show();
+        setTimeout(() => (window.location.href = '/login'), 2000);
     }
-}, 1000);
+}
+
+document.addEventListener('DOMContentLoaded', initializePage);

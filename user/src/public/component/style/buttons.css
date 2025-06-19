@@ -16,6 +16,16 @@
     min-width: 0;
 }
 
+.btn:hover {
+    transition: filter 0.2s ease-in-out;
+    filter: brightness(0.95) !important;
+}
+
+[data-theme='dark'] .btn:hover {
+    transition: filter 0.2s ease-in-out;
+    filter: brightness(1.05) !important;
+}
+
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -31,18 +41,10 @@
     width: 100%;
 }
 
-.btn-primary:hover:not(:disabled) {
-    background-color: rgb(50, 50, 50);
-}
-
 .btn-secondary {
     background-color: rgb(230, 230, 230);
     color: var(--primary-color);
     border: 1px solid var(--border-color);
-}
-
-.btn-secondary:hover:not(:disabled) {
-    background-color: rgb(220, 220, 220);
 }
 
 .btn-error,
@@ -51,27 +53,14 @@
     color: white;
 }
 
-.btn-error:hover:not(:disabled),
-.btn-danger:hover:not(:disabled) {
-    background-color: #e66b6b;
-}
-
 .btn-warning {
     background-color: var(--warning-color);
     color: white;
 }
 
-.btn-warning:hover:not(:disabled) {
-    background-color: #d4a853;
-}
-
 .btn-success {
     background-color: var(--success-color, #28a745);
     color: white;
-}
-
-.btn-success:hover:not(:disabled) {
-    background-color: #218838;
 }
 
 /* Button Sizes */
@@ -102,20 +91,10 @@
     border: 1px solid var(--primary-color);
 }
 
-.btn-outline-primary:hover:not(:disabled) {
-    background-color: var(--primary-color);
-    color: white;
-}
-
 .btn-outline-secondary {
     background-color: transparent;
     color: var(--secondary-color);
     border: 1px solid var(--border-color);
-}
-
-.btn-outline-secondary:hover:not(:disabled) {
-    background-color: rgb(230, 230, 230);
-    color: var(--primary-color);
 }
 
 .btn-outline-danger {
@@ -124,31 +103,16 @@
     border: 1px solid var(--error-color);
 }
 
-.btn-outline-danger:hover:not(:disabled) {
-    background-color: var(--error-color);
-    color: white;
-}
-
 .btn-outline-success {
     background-color: transparent;
     color: var(--success-color, #28a745);
     border: 1px solid var(--success-color, #28a745);
 }
 
-.btn-outline-success:hover:not(:disabled) {
-    background-color: var(--success-color, #28a745);
-    color: white;
-}
-
 .btn-outline-warning {
     background-color: transparent;
     color: var(--warning-color);
     border: 1px solid var(--warning-color);
-}
-
-.btn-outline-warning:hover:not(:disabled) {
-    background-color: var(--warning-color);
-    color: white;
 }
 
 /* Button Groups */
@@ -177,10 +141,6 @@
     justify-content: center;
 }
 
-.admin-button:hover {
-    background-color: #d39e00;
-}
-
 .logout-button {
     display: flex;
     align-items: center;
@@ -197,10 +157,6 @@
     max-width: 200px;
     height: 40px;
     justify-content: center;
-}
-
-.logout-button:hover {
-    background-color: #e66b6b;
 }
 
 .back-button {
@@ -222,10 +178,6 @@
     justify-content: center;
 }
 
-.back-button:hover {
-    background-color: rgb(220, 220, 220);
-}
-
 .nav-button {
     display: flex;
     align-items: center;
@@ -245,16 +197,8 @@
     text-align: center;
 }
 
-.nav-button:hover {
-    background-color: rgb(50, 50, 50);
-}
-
 .nav-button.secondary {
     background-color: var(--secondary-color);
-}
-
-.nav-button.secondary:hover {
-    background-color: rgb(80, 80, 80);
 }
 
 .refresh-button {
@@ -275,10 +219,6 @@
     justify-content: center;
 }
 
-.refresh-button:hover {
-    background-color: rgb(80, 80, 80);
-}
-
 .search-button {
     display: flex;
     align-items: center;
@@ -295,10 +235,6 @@
     max-width: 200px;
     height: 40px;
     justify-content: center;
-}
-
-.search-button:hover {
-    background-color: rgb(50, 50, 50);
 }
 
 .cancel-button,
@@ -318,17 +254,9 @@
     color: rgb(100, 100, 100);
 }
 
-.cancel-button:hover {
-    background-color: rgb(220, 220, 220);
-}
-
 .confirm-delete-button {
     background-color: #f47c7c;
     color: white;
-}
-
-.confirm-delete-button:hover {
-    background-color: #e66b6b;
 }
 
 /* Dark Theme Button Styles */
@@ -339,23 +267,10 @@
     border: 1px solid var(--border-color);
 }
 
-[data-theme='dark'] .cancel-button:hover,
-[data-theme='dark'] .btn-secondary:hover {
-    background-color: rgb(80, 80, 80);
-    color: var(--text-primary);
-    border-color: var(--text-secondary);
-}
-
 [data-theme='dark'] .btn-primary {
     background-color: rgb(220, 220, 220);
     color: rgb(20, 20, 20);
     border: 1px solid rgb(200, 200, 200);
-}
-
-[data-theme='dark'] .btn-primary:hover {
-    background-color: rgb(240, 240, 240);
-    color: rgb(20, 20, 20);
-    border-color: rgb(240, 240, 240);
 }
 
 [data-theme='dark'] .btn-outline-primary {
@@ -364,82 +279,12 @@
     border: 1px solid rgb(220, 220, 220);
 }
 
-[data-theme='dark'] .btn-outline-primary:hover {
-    background-color: rgb(220, 220, 220);
-    color: rgb(20, 20, 20);
-    border-color: rgb(220, 220, 220);
-}
-
-[data-theme='dark'] .btn-outline-secondary:hover {
-    background-color: rgb(60, 60, 60);
-    color: var(--text-primary);
-    border-color: var(--text-secondary);
-}
-
-[data-theme='dark'] .btn-danger {
-    background-color: #a73c3c;
-}
-
-[data-theme='dark'] .btn-danger:hover:not(:disabled) {
-    background-color: #8b3030;
-}
-
-[data-theme='dark'] .btn-warning {
-    background-color: #b58a3f;
-}
-
-[data-theme='dark'] .btn-warning:hover:not(:disabled) {
-    background-color: #9c7536;
-}
-
-[data-theme='dark'] .btn-outline-success {
-    background-color: transparent;
-    color: #28a745;
-    border: 1px solid #28a745;
-}
-
-/* Dark mode adjustments */
-[data-theme='dark'] .btn {
-    filter: brightness(0.8);
-}
-
-[data-theme='dark'] .btn.always-light {
-    filter: none;
-}
-
 [data-theme='dark'] .btn-primary {
-    background-color: var(--primary-color);
-    color: var(--background-color);
-}
-
-[data-theme='dark'] .btn-secondary {
-    background-color: var(--warning-color);
+    background-color: rgb(60, 60, 60);
     color: white;
 }
 
 [data-theme='dark'] .btn-danger {
     background-color: var(--error-color);
-    color: white;
-}
-
-/* Specific overrides for always-light buttons in dark mode */
-[data-theme='dark'] .btn-primary.always-light {
-    background-color: rgb(10, 10, 10);
-    color: white;
-}
-
-[data-theme='dark'] .btn-secondary.always-light {
-    background-color: rgb(240, 240, 240);
-    color: rgb(10, 10, 10);
-    border: 1px solid rgb(220, 220, 220);
-}
-
-[data-theme='dark'] .btn-warning.always-light {
-    background-color: #eea73c; /* --warning-color light theme */
-    color: white;
-}
-
-[data-theme='dark'] .btn-danger.always-light {
-    background-color: #f47c7c; /* --error-color light theme */
     color: white;
 }

@@ -102,7 +102,7 @@
 }
 
 .modal-body .warning {
-    color: #f47c7c;
+    color: #f47c7c !important;
     font-weight: 500;
     margin-bottom: 0;
 }
@@ -129,22 +129,22 @@
 }
 
 /* Dark Theme Modal Styles */
-[data-theme="dark"] .modal-title {
+[data-theme='dark'] .modal-title {
     color: var(--text-primary);
 }
 
-[data-theme="dark"] .modal-body p {
+[data-theme='dark'] .modal-body p {
     color: var(--text-primary);
 }
 
-[data-theme="dark"] .modal-header {
+[data-theme='dark'] .modal-header {
     border-bottom: 1px solid var(--border-color);
 }
 
-[data-theme="dark"] .modal-footer {
+[data-theme='dark'] .modal-footer {
     border-top: 1px solid var(--border-color);
 }
 
-[data-theme="dark"] .modal-close:hover {
+[data-theme='dark'] .modal-close:hover {
     background-color: rgb(60, 60, 60);
-} 
+}

@@ -5,15 +5,7 @@
  * @module components/index
  */
 
-export * from './buttons/index.js';
-export * from './badges/index.js';
-export * from './cards/index.js';
-export * from './headers/index.js';
-export * from './tables/index.js';
-export * from './modals/index.js';
-
-// Buttons
-export {
+import {
     createButton,
     createDarkModeToggleButton,
     createPasswordToggleButton,
@@ -28,16 +20,14 @@ export {
     createButtonGroup
 } from './buttons/index.js';
 
-// Badges
-export {
+import {
     createBadge,
     createVerificationBadge,
     createRoleBadge,
     createStatusBadge
 } from './badges/index.js';
 
-// Cards
-export {
+import {
     createCard,
     createUserProfileCard,
     createStatsCard,
@@ -46,18 +36,14 @@ export {
     createCardGrid
 } from './cards/index.js';
 
-// Headers
-export {
-    createPageHeader,
-    createBreadcrumb,
-    createNavbar,
-    createUserMenu,
-    createSearchBar,
-    createNotificationHeader
-} from './headers/index.js';
+import {
+    createTable,
+    createUserTable,
+    createLogTable,
+    createPagination
+} from './tables/index.js';
 
-// Modals
-export {
+import {
     createModal,
     createConfirmModal,
     createConfirmCancelModal,
@@ -70,20 +56,14 @@ export {
     showWarning
 } from './modals/index.js';
 
-// Tables
-export {
-    createTable,
-    createUserTable,
-    createLogTable,
-    createPagination
-} from './tables/index.js';
+import { createInput } from './input/index.js';
 
 /**
  * 컴포넌트 라이브러리의 필수 초기화를 수행합니다.
  * CSS 변수(테마 색상, 폰트 등)를 설정하고, 필요한 외부 폰트(Material Symbols, ONE Mobile POP)를 동적으로 로드합니다.
  * 페이지 로드 시 자동으로 호출됩니다.
  */
-export function initializeComponents() {
+function initializeComponents() {
     const root = document.documentElement;
 
     if (!getComputedStyle(root).getPropertyValue('--primary-color')) {
@@ -108,15 +88,32 @@ export function initializeComponents() {
         document.head.appendChild(link);
     }
 
-    if (!document.querySelector('link[href*="ONE-Mobile-POP"]')) {
+    if (!document.getElementById('one-mobile-pop-font-style')) {
+        const style = document.createElement('style');
+        style.id = 'one-mobile-pop-font-style';
+        style.textContent = `
+            @font-face {
+                font-family: 'ONE-Mobile-POP';
+                src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff')
+                    format('woff');
+                font-weight: normal;
+                font-style: normal;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    if (!document.getElementById('component-input-style')) {
         const link = document.createElement('link');
+        link.id = 'component-input-style';
         link.rel = 'stylesheet';
-        link.href =
-            'https://fonts.googleapis.com/css2?family=ONE+Mobile+POP:wght@400;500;600;700&display=swap';
+        link.href = '/component/style/input.css';
         document.head.appendChild(link);
     }
 
     console.log('✅ Component library initialized');
+
+    setupGlobalComponents();
 }
 
 /**
@@ -125,26 +122,12 @@ export function initializeComponents() {
  *
  * @param {boolean|null} [isDark=null] - `true`이면 다크 모드, `false`이면 라이트 모드로 설정합니다. `null`이면 현재 상태를 반전시킵니다.
  */
-export function toggleDarkMode(isDark = null) {
-    if (isDark === null) {
-        isDark =
-            !document.documentElement.hasAttribute('data-theme') ||
-            document.documentElement.getAttribute('data-theme') !== 'dark';
-    }
-
-    if (isDark) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('theme', 'dark');
-    } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        localStorage.setItem('theme', 'light');
-    }
-
-    window.dispatchEvent(
-        new CustomEvent('themeChanged', {
-            detail: { theme: isDark ? 'dark' : 'light' }
-        })
-    );
+function toggleTheme() {
+    const currentTheme =
+        document.documentElement.getAttribute('data-theme') || 'light';
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
 }
 
 /**
@@ -152,21 +135,18 @@ export function toggleDarkMode(isDark = null) {
  * 저장된 설정이 없으면 사용자의 시스템 설정을 따릅니다.
  * 페이지 로드 시 자동으로 호출됩니다.
  */
-export function loadSavedTheme() {
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia(
-        '(prefers-color-scheme: dark)'
-    ).matches;
-    const isDark = savedTheme ? savedTheme === 'dark' : prefersDark;
-
-    toggleDarkMode(isDark);
+function loadSavedTheme() {
+    const theme = localStorage.getItem('theme');
+    if (theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+    }
 }
 
 /**
  * 현재 적용된 테마를 반환합니다.
  * @returns {string} 현재 테마 이름 ('dark' 또는 'light').
  */
-export function getCurrentTheme() {
+function getCurrentTheme() {
     return document.documentElement.getAttribute('data-theme') || 'light';
 }
 
@@ -174,7 +154,7 @@ export function getCurrentTheme() {
  * CSS 변수를 동적으로 설정하여 라이브러리의 테마를 커스터마이징합니다.
  * @param {object} theme - CSS 변수 이름(키)과 값으로 이루어진 객체. (e.g., `{ 'primary-color': 'blue' }`)
  */
-export function setTheme(theme = {}) {
+function setTheme(theme = {}) {
     const root = document.documentElement;
     Object.entries(theme).forEach(([key, value]) => {
         root.style.setProperty(`--${key}`, value);
@@ -189,13 +169,18 @@ export function setTheme(theme = {}) {
 function setupGlobalComponents() {
     window.Components = {
         initializeComponents,
-        toggleDarkMode,
+        toggleTheme,
         loadSavedTheme,
         getCurrentTheme,
         setTheme
     };
 
     console.log('✅ Global Components object initialized');
+
+    const themeToggleButton = document.querySelector('#theme-toggle');
+    if (themeToggleButton) {
+        themeToggleButton.addEventListener('click', toggleTheme);
+    }
 }
 
 // 자동 초기화 로직
@@ -203,10 +188,60 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initializeComponents();
         loadSavedTheme();
-        setupGlobalComponents();
     });
 } else {
     initializeComponents();
     loadSavedTheme();
-    setupGlobalComponents();
 }
+
+export {
+    // General
+    initializeComponents,
+    loadSavedTheme,
+    getCurrentTheme,
+    setTheme,
+    toggleTheme,
+    // Buttons
+    createButton,
+    createDarkModeToggleButton,
+    createPasswordToggleButton,
+    createLogoutButton,
+    createAdminButton,
+    createEditButton,
+    createDeleteButton,
+    createSaveButton,
+    createCancelButton,
+    createConfirmButton,
+    createLoadingButton,
+    createButtonGroup,
+    // Badges
+    createBadge,
+    createVerificationBadge,
+    createRoleBadge,
+    createStatusBadge,
+    // Cards
+    createCard,
+    createUserProfileCard,
+    createStatsCard,
+    createNotificationCard,
+    createEmptyStateCard,
+    createCardGrid,
+    // Tables
+    createTable,
+    createUserTable,
+    createLogTable,
+    createPagination,
+    // Modals
+    createModal,
+    createConfirmModal,
+    createConfirmCancelModal,
+    createFormModal,
+    createLoadingModal,
+    createImageModal,
+    showModal,
+    showSuccess,
+    showError,
+    showWarning,
+    // Input
+    createInput
+};

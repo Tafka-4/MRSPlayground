@@ -27,21 +27,8 @@
     border-bottom-color: rgba(var(--border-color-rgb), 0.5);
 }
 
-body.has-header .main-content {
-    padding-top: 64px;
-}
-
 .has-header {
     padding-top: 64px !important;
-}
-
-.has-header.page-centered,
-.has-header.page-scrollable {
-    padding: 64px 20px 20px 20px !important;
-}
-
-.has-header .page-wrapper {
-    padding-top: 0;
 }
 
 .header-container {

@@ -1,0 +1,68 @@
+.input-group {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.input-group label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius, 0.375rem);
+    color: var(--text-primary);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-color-light);
+}
+
+.input-group .icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.input-group input.has-icon {
+    padding-left: 3rem;
+}
+
+.input-group .validation-message {
+    font-size: 0.8rem;
+    color: var(--error-color);
+    margin-top: 0.25rem;
+    display: none;
+}
+
+.input-group.invalid .validation-message {
+    display: block;
+}
+
+.input-group.invalid input {
+    border-color: var(--error-color);
+    background-color: var(--error-background);
+}
+
+.input-group.invalid input:focus {
+    box-shadow: 0 0 0 3px var(--error-shadow);
+}

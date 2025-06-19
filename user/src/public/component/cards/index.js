@@ -4,6 +4,9 @@
  * @module components/cards
  */
 
+import { createRoleBadge, createVerificationBadge } from '../badges/index.js';
+import { createButton } from '../buttons/index.js';
+
 /**
  * 모든 카드의 기반이 되는 기본 카드 엘리먼트를 생성합니다.
  *
@@ -90,17 +93,28 @@ export function createCard(options = {}) {
  * @param {string} [userInfo.username='사용자'] - 사용자 이름.
  * @param {string} [userInfo.email=''] - 이메일 주소.
  * @param {string|null} [userInfo.profileImage=null] - 프로필 이미지 URL.
+ * @param {string} [userInfo.description=''] - 사용자 소개.
+ * @param {string|null} [userInfo.userid=null] - 사용자 UID.
  * @param {boolean} [userInfo.isVerified=false] - 이메일 인증 여부.
  * @param {string} [userInfo.role='user'] - 사용자 역할.
  * @param {string|Date|null} [userInfo.joinDate=null] - 가입일.
  * @param {HTMLElement[]} [actions=[]] - 카드 하단에 추가될 액션 버튼 배열.
+ * @param {object|null} [imageActions=null] - 프로필 이미지 액션.
+ * @param {Function|null} [imageActions.onUploadClick=null] - 이미지 업로드 버튼 클릭 시 콜백.
+ * @param {Function|null} [imageActions.onDeleteClick=null] - 이미지 삭제 버튼 클릭 시 콜백.
  * @returns {HTMLDivElement} 생성된 사용자 프로필 카드 엘리먼트.
  */
-export function createUserProfileCard(userInfo = {}, actions = []) {
+export function createUserProfileCard(
+    userInfo = {},
+    actions = [],
+    imageActions = null
+) {
     const {
         username = '사용자',
         email = '',
         profileImage = null,
+        description = '',
+        userid = null,
         isVerified = false,
         role = 'user',
         joinDate = null
@@ -129,6 +143,39 @@ export function createUserProfileCard(userInfo = {}, actions = []) {
     }
 
     imageContainer.appendChild(profileImg);
+
+    if (
+        imageActions &&
+        (imageActions.onUploadClick || imageActions.onDeleteClick)
+    ) {
+        const imageActionsContainer = document.createElement('div');
+        imageActionsContainer.className = 'profile-image-actions';
+
+        if (imageActions.onUploadClick) {
+            const uploadBtn = createButton({
+                text: '업로드',
+                icon: 'upload',
+                size: 'sm',
+                variant: 'primary',
+                onClick: imageActions.onUploadClick
+            });
+            imageActionsContainer.appendChild(uploadBtn);
+        }
+
+        if (imageActions.onDeleteClick) {
+            const deleteBtn = createButton({
+                text: '삭제',
+                icon: 'delete',
+                size: 'sm',
+                variant: 'danger',
+                className: 'always-light',
+                onClick: imageActions.onDeleteClick
+            });
+            imageActionsContainer.appendChild(deleteBtn);
+        }
+        imageContainer.appendChild(imageActionsContainer);
+    }
+
     profileSection.appendChild(imageContainer);
 
     // 사용자 정보 영역
@@ -144,18 +191,18 @@ export function createUserProfileCard(userInfo = {}, actions = []) {
     usernameElement.textContent = username;
     usernameContainer.appendChild(usernameElement);
 
-    // 인증 뱃지 추가 (badges 컴포넌트 사용)
-    if (typeof createVerificationBadge !== 'undefined') {
-        const verificationBadge = createVerificationBadge(isVerified);
-        usernameContainer.appendChild(verificationBadge);
-    }
+    const badgesContainer = document.createElement('div');
+    badgesContainer.className = 'badges-container';
+
+    // 인증 뱃지 추가
+    const verificationBadge = createVerificationBadge(isVerified);
+    badgesContainer.appendChild(verificationBadge);
 
     // 역할 뱃지 추가
-    if (typeof createRoleBadge !== 'undefined') {
-        const roleBadge = createRoleBadge(role);
-        usernameContainer.appendChild(roleBadge);
-    }
+    const roleBadge = createRoleBadge(role);
+    badgesContainer.appendChild(roleBadge);
 
+    usernameContainer.appendChild(badgesContainer);
     infoSection.appendChild(usernameContainer);
 
     // 이메일 정보
@@ -166,6 +213,14 @@ export function createUserProfileCard(userInfo = {}, actions = []) {
         infoSection.appendChild(emailElement);
     }
 
+    // 소개 정보
+    if (description) {
+        const descriptionElement = document.createElement('p');
+        descriptionElement.className = 'user-description';
+        descriptionElement.textContent = description;
+        infoSection.appendChild(descriptionElement);
+    }
+
     // 가입일 정보
     if (joinDate) {
         const joinDateElement = document.createElement('p');
@@ -174,6 +229,14 @@ export function createUserProfileCard(userInfo = {}, actions = []) {
             joinDate
         ).toLocaleDateString('ko-KR')}`;
         infoSection.appendChild(joinDateElement);
+    }
+
+    // UID 정보
+    if (userid) {
+        const uidElement = document.createElement('p');
+        uidElement.className = 'user-uid';
+        uidElement.innerHTML = `<span>UID:</span> ${userid}`;
+        infoSection.appendChild(uidElement);
     }
 
     profileSection.appendChild(infoSection);
