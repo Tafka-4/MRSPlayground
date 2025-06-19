@@ -1,6 +1,6 @@
-import escape from './module/escape.js';
-import apiClient from './module/api.js';
-import NoticeBox from './module/notice.js';
+import escape from '../module/escape.js';
+import apiClient from '../module/api.js';
+import NoticeBox from '../module/notice.js';
 
 const pathParts = window.location.pathname.split('/');
 const targetUserId = pathParts[pathParts.length - 1];

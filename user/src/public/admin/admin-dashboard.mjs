@@ -1,8 +1,8 @@
-import escape from './module/escape.js';
-import apiClient from './module/api.js';
-import logApi from './module/logApi.js';
-import NoticeBox from './module/notice.js';
-import WebSocketClient from './module/websocket.js';
+import escape from '../module/escape.js';
+import apiClient from '../module/api.js';
+import logApi from '../module/logApi.js';
+import NoticeBox from '../module/notice.js';
+import WebSocketClient from '../module/websocket.js';
 
 let logMonitoringInterval = null;
 let isLogMonitoringActive = false;

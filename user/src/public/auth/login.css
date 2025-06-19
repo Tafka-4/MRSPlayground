@@ -1,0 +1,175 @@
+@font-face {
+    font-family: "ONE-Mobile-POP";
+    src: url("https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff")
+        format("woff");
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    font-family: "ONE-Mobile-POP";
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: rgb(240, 240, 240);
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 250px;
+}
+
+.title {
+    display: flex;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    color: rgb(10, 10, 10);
+    font-size: 2.5rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+#visibility-off {
+    display: none;
+}
+
+.login-form .login-button {
+    width: 100%;
+    max-width: 250px;
+    height: 2.15rem;
+}
+
+.login-form .btn.login-button {
+    display: flex !important;
+    width: 100% !important;
+    max-width: 250px !important;
+}
+
+.login-form .util-container {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: start !important;
+    width: 100% !important;
+    max-width: 250px !important;
+}
+
+.login-form .util-container input[type="checkbox"] {
+    display: none !important;
+}
+
+.login-form .util-container input[type="checkbox"] + label {
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.login-form .util-container input[type="checkbox"] + label > span {
+    display: inline-block !important;
+    margin-left: 0.25rem !important;
+}
+
+.login-form .util-container input[type="checkbox"] + label:before {
+    content: "" !important;
+    display: inline-block !important;
+    width: 0.85rem !important;
+    height: 0.85rem !important;
+    margin-right: 0.25rem !important;
+    border: 2px solid #f47c7c !important;
+    border-radius: 0.2rem !important;
+    vertical-align: top !important;
+    flex-shrink: 0 !important;
+}
+
+.login-form .util-container input[type="checkbox"]:checked + label:before {
+    content: "✓" !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    color: rgb(255, 255, 255) !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    background-color: #f47c7c !important;
+    border-color: #f47c7c !important;
+}
+
+.util-container .remember-me-container {
+    display: flex;
+    box-sizing: border-box;
+    align-items: center;
+    margin-right: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: rgb(100, 100, 100);
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+.util-container .find-password-container {
+    box-sizing: border-box;
+    color: rgb(100, 100, 100);
+    font-size: 0.85rem;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.util-container .find-password-container .find-password {
+    color: rgb(100, 100, 100);
+    font-size: 0.85rem;
+    font-weight: 400;
+    text-decoration: none;
+}
+
+.util-container .find-password:hover {
+    color: rgb(10, 10, 10);
+    font-weight: 500;
+}
+
+.register-container {
+    box-sizing: border-box;
+    margin-top: 0.5rem;
+    width: 100%;
+    max-width: 250px;
+    text-align: center;
+    color: rgb(100, 100, 100);
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+.register-container a {
+    text-decoration: none;
+    color: rgb(10, 10, 10);
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding-left: 0.25rem;
+}
+
+.register-container .register-link {
+    box-sizing: border-box;
+    color: rgb(10, 10, 10);
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.divider {
+    width: 100%;
+    max-width: 250px;
+    border: none;
+    border-top: 1px solid rgb(200, 200, 200);
+    margin: 1rem 0 0.2rem 0;
+}

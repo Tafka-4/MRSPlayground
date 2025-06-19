@@ -1,6 +1,5 @@
 .input-group {
     position: relative;
-    margin-bottom: 1.5rem;
 }
 
 .input-group label {
@@ -65,4 +64,100 @@
 
 .input-group.invalid input:focus {
     box-shadow: 0 0 0 3px var(--error-shadow);
+}
+
+.input-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 250px;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.input-wrapper .material-symbols-outlined {
+    position: absolute;
+    left: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgb(100, 100, 100);
+    font-size: 1.5rem;
+    font-weight: 20;
+    z-index: 5;
+}
+
+.input-wrapper input {
+    font-size: 1rem;
+    font-weight: 400;
+    display: block;
+    box-sizing: border-box;
+    position: relative;
+    width: 100%;
+    max-width: 250px;
+    height: 2.15rem;
+    margin: 0;
+    padding: 0.5rem 3rem 0.5rem 2.5rem;
+    outline: none;
+    border: solid 1px rgb(100, 100, 100);
+    border-radius: 0.5rem;
+    background: rgb(240, 240, 240);
+}
+
+.input-wrapper input::placeholder {
+    color: rgb(100, 100, 100);
+    font-size: 1rem;
+    font-weight: 300;
+}
+
+.input-wrapper input:focus {
+    background: rgb(230, 230, 230);
+    color: rgb(10, 10, 10);
+    outline: none;
+    transition-duration: 0.1s;
+    border-color: rgb(100, 100, 100);
+    box-shadow: none;
+}
+
+.input-wrapper input:focus::placeholder {
+    color: rgb(100, 100, 100);
+}
+
+.input-wrapper input[name="id"] {
+    background-size: 1.5rem;
+    background-position: 0.5rem 0.5rem;
+    background-repeat: no-repeat;
+    margin-bottom: 0.5rem;
+    padding-right: 1rem;
+}
+
+.input-wrapper input[type="password"] {
+    font-family: 'pass', 'Roboto', Helvetica, Arial, sans-serif;
+}
+
+.input-wrapper input[type="password"]::placeholder {
+    font-family: 'ONE-Mobile-POP';
+    font-size: 1rem;
+    opacity: 1;
+}
+
+.visibility-container {
+    position: absolute;
+    right: 2.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.visibility-container .material-symbols-outlined {
+    color: rgb(100, 100, 100);
+    width: 1.5rem;
+    height: 1.5rem;
+    font-size: 1.5rem;
+    font-weight: 20;
+    transition: color 0.2s ease;
+}
+
+.visibility-container .material-symbols-outlined:hover {
+    color: rgb(10, 10, 10);
 }

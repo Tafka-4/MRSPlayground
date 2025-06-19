@@ -19,8 +19,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 2rem 1rem;
-    padding-bottom: 48px;
+    min-height: calc(100vh - 120px);
+    padding: 1rem;
 }
 
 .action-buttons .btn {

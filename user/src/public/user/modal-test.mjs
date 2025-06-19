@@ -14,7 +14,7 @@ import {
     createDashboardSection,
     DashboardManager
 } from './component/dashboard-components.js';
-import NoticeBox from './module/notice.js';
+import NoticeBox from '../module/notice.js';
 
 // 전역 함수들
 window.showSimpleModal = showSimpleModal;

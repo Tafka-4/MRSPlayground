@@ -111,9 +111,17 @@ function initializeComponents() {
         document.head.appendChild(link);
     }
 
-    console.log('✅ Component library initialized');
+    if (!document.getElementById('component-buttons-style')) {
+        const link = document.createElement('link');
+        link.id = 'component-buttons-style';
+        link.rel = 'stylesheet';
+        link.href = '/component/style/buttons.css';
+        document.head.appendChild(link);
+    }
 
-    setupGlobalComponents();
+    console.log('✅ Component library initialized');
+    
+    setupThemeToggle();
 }
 
 /**
@@ -162,21 +170,10 @@ function setTheme(theme = {}) {
 }
 
 /**
- * 주요 기능들을 전역 `window.Components` 객체에 할당하여,
- * 모듈 import 없이도 스크립트에서 바로 접근할 수 있도록 설정합니다.
+ * 테마 토글 버튼에 이벤트 리스너를 추가합니다.
  * @private
  */
-function setupGlobalComponents() {
-    window.Components = {
-        initializeComponents,
-        toggleTheme,
-        loadSavedTheme,
-        getCurrentTheme,
-        setTheme
-    };
-
-    console.log('✅ Global Components object initialized');
-
+function setupThemeToggle() {
     const themeToggleButton = document.querySelector('#theme-toggle');
     if (themeToggleButton) {
         themeToggleButton.addEventListener('click', toggleTheme);

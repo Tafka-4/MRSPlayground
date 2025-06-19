@@ -1,5 +1,5 @@
-import apiClient from './module/api.js';
-import NoticeBox from './module/notice.js';
+import apiClient from '../module/api.js';
+import NoticeBox from '../module/notice.js';
 
 document.getElementById('verify-form').addEventListener('submit', async (e) => {
     e.preventDefault();

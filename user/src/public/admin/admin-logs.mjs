@@ -1,7 +1,7 @@
-import escape from './module/escape.js';
-import logApi from './module/logApi.js';
-import NoticeBox from './module/notice.js';
-import WebSocketClient from './module/websocket.js';
+import escape from '../module/escape.js';
+import logApi from '../module/logApi.js';
+import NoticeBox from '../module/notice.js';
+import WebSocketClient from '../module/websocket.js';
 
 class LogPageState {
     constructor() {

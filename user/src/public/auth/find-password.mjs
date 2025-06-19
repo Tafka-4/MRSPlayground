@@ -1,4 +1,4 @@
-import NoticeBox from './module/notice.js';
+import NoticeBox from '../module/notice.js';
 
 const findPasswordInput = {
     id: document.querySelector('input[name="id"]'),
