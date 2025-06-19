@@ -13,8 +13,6 @@ RUN npm install -g typescript
 RUN npm install -g tsx
 RUN npm install -g nodemon
 
-EXPOSE 6000
-
 RUN npm run build
 
 CMD ["npm", "run", "dev"]

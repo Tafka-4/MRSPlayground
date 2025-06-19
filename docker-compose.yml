@@ -109,6 +109,12 @@ services:
         build:
             context: ./bot
             dockerfile: Dockerfile
+        volumes:
+            - ./bot/src:/app/src
+            - ./bot/package.json:/app/package.json
+            - ./bot/package-lock.json:/app/package-lock.json
+            - ./bot/tsconfig.json:/app/tsconfig.json
+            - /app/node_modules
         environment:
             - NODE_ENV=${NODE_ENV}
             - USER_SERVICE_URL=${USER_SERVICE_URL}
