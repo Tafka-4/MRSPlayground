@@ -89,52 +89,27 @@ function renderComponents() {
     );
     if (imageActionsContainer) {
         const uploadBtn = createButton({
-            id: 'image-upload-button',
-            text: '이미지 업로드',
-            icon: 'upload',
-            size: 'sm',
-            variant: 'primary',
-            className: 'image-upload-button',
+            text: '사진 변경',
+            icon: 'photo_camera',
             onClick: () => {
-                document.getElementById('profile-image-input').click();
+                const input = document.getElementById('profile-image-input');
+                input.value = '';
+                input.click();
             }
         });
 
         const deleteBtn = createButton({
-            id: 'image-delete-button',
-            text: '이미지 삭제',
+            text: '사진 삭제',
             icon: 'delete',
-            size: 'sm',
             variant: 'danger',
-            className: 'image-delete-button',
             onClick: showImageDeleteModal
         });
         imageActionsContainer.append(uploadBtn, deleteBtn);
     }
 
-    const buttonsContainer = document.getElementById(
-        'action-buttons-container'
-    );
-    if (buttonsContainer) {
-        buttonsContainer.innerHTML = '';
-        const editProfileBtn = createButton({
-            text: '프로필 수정',
-            variant: 'primary',
-            onClick: () => (window.location.href = '/mypage/edit')
-        });
-        const editPasswordBtn = createButton({
-            text: '비밀번호 변경',
-            onClick: () => (window.location.href = '/mypage/edit/password')
-        });
-        const deleteAccountBtn = createDeleteButton({
-            text: '회원 탈퇴',
-            onClick: showAccountDeleteModal
-        });
-        buttonsContainer.append(
-            editProfileBtn,
-            editPasswordBtn,
-            deleteAccountBtn
-        );
+    const navDeleteBtn = document.getElementById('navDeleteAccount');
+    if (navDeleteBtn) {
+        navDeleteBtn.addEventListener('click', showAccountDeleteModal);
     }
 
     const adminBtnContainer = document.getElementById('admin-button-container');
@@ -186,6 +161,46 @@ function setupEventListeners() {
         attributes: true,
         attributeFilter: ['data-theme']
     });
+
+    setupProfileNavigation();
+}
+
+function setupProfileNavigation() {
+    const profileMenuToggle = document.getElementById('profileMenuToggle');
+    const profileNavigation = document.getElementById('profileNavigation');
+    const profileNavClose = document.getElementById('profileNavClose');
+    const profileNavOverlay = document.getElementById('profileNavOverlay');
+
+    if (profileMenuToggle) {
+        profileMenuToggle.addEventListener('click', () => {
+            profileNavigation.classList.add('active');
+            profileNavOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    }
+
+    if (profileNavClose) {
+        profileNavClose.addEventListener('click', closeProfileNavigation);
+    }
+
+    if (profileNavOverlay) {
+        profileNavOverlay.addEventListener('click', closeProfileNavigation);
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && profileNavigation.classList.contains('active')) {
+            closeProfileNavigation();
+        }
+    });
+}
+
+function closeProfileNavigation() {
+    const profileNavigation = document.getElementById('profileNavigation');
+    const profileNavOverlay = document.getElementById('profileNavOverlay');
+    
+    profileNavigation.classList.remove('active');
+    profileNavOverlay.classList.remove('active');
+    document.body.style.overflow = '';
 }
 
 async function handleImageUpload(event) {
@@ -193,16 +208,16 @@ async function handleImageUpload(event) {
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-        return new NoticeBox(
+        return (new NoticeBox(
             '파일 크기는 5MB 이하여야 합니다.',
             'error'
-        ).show();
+        )).show();
     }
     if (!file.type.startsWith('image/')) {
-        return new NoticeBox(
+        return (new NoticeBox(
             '이미지 파일만 업로드 가능합니다.',
             'error'
-        ).show();
+        )).show();
     }
 
     const formData = new FormData();
@@ -211,51 +226,60 @@ async function handleImageUpload(event) {
     try {
         const response = await apiClient.post(
             '/api/v1/users/upload-profile',
-            formData,
-            {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            }
+            formData
         );
         const result = await response.json();
         currentUser.profileImage = result.profileImage;
         updateProfileImage();
-        new NoticeBox('프로필 이미지가 성공적으로 변경되었습니다.').show();
+        event.target.value = '';
+        (new NoticeBox(
+            '프로필 이미지가 성공적으로 변경되었습니다.',
+            'success'
+        )).show();
     } catch (error) {
         console.error('이미지 업로드 실패:', error);
-        new NoticeBox(
+        (new NoticeBox(
             '이미지 업로드에 실패했습니다. 다시 시도해주세요.',
             'error'
-        ).show();
+        )).show();
     }
 }
 
 async function handleImageDeleteApiCall() {
     try {
         await apiClient.delete('/api/v1/users/delete-profile');
-        new NoticeBox('프로필 이미지가 삭제되었습니다.').show();
+        (new NoticeBox(
+            '프로필 이미지가 삭제되었습니다.',
+            'success'
+        )).show();
 
         currentUser.profileImage = null;
         updateProfileImage();
+        const input = document.getElementById('profile-image-input');
+        if (input) input.value = '';
     } catch (error) {
         console.error('프로필 이미지 삭제 실패:', error);
-        new NoticeBox(
+        (new NoticeBox(
             '이미지 삭제에 실패했습니다. 다시 시도해주세요.',
             'error'
-        ).show();
+        )).show();
     }
 }
 
 async function handleAccountDelete() {
     try {
         await apiClient.delete('/api/v1/users/delete');
-        new NoticeBox('회원 탈퇴가 완료되었습니다.').show();
+        (new NoticeBox(
+            '회원 탈퇴가 완료되었습니다.',
+            'success'
+        )).show();
         window.location.href = '/login';
     } catch (error) {
         console.error('회원 탈퇴 처리 실패:', error);
-        new NoticeBox(
+        (new NoticeBox(
             '회원 탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.',
             'error'
-        ).show();
+        )).show();
     }
 }
 
@@ -274,10 +298,10 @@ async function initializePage() {
         }
     } catch (error) {
         console.error('사용자 정보 로딩 실패:', error);
-        new NoticeBox(
+        (new NoticeBox(
             '사용자 정보를 불러오는 데 실패했습니다. 다시 로그인해주세요.',
             'error'
-        ).show();
+        )).show();
         setTimeout(() => (window.location.href = '/login'), 2000);
     }
 }

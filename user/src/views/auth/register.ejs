@@ -12,6 +12,12 @@
         <link rel="stylesheet" href="/auth/register.css" />
     </head>
     <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
         <div class="register-container">
             <div class="register-form">
                 <div class="register-form-header">

@@ -162,4 +162,24 @@ router.get('/refactor', (req: Request, res: Response) => {
     }
 });
 
+router.get('/help', generalLimiter, (req: Request, res: Response) => {
+    res.render('./support/help');
+});
+
+router.get('/contact', generalLimiter, (req: Request, res: Response) => {
+    res.render('./support/contact');
+});
+
+router.get('/feedback', generalLimiter, (req: Request, res: Response) => {
+    res.render('./support/feedback');
+});
+
+router.get('/notice', generalLimiter, (req: Request, res: Response) => {
+    res.render('./dev/notice');
+});
+
+router.get('/license', generalLimiter, (req: Request, res: Response) => {
+    res.render('./legal/license');
+});
+
 export default router;

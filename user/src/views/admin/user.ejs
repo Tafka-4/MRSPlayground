@@ -11,6 +11,12 @@
         />
     </head>
     <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
         <div class="container">
             <div class="admin-header">
                 <h1 class="title">사용자 관리</h1>

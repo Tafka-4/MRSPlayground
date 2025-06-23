@@ -14,6 +14,12 @@
 
     </head>
     <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
         <div class="container">
             <form class="login-form" id="loginForm">
                 <h1 class="title">로그인</h1>

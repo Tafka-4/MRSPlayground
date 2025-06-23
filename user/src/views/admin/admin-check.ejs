@@ -49,6 +49,12 @@
         </style>
     </head>
     <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
         <div id="loading">로딩 중...</div>
         <div id="content">
             <h1>관리자 확인</h1>

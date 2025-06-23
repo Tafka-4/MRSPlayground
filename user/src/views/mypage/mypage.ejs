@@ -17,10 +17,61 @@
         <link rel="stylesheet" href="/user/mypage.css" />
     </head>
     <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
         <div id="root">
             <%- include('../partials/header') %>
 
             <main class="main-content">
+                <div class="mobile-profile-header">
+                    <button class="profile-menu-toggle" id="profileMenuToggle">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                    <h2 class="mobile-page-title">마이페이지</h2>
+                </div>
+
+                <div class="profile-navigation-container" id="profileNavigation">
+                    <div class="profile-nav-header">
+                        <h3>프로필 관리</h3>
+                        <button class="profile-nav-close" id="profileNavClose">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <nav class="profile-nav">
+                        <a href="/mypage" class="profile-nav-item active">
+                            <span class="material-symbols-outlined">person</span>
+                            <span>프로필 보기</span>
+                        </a>
+                        <a href="/mypage/edit" class="profile-nav-item">
+                            <span class="material-symbols-outlined">edit</span>
+                            <span>프로필 수정</span>
+                        </a>
+                        <a href="#activity" class="profile-nav-item">
+                            <span class="material-symbols-outlined">history</span>
+                            <span>활동</span>
+                        </a>
+                        <a href="#guestbook" class="profile-nav-item">
+                            <span class="material-symbols-outlined">book</span>
+                            <span>방명록</span>
+                        </a>
+                        <a href="/mypage/edit/password" class="profile-nav-item">
+                            <span class="material-symbols-outlined">lock</span>
+                            <span>비밀번호 변경</span>
+                        </a>
+                        <div class="profile-nav-divider"></div>
+                        <button class="profile-nav-item profile-nav-delete" id="navDeleteAccount">
+                            <span class="material-symbols-outlined">delete_forever</span>
+                            <span>회원 탈퇴</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="profile-nav-overlay" id="profileNavOverlay"></div>
+
                 <div class="container">
                     <div class="mypage-header">
                         <h1 class="title">마이페이지</h1>
@@ -78,17 +129,12 @@
                             </div>
                         </div>
                     </div>
-
-                    <div
-                        id="action-buttons-container"
-                        class="action-buttons"
-                    ></div>
                 </div>
             </main>
         </div>
-
         <%- include('../partials/footer') %>
 
+        <div class="notice-container"></div>
         <script type="module" src="/user/mypage.mjs"></script>
     </body>
 </html>

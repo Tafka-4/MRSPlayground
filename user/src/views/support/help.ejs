@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>도움말 - 마법연구회</title>
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+            rel="stylesheet"
+        />
+
+        <link rel="stylesheet" href="/component/style/base.css" />
+        <link rel="stylesheet" href="/component/style/badges.css" />
+        <link rel="stylesheet" href="/component/style/buttons.css" />
+        <link rel="stylesheet" href="/component/style/cards.css" />
+        <link rel="stylesheet" href="/user/mypage.css" />
+    </head>
+    <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
+        <div id="root">
+            <%- include('../partials/header') %>
+
+            <main class="main-content">
+                <div class="container">
+                    <div class="mypage-header">
+                        <h1 class="title">도움말</h1>
+                    </div>
+
+                    <div class="help-section">
+                        <div class="help-category">
+                            <h3>시작하기</h3>
+                            <div class="help-items">
+                                <div class="help-item">
+                                    <div class="help-icon">
+                                        <span class="material-symbols-outlined">account_circle</span>
+                                    </div>
+                                    <div class="help-content">
+                                        <h4>회원가입 및 로그인</h4>
+                                        <p>마법연구회에 가입하여 다양한 서비스를 이용해보세요. 이메일 인증을 통해 안전하게 계정을 생성할 수 있습니다.</p>
+                                    </div>
+                                </div>
+
+                                <div class="help-item">
+                                    <div class="help-icon">
+                                        <span class="material-symbols-outlined">person</span>
+                                    </div>
+                                    <div class="help-content">
+                                        <h4>프로필 설정</h4>
+                                        <p>마이페이지에서 프로필 사진, 닉네임, 소개글을 설정할 수 있습니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="help-category">
+                            <h3>주요 기능</h3>
+                            <div class="help-items">
+                                <div class="help-item">
+                                    <div class="help-icon">
+                                        <span class="material-symbols-outlined">library_books</span>
+                                    </div>
+                                    <div class="help-content">
+                                        <h4>아카이브</h4>
+                                        <p>다양한 소설과 작품들을 탐색하고 읽어보세요.</p>
+                                    </div>
+                                </div>
+
+                                <div class="help-item">
+                                    <div class="help-icon">
+                                        <span class="material-symbols-outlined">groups</span>
+                                    </div>
+                                    <div class="help-content">
+                                        <h4>커뮤니티</h4>
+                                        <p>다른 회원들과 소통하고 의견을 나누세요. 게시글 작성, 댓글, 좋아요 기능을 통해 활발한 소통이 가능합니다.</p>
+                                    </div>
+                                </div>
+
+                                <div class="help-item">
+                                    <div class="help-icon">
+                                        <span class="material-symbols-outlined">sentiment_satisfied</span>
+                                    </div>
+                                    <div class="help-content">
+                                        <h4>마연회콘</h4>
+                                        <p>마법연구회만의 특별한 이모지 시스템입니다. 다양한 감정과 상황을 표현할 수 있는 커스텀 이모지를 사용해보세요.</p>
+                                    </div>
+                                </div>
+
+                                <div class="help-item">
+                                    <div class="help-icon">
+                                        <span class="material-symbols-outlined">science</span>
+                                    </div>
+                                    <div class="help-content">
+                                        <h4>마법연구소</h4>
+                                        <p>마법연구소입니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="help-category">
+                            <h3>문제 해결</h3>
+                            <div class="help-items">
+                                <div class="help-item">
+                                    <div class="help-icon">
+                                        <span class="material-symbols-outlined">bug_report</span>
+                                    </div>
+                                    <div class="help-content">
+                                        <h4>버그 신고</h4>
+                                        <p>서비스 이용 중 문제가 발생했나요? <a href="/feedback">피드백 및 버그 신고</a> 페이지를 통해 문제를 신고해주세요.</p>
+                                    </div>
+                                </div>
+
+                                <div class="help-item">
+                                    <div class="help-icon">
+                                        <span class="material-symbols-outlined">contact_support</span>
+                                    </div>
+                                    <div class="help-content">
+                                        <h4>직접 문의</h4>
+                                        <p>궁금한 점이나 건의사항이 있으시면 <a href="/contact">문의하기</a> 페이지를 통해 연락해주세요.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <%- include('../partials/footer') %>
+
+        <style>
+            .help-section {
+                display: flex;
+                flex-direction: column;
+                gap: 2.5rem;
+            }
+
+            .help-category h3 {
+                color: var(--text-primary);
+                font-size: 1.5rem;
+                font-weight: 500;
+                margin: 0 0 1.5rem 0;
+                border-bottom: 2px solid var(--primary-color);
+                padding-bottom: 0.5rem;
+            }
+
+            .help-items {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .help-item {
+                display: flex;
+                gap: 1rem;
+                padding: 1.5rem;
+                background: var(--card-background);
+                border-radius: 1rem;
+                box-shadow: var(--shadow);
+                transition: all 0.2s ease;
+            }
+
+            .help-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            [data-theme='dark'] .help-item:hover {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+
+            [data-theme='dark'] .help-icon {
+                background: #8b5cf6;
+            }
+
+            .help-icon {
+                flex-shrink: 0;
+                width: 48px;
+                height: 48px;
+                background: var(--primary-color);
+                border-radius: 0.75rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+            }
+
+            .help-icon .material-symbols-outlined {
+                font-size: 1.5rem;
+            }
+
+            .help-content h4 {
+                color: var(--text-primary);
+                font-size: 1.1rem;
+                font-weight: 500;
+                margin: 0 0 0.5rem 0;
+            }
+
+            .help-content p {
+                color: var(--text-secondary);
+                line-height: 1.6;
+                margin: 0;
+            }
+
+            .help-content a {
+                color: var(--primary-color);
+                text-decoration: none;
+            }
+
+            .help-content a:hover {
+                text-decoration: underline;
+            }
+
+            @media (max-width: 768px) {
+                .help-item {
+                    padding: 1rem;
+                }
+
+                .help-icon {
+                    width: 40px;
+                    height: 40px;
+                }
+
+                .help-icon .material-symbols-outlined {
+                    font-size: 1.25rem;
+                }
+            }
+        </style>
+    </body>
+</html> 

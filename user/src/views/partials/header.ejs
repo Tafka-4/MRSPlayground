@@ -266,6 +266,7 @@ showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
             }
 
             const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
             updateThemeIcon(savedTheme);
         }
 
@@ -274,9 +275,25 @@ showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
             if (logoutBtn) {
                 logoutBtn.addEventListener('click', async () => {
                     try {
-                        window.location.href = '/logout';
+                        const { default: apiClient } = await import(
+                            '/module/api.js'
+                        );
+                        const response = await apiClient.post(
+                            '/api/v1/auth/logout'
+                        );
+
+                        if (response.ok) {
+                            window.location.href = '/login';
+                        } else {
+                            localStorage.removeItem('accessToken');
+                            document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                            window.location.href = '/login';
+                        }
                     } catch (error) {
                         console.error('Logout failed', error);
+                        localStorage.removeItem('accessToken');
+                        document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                        window.location.href = '/login';
                     }
                 });
             }

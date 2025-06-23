@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>공지사항 - 마법연구회</title>
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+            rel="stylesheet"
+        />
+
+        <link rel="stylesheet" href="/component/style/base.css" />
+        <link rel="stylesheet" href="/component/style/badges.css" />
+        <link rel="stylesheet" href="/component/style/buttons.css" />
+        <link rel="stylesheet" href="/component/style/cards.css" />
+        <link rel="stylesheet" href="/user/mypage.css" />
+    </head>
+    <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
+        <div id="root">
+            <%- include('../partials/header') %>
+
+            <main class="main-content">
+                <div class="container">
+                    <div class="mypage-header">
+                        <h1 class="title">공지사항</h1>
+                    </div>
+
+                    <div class="notice-section">
+                        <div class="notice-item important">
+                            <div class="notice-badge">
+                                <span class="material-symbols-outlined">priority_high</span>
+                                <span>중요</span>
+                            </div>
+                            <div class="notice-content">
+                                <h3>서비스 Alpha Build</h3>
+                                <p>마법연구회 통합 플랫폼 Alpha Build</p>
+                                <div class="notice-meta">
+                                    <span class="notice-date">2025년 6월</span>
+                                    <span class="notice-author">Tafka4</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notice-item">
+                            <div class="notice-badge update">
+                                <span class="material-symbols-outlined">update</span>
+                                <span>업데이트</span>
+                            </div>
+                            <div class="notice-content">
+                                <h3>새로운 기능 추가</h3>
+                                <p>사용자 프로필 시스템과 마연회콘 기능이 추가되었습니다. 더욱 개성있는 소통을 즐겨보세요.</p>
+                                <div class="notice-meta">
+                                    <span class="notice-date">2025년 1월 15일</span>
+                                    <span class="notice-author">개발팀</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notice-item">
+                            <div class="notice-badge info">
+                                <span class="material-symbols-outlined">info</span>
+                                <span>안내</span>
+                            </div>
+                            <div class="notice-content">
+                                <h3>이용 가이드</h3>
+                                <p>서비스 이용 방법과 주요 기능들에 대한 자세한 설명을 <a href="/help">도움말</a> 페이지에서 확인하실 수 있습니다.</p>
+                                <div class="notice-meta">
+                                    <span class="notice-date">2025년 1월 10일</span>
+                                    <span class="notice-author">운영팀</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notice-item">
+                            <div class="notice-badge maintenance">
+                                <span class="material-symbols-outlined">build</span>
+                                <span>점검</span>
+                            </div>
+                            <div class="notice-content">
+                                <h3>정기 점검 안내</h3>
+                                <p>서비스 품질 향상을 위한 정기 점검을 매주 수요일 오전 2시~4시에 진행합니다.</p>
+                                <div class="notice-meta">
+                                    <span class="notice-date">2025년 1월 5일</span>
+                                    <span class="notice-author">운영팀</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notice-item">
+                            <div class="notice-badge feature">
+                                <span class="material-symbols-outlined">star</span>
+                                <span>기능</span>
+                            </div>
+                            <div class="notice-content">
+                                <h3>베타 기능 테스트</h3>
+                                <p>마법연구소에서 새로운 실험적 기능들을 먼저 체험해보실 수 있습니다. 많은 참여 부탁드립니다.</p>
+                                <div class="notice-meta">
+                                    <span class="notice-date">2025년 1월 1일</span>
+                                    <span class="notice-author">개발팀</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="notice-item">
+                            <div class="notice-badge">
+                                <span class="material-symbols-outlined">campaign</span>
+                                <span>일반</span>
+                            </div>
+                            <div class="notice-content">
+                                <h3>커뮤니티 가이드라인</h3>
+                                <p>건전하고 즐거운 커뮤니티 환경을 위해 기본적인 매너와 규칙을 준수해주세요.</p>
+                                <div class="notice-details">
+                                    <ul>
+                                        <li>스팸이나 광고성 게시물 금지</li>
+                                        <li>개인정보 보호 및 프라이버시 존중</li>
+                                    </ul>
+                                </div>
+                                <div class="notice-meta">
+                                    <span class="notice-date">2024년 12월 25일</span>
+                                    <span class="notice-author">운영팀</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <%- include('../partials/footer') %>
+
+        <style>
+            .notice-section {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+                margin-top: 1rem;
+            }
+
+            .notice-item {
+                background: var(--card-background);
+                border-radius: 0.5rem;
+                border-top-left-radius: 0.5rem;
+                border-bottom-left-radius: 0.5rem;
+                padding: 1.5rem;
+                box-shadow: var(--shadow);
+                transition: all 0.2s ease;
+                border-left: 4px solid var(--border-color);
+            }
+
+            .notice-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            [data-theme='dark'] .notice-item {
+                background: var(--card-background);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            }
+
+            [data-theme='dark'] .notice-item:hover {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            }
+
+            .notice-item.important {
+                border-left-color: #f56565;
+                background: var(--card-background);
+            }
+
+            [data-theme='dark'] .notice-item.important {
+                background: rgba(245, 101, 101, 0.1);
+            }
+
+            .notice-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 1rem;
+                border-radius: 2rem;
+                font-size: 0.8rem;
+                font-weight: 500;
+                margin-bottom: 1rem;
+                background: var(--primary-color);
+                color: white;
+            }
+
+            .notice-badge.update {
+                background: #48bb78;
+            }
+
+            .notice-badge.info {
+                background: #4299e1;
+            }
+
+            .notice-badge.maintenance {
+                background: #ed8936;
+            }
+
+            .notice-badge.feature {
+                background: #9f7aea;
+            }
+
+            [data-theme='dark'] .notice-badge {
+                background: var(--primary-color);
+                color: white;
+            }
+
+            [data-theme='dark'] .notice-badge.update {
+                background: #38a169;
+            }
+
+            [data-theme='dark'] .notice-badge.info {
+                background: #3182ce;
+            }
+
+            [data-theme='dark'] .notice-badge.maintenance {
+                background: #dd6b20;
+            }
+
+            [data-theme='dark'] .notice-badge.feature {
+                background: #805ad5;
+            }
+
+            [data-theme='dark'] .notice-item.important .notice-badge {
+                background: #e53e3e;
+                color: white;
+            }
+
+            [data-theme='dark'] .notice-badge:not(.update):not(.info):not(.maintenance):not(.feature) {
+                background: #4a5568;
+                color: white;
+            }
+
+            [data-theme='dark'] .notice-item.important .notice-badge:not(.update):not(.info):not(.maintenance):not(.feature) {
+                background: #e53e3e;
+                color: white;
+            }
+
+            .notice-badge .material-symbols-outlined {
+                font-size: 1rem;
+            }
+
+            .notice-content h3 {
+                color: var(--text-primary);
+                font-size: 1.25rem;
+                font-weight: 500;
+                margin: 0 0 0.75rem 0;
+            }
+
+            .notice-content p {
+                color: var(--text-secondary);
+                line-height: 1.6;
+                margin: 0 0 1rem 0;
+            }
+
+            .notice-content a {
+                color: var(--primary-color);
+                text-decoration: none;
+            }
+
+            .notice-content a:hover {
+                text-decoration: underline;
+            }
+
+            .notice-details {
+                background: var(--background-color);
+                border-radius: 0.5rem;
+                padding: 1rem;
+                margin: 1rem 0;
+                border: 1px solid var(--border-color);
+            }
+
+            [data-theme='dark'] .notice-details {
+                background: rgba(255, 255, 255, 0.05);
+                border-color: rgba(255, 255, 255, 0.1);
+            }
+
+            .notice-details ul {
+                margin: 0;
+                padding-left: 1.25rem;
+                color: var(--text-secondary);
+            }
+
+            .notice-details li {
+                margin-bottom: 0.5rem;
+                line-height: 1.5;
+            }
+
+            .notice-meta {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--border-color);
+                font-size: 0.9rem;
+                color: var(--text-muted);
+            }
+
+            .notice-date {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+
+            .notice-date::before {
+                content: '📅';
+                font-size: 0.8rem;
+            }
+
+            .notice-author {
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+
+            .notice-author::before {
+                content: '👤';
+                font-size: 0.8rem;
+            }
+
+            @media (max-width: 768px) {
+                .notice-item {
+                    padding: 1rem;
+                }
+
+                .notice-content h3 {
+                    font-size: 1.1rem;
+                }
+
+                .notice-meta {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 0.5rem;
+                }
+            }
+        </style>
+    </body>
+</html> 

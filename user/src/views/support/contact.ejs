@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>문의하기 - 마법연구회</title>
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+            rel="stylesheet"
+        />
+
+        <link rel="stylesheet" href="/component/style/base.css" />
+        <link rel="stylesheet" href="/component/style/badges.css" />
+        <link rel="stylesheet" href="/component/style/buttons.css" />
+        <link rel="stylesheet" href="/component/style/forms.css" />
+        <link rel="stylesheet" href="/user/mypage.css" />
+    </head>
+    <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
+        <div id="root">
+            <%- include('../partials/header') %>
+
+            <main class="main-content">
+                <div class="container">
+                    <div class="mypage-header">
+                        <h1 class="title">문의하기</h1>
+                    </div>
+
+                    <div class="contact-section">
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <span class="material-symbols-outlined">mail</span>
+                                </div>
+                                <div class="contact-content">
+                                    <h3>이메일 문의</h3>
+                                    <p>일반적인 문의사항이나 제안사항은 이메일로 보내주세요.</p>
+                                    <a href="mailto:support@magicresearch.com" class="contact-link">support@magicresearch.com</a>
+                                </div>
+                            </div>
+
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <span class="material-symbols-outlined">bug_report</span>
+                                </div>
+                                <div class="contact-content">
+                                    <h3>버그 신고</h3>
+                                    <p>기술적인 문제나 버그는 전용 페이지를 통해 신고해주세요.</p>
+                                    <a href="/feedback" class="contact-link">버그 신고하기</a>
+                                </div>
+                            </div>
+
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <span class="material-symbols-outlined">code</span>
+                                </div>
+                                <div class="contact-content">
+                                    <h3>개발자 문의</h3>
+                                    <p>GitHub를 통해 개발자와 직접 소통하실 수 있습니다.</p>
+                                    <a href="https://github.com/Tafka-4/MRSPlayground" class="contact-link" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+                                </div>
+                            </div>
+
+                            <div class="contact-item">
+                                <div class="contact-icon">
+                                    <span class="material-symbols-outlined">schedule</span>
+                                </div>
+                                <div class="contact-content">
+                                    <h3>응답 시간</h3>
+                                    <p>문의사항에 대한 답변은 보통 24-48시간 내에 드립니다.</p>
+                                    <span class="contact-text">평일 기준 1-2일</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="contact-form-container">
+                            <h3>직접 문의하기</h3>
+                            <form class="contact-form" id="contactForm">
+                                <div class="form-group">
+                                    <label for="subject">제목</label>
+                                    <input type="text" id="subject" name="subject" required placeholder="문의 제목을 입력해주세요">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="category">카테고리</label>
+                                    <select id="category" name="category" required>
+                                        <option value="">카테고리를 선택해주세요</option>
+                                        <option value="general">일반 문의</option>
+                                        <option value="technical">기술적 문제</option>
+                                        <option value="feature">기능 요청</option>
+                                        <option value="account">계정 관련</option>
+                                        <option value="other">기타</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="email">이메일</label>
+                                    <input type="email" id="email" name="email" required placeholder="답변을 받을 이메일 주소를 입력해주세요">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="message">문의 내용</label>
+                                    <textarea id="message" name="message" rows="8" required placeholder="문의 내용을 자세히 적어주세요. 문제 상황을 구체적으로 설명해주시면 더 정확한 답변을 드릴 수 있습니다."></textarea>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <span class="material-symbols-outlined">send</span>
+                                        문의 보내기
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <%- include('../partials/footer') %>
+
+        <style>
+            .container {
+                max-width: 1200px !important;
+                width: 95% !important;
+            }
+
+            .contact-section {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 3rem;
+                margin-top: 1rem;
+            }
+
+            .contact-info {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .contact-item {
+                display: flex;
+                gap: 1rem;
+                padding: 1.5rem;
+                background: var(--card-background);
+                border-radius: 1rem;
+                box-shadow: var(--shadow);
+                transition: all 0.2s ease;
+            }
+
+            .contact-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            [data-theme='dark'] .contact-item:hover {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+
+            [data-theme='dark'] .contact-icon {
+                background: #8b5cf6;
+            }
+
+            .contact-icon {
+                flex-shrink: 0;
+                width: 48px;
+                height: 48px;
+                background: var(--primary-color);
+                border-radius: 0.75rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+            }
+
+            .contact-icon .material-symbols-outlined {
+                font-size: 1.5rem;
+            }
+
+            .contact-content h3 {
+                color: var(--text-primary);
+                font-size: 1.1rem;
+                font-weight: 500;
+                margin: 0 0 0.5rem 0;
+            }
+
+            .contact-content p {
+                color: var(--text-secondary);
+                line-height: 1.6;
+                margin: 0 0 0.75rem 0;
+                font-size: 0.9rem;
+            }
+
+            .contact-link {
+                color: var(--primary-color);
+                text-decoration: none;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.25rem;
+            }
+
+            .contact-link:hover {
+                text-decoration: underline;
+            }
+
+            .contact-text {
+                color: var(--text-primary);
+                font-weight: 500;
+            }
+
+            .contact-form-container {
+                background: var(--card-background);
+                border-radius: 1rem;
+                padding: 2rem;
+                box-shadow: var(--shadow);
+                height: fit-content;
+            }
+
+            .contact-form-container h3 {
+                color: var(--text-primary);
+                font-size: 1.3rem;
+                font-weight: 500;
+                margin: 0 0 1.5rem 0;
+                border-bottom: 2px solid var(--primary-color);
+                padding-bottom: 0.5rem;
+            }
+
+            .contact-form {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .form-group label {
+                color: var(--text-primary);
+                font-weight: 500;
+                font-size: 0.9rem;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 0.75rem;
+                border: 1px solid var(--border-color);
+                border-radius: 0.5rem;
+                background: var(--background-color);
+                color: var(--text-primary);
+                font-size: 0.9rem;
+                transition: border-color 0.2s ease;
+            }
+
+            .form-group input:focus,
+            .form-group select:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border-color: var(--primary-color);
+            }
+
+            .form-group textarea {
+                resize: vertical;
+                min-height: 120px;
+            }
+
+            .form-actions {
+                display: flex;
+                justify-content: flex-end;
+                margin-top: 1rem;
+            }
+
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 0.5rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                text-decoration: none;
+            }
+
+            .btn-primary {
+                background: var(--primary-color);
+                color: white;
+            }
+
+            .btn-primary:hover {
+                background: var(--primary-hover);
+                transform: translateY(-1px);
+            }
+
+            @media (max-width: 1024px) {
+                .contact-section {
+                    grid-template-columns: 1fr;
+                    gap: 2rem;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .contact-item {
+                    padding: 1rem;
+                }
+
+                .contact-icon {
+                    width: 40px;
+                    height: 40px;
+                }
+
+                .contact-icon .material-symbols-outlined {
+                    font-size: 1.25rem;
+                }
+
+                .contact-form-container {
+                    padding: 1.5rem;
+                }
+            }
+        </style>
+
+        <script>
+            document.getElementById('contactForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // 여기서 실제로는 서버로 데이터를 전송해야 함
+                // 현재는 데모용으로 알림만 표시
+                alert('문의가 접수되었습니다. 빠른 시일 내에 답변드리겠습니다.');
+                
+                // 폼 초기화
+                this.reset();
+            });
+        </script>
+    </body>
+</html> 

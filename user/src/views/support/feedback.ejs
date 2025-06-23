@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>피드백 및 버그 신고 - 마법연구회</title>
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+            rel="stylesheet"
+        />
+
+        <link rel="stylesheet" href="/component/style/base.css" />
+        <link rel="stylesheet" href="/component/style/badges.css" />
+        <link rel="stylesheet" href="/component/style/buttons.css" />
+        <link rel="stylesheet" href="/component/style/forms.css" />
+        <link rel="stylesheet" href="/user/mypage.css" />
+    </head>
+    <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
+        <div id="root">
+            <%- include('../partials/header') %>
+
+            <main class="main-content">
+                <div class="container">
+                    <div class="mypage-header">
+                        <h1 class="title">피드백 및 버그 신고</h1>
+                    </div>
+
+                    <div class="feedback-section">
+                        <div class="feedback-info">
+                            <div class="info-card">
+                                <div class="info-icon bug">
+                                    <span class="material-symbols-outlined">bug_report</span>
+                                </div>
+                                <div class="info-content">
+                                    <h3>버그 신고</h3>
+                                    <ul>
+                                        <li>예상과 다르게 동작하는 기능</li>
+                                        <li>오류 메시지나 페이지 오류</li>
+                                        <li>로딩이 되지 않는 페이지나 기능</li>
+                                        <li>데이터가 올바르게 표시되지 않는 문제</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="info-card">
+                                <div class="info-icon vulnerability">
+                                    <span class="material-symbols-outlined">security</span>
+                                </div>
+                                <div class="info-content">
+                                    <h3>취약점 신고</h3>
+                                    <ul>
+                                        <li>보안 취약점 (XSS, SQL Injection, CSRF 등)</li>
+                                        <li>HTTP Smuggling, Race Condition</li>
+                                        <li>인증/인가 우회 취약점</li>
+                                        <li>개인정보 노출 취약점</li>
+                                        <li>기타 보안 관련 이슈</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="info-card">
+                                <div class="info-icon feature">
+                                    <span class="material-symbols-outlined">lightbulb</span>
+                                </div>
+                                <div class="info-content">
+                                    <h3>기능 제안</h3>
+                                    <ul>
+                                        <li>새로운 기능에 대한 아이디어</li>
+                                        <li>기존 기능의 개선 방안</li>
+                                        <li>사용자 경험 향상 제안</li>
+                                        <li>편의성 개선 사항</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="info-card">
+                                <div class="info-icon feedback">
+                                    <span class="material-symbols-outlined">feedback</span>
+                                </div>
+                                <div class="info-content">
+                                    <h3>일반 피드백</h3>
+                                    <ul>
+                                        <li>서비스 사용 경험에 대한 의견</li>
+                                        <li>디자인이나 UI/UX 관련 의견</li>
+                                        <li>성능이나 속도 관련 피드백</li>
+                                        <li>기타 개선사항 제안</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="feedback-form-container">
+                            <form class="feedback-form" id="feedbackForm">
+                                <div class="form-group">
+                                    <label for="type">신고/제안 유형</label>
+                                    <select id="type" name="type" required>
+                                        <option value="">유형을 선택해주세요</option>
+                                        <option value="bug">🐛 버그 신고</option>
+                                        <option value="vulnerability">🔒 취약점 신고</option>
+                                        <option value="feature">💡 기능 제안</option>
+                                        <option value="improvement">🔧 개선 제안</option>
+                                        <option value="ui">🎨 UI/UX 피드백</option>
+                                        <option value="performance">⚡ 성능 관련</option>
+                                        <option value="other">📝 기타</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="priority">우선순위</label>
+                                    <select id="priority" name="priority" required>
+                                        <option value="">우선순위를 선택해주세요</option>
+                                        <option value="low">낮음 - 편의성 개선</option>
+                                        <option value="medium">보통 - 기능 개선</option>
+                                        <option value="high">높음 - 중요한 문제</option>
+                                        <option value="critical">매우 높음 - 서비스 장애</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="title">제목</label>
+                                    <input type="text" id="title" name="title" required placeholder="간단하고 명확한 제목을 입력해주세요">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="steps">재현 단계 (버그인 경우)</label>
+                                    <textarea id="steps" name="steps" rows="4" placeholder="문제를 재현할 수 있는 단계를 순서대로 적어주세요&#10;1. 먼저 ~ 페이지에 접속&#10;2. ~ 버튼을 클릭&#10;3. ~ 기능을 사용&#10;4. 문제 발생"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="expected">기대한 결과</label>
+                                    <textarea id="expected" name="expected" rows="3" placeholder="어떤 결과를 기대했는지 설명해주세요"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="actual">실제 결과</label>
+                                    <textarea id="actual" name="actual" rows="3" placeholder="실제로는 어떤 일이 일어났는지 설명해주세요"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="description">상세 설명</label>
+                                    <textarea id="description" name="description" rows="6" required placeholder="문제나 제안사항에 대해 자세히 설명해주세요. 스크린샷이나 추가 정보가 있다면 함께 기록해주세요."></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="browser">브라우저/환경 정보</label>
+                                    <input type="text" id="browser" name="browser" placeholder="Chrome 120, Safari 17, Firefox 121 등" readonly>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="email">이메일 (선택사항)</label>
+                                    <input type="email" id="email" name="email" placeholder="진행 상황을 알고 싶으시면 이메일을 입력해주세요">
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        <span class="material-symbols-outlined">send</span>
+                                        제출하기
+                                    </button>
+                                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('feedbackForm').reset()">
+                                        <span class="material-symbols-outlined">refresh</span>
+                                        초기화
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <%- include('../partials/footer') %>
+
+        <style>
+            .container {
+                max-width: 1400px !important;
+                width: 95% !important;
+            }
+
+            .feedback-section {
+                display: grid;
+                grid-template-columns: 1fr 2fr;
+                gap: 3rem;
+                margin-top: 1rem;
+            }
+
+            .feedback-info {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .info-card {
+                background: var(--card-background);
+                border-radius: 1rem;
+                padding: 1.5rem;
+                box-shadow: var(--shadow);
+                transition: all 0.2s ease;
+            }
+
+            .info-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            [data-theme='dark'] .info-card:hover {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+
+            [data-theme='dark'] .info-icon.bug {
+                background: #f56565;
+            }
+
+            [data-theme='dark'] .info-icon.vulnerability {
+                background: #f6ad55;
+            }
+
+            [data-theme='dark'] .info-icon.feature {
+                background: #48bb78;
+            }
+
+            [data-theme='dark'] .info-icon.feedback {
+                background: #4299e1;
+            }
+
+            .info-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 0.75rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                margin-bottom: 1rem;
+            }
+
+            .info-icon.bug {
+                background: #f56565;
+            }
+
+            .info-icon.vulnerability {
+                background: #f6ad55;
+            }
+
+            .info-icon.feature {
+                background: #48bb78;
+            }
+
+            .info-icon.feedback {
+                background: #4299e1;
+            }
+
+            .info-icon .material-symbols-outlined {
+                font-size: 1.5rem;
+            }
+
+            .info-content h3 {
+                color: var(--text-primary);
+                font-size: 1.1rem;
+                font-weight: 500;
+                margin: 0 0 1rem 0;
+            }
+
+            .info-content ul {
+                margin: 0;
+                padding-left: 1.25rem;
+                color: var(--text-secondary);
+            }
+
+            .info-content li {
+                margin-bottom: 0.5rem;
+                line-height: 1.5;
+            }
+
+            .feedback-form-container {
+                background: var(--card-background);
+                border-radius: 1rem;
+                padding: 2rem;
+                box-shadow: var(--shadow);
+                height: fit-content;
+            }
+
+            .feedback-form {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .form-group {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .form-group label {
+                color: var(--text-primary);
+                font-weight: 500;
+                font-size: 0.9rem;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 0.75rem;
+                border: 1px solid var(--border-color);
+                border-radius: 0.5rem;
+                background: var(--background-color);
+                color: var(--text-primary);
+                font-size: 0.9rem;
+                transition: border-color 0.2s ease;
+            }
+
+            .form-group input:focus,
+            .form-group select:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border-color: var(--primary-color);
+            }
+
+            .form-group textarea {
+                resize: vertical;
+                font-family: inherit;
+            }
+
+            .form-actions {
+                display: flex;
+                gap: 1rem;
+                justify-content: flex-end;
+                margin-top: 1rem;
+            }
+
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 0.5rem;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                text-decoration: none;
+            }
+
+            .btn-primary {
+                background: var(--primary-color);
+                color: white;
+            }
+
+            .btn-primary:hover {
+                background: var(--primary-hover);
+                transform: translateY(-1px);
+            }
+
+            .btn-secondary {
+                background: var(--border-color);
+                color: var(--text-primary);
+            }
+
+            .btn-secondary:hover {
+                background: var(--background-color);
+            }
+
+            @media (max-width: 1024px) {
+                .feedback-section {
+                    grid-template-columns: 1fr;
+                    gap: 2rem;
+                }
+            }
+
+            .vulnerability-warning {
+                display: flex;
+                gap: 1rem;
+                padding: 1rem;
+                margin-top: 1rem;
+                background: #fff3cd;
+                border: 1px solid #ffeaa7;
+                border-radius: 0.5rem;
+                color: #856404;
+            }
+
+            [data-theme='dark'] .vulnerability-warning {
+                background: #2d1b04;
+                border-color: #5d4e04;
+                color: #f6ad55;
+            }
+
+            .warning-icon {
+                flex-shrink: 0;
+                width: 24px;
+                height: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .warning-content {
+                flex: 1;
+            }
+
+            .warning-content strong {
+                display: block;
+                margin-bottom: 0.5rem;
+                font-weight: 600;
+            }
+
+            .warning-content p {
+                margin: 0;
+                line-height: 1.5;
+                font-size: 0.9rem;
+            }
+
+            @media (max-width: 768px) {
+                .info-card {
+                    padding: 1rem;
+                }
+
+                .info-icon {
+                    width: 40px;
+                    height: 40px;
+                }
+
+                .info-icon .material-symbols-outlined {
+                    font-size: 1.25rem;
+                }
+
+                .feedback-form-container {
+                    padding: 1.5rem;
+                }
+
+                .form-actions {
+                    flex-direction: column;
+                }
+
+                .vulnerability-warning {
+                    padding: 0.75rem;
+                    gap: 0.75rem;
+                }
+            }
+        </style>
+
+        <script>
+            function getBrowserInfo() {
+                const userAgent = navigator.userAgent;
+                let browserInfo = '';
+
+                if (userAgent.includes('Chrome')) {
+                    const chromeVersion = userAgent.match(/Chrome\/([0-9]+)/);
+                    browserInfo = `Chrome ${chromeVersion ? chromeVersion[1] : 'Unknown'}`;
+                } else if (userAgent.includes('Firefox')) {
+                    const firefoxVersion = userAgent.match(/Firefox\/([0-9]+)/);
+                    browserInfo = `Firefox ${firefoxVersion ? firefoxVersion[1] : 'Unknown'}`;
+                } else if (userAgent.includes('Safari')) {
+                    const safariVersion = userAgent.match(/Version\/([0-9]+)/);
+                    browserInfo = `Safari ${safariVersion ? safariVersion[1] : 'Unknown'}`;
+                } else if (userAgent.includes('Edge')) {
+                    const edgeVersion = userAgent.match(/Edge\/([0-9]+)/);
+                    browserInfo = `Edge ${edgeVersion ? edgeVersion[1] : 'Unknown'}`;
+                } else {
+                    browserInfo = 'Unknown Browser';
+                }
+
+                return `${browserInfo} on ${navigator.platform}`;
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                document.getElementById('browser').value = getBrowserInfo();
+                
+                document.getElementById('type').addEventListener('change', function() {
+                    const vulnerabilityWarning = document.getElementById('vulnerability-warning');
+                    if (this.value === 'vulnerability') {
+                        if (!vulnerabilityWarning) {
+                            const warning = document.createElement('div');
+                            warning.id = 'vulnerability-warning';
+                            warning.className = 'vulnerability-warning';
+                            warning.innerHTML = `
+                                <div class="warning-icon">
+                                    <span class="material-symbols-outlined">warning</span>
+                                </div>
+                                <div class="warning-content">
+                                    <strong>보안 취약점 신고 안내</strong>
+                                    <p>보안 취약점을 발견해주셔서 감사합니다. 취약점 정보는 안전하게 처리되며, 
+                                    수정 완료 후 공개됩니다. 가능한 한 자세한 정보를 제공해주세요.</p>
+                                </div>
+                            `;
+                            this.parentElement.insertAdjacentElement('afterend', warning);
+                        }
+                    } else {
+                        if (vulnerabilityWarning) {
+                            vulnerabilityWarning.remove();
+                        }
+                    }
+                });
+            });
+
+            document.getElementById('feedbackForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const type = document.getElementById('type').value;
+                let message = '피드백이 접수되었습니다. 소중한 의견 감사합니다!';
+                
+                if (type === 'vulnerability') {
+                    message = '취약점 신고가 접수되었습니다. 신고해주셔서 감사합니다!';
+                }
+                
+                alert(message);
+                
+                this.reset();
+                document.getElementById('browser').value = getBrowserInfo();
+                
+                const vulnerabilityWarning = document.getElementById('vulnerability-warning');
+                if (vulnerabilityWarning) {
+                    vulnerabilityWarning.remove();
+                }
+            });
+        </script>
+    </body>
+</html> 

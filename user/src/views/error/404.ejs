@@ -73,6 +73,12 @@
     </style>
 </head>
 <body>
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
     <div class="error-container">
         <div class="icon">🔍</div>
         <h1 class="error-code">404</h1>

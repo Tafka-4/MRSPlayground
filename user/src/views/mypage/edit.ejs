@@ -4,27 +4,79 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>프로필 수정 - 마법연구회</title>
+
         <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
             rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
+
         <link rel="stylesheet" href="/component/style/base.css" />
+        <link rel="stylesheet" href="/component/style/badges.css" />
         <link rel="stylesheet" href="/component/style/buttons.css" />
         <link rel="stylesheet" href="/component/style/modals.css" />
+        <link rel="stylesheet" href="/user/mypage.css" />
         <link rel="stylesheet" href="/user/edit-profile.css" />
     </head>
     <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
         <div id="root">
             <%- include('../partials/header') %>
 
             <main class="main-content">
-                <div class="container">
-                    <div class="edit-header">
-                        <h1 class="title">프로필 수정</h1>
-                        <a href="/mypage" class="back-button">
-                            <span class="material-symbols-outlined">arrow_back</span>
-                            마이페이지로 돌아가기
+                <div class="mobile-profile-header">
+                    <button class="profile-menu-toggle" id="profileMenuToggle">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                    <h2 class="mobile-page-title">프로필 수정</h2>
+                </div>
+
+                <div class="profile-navigation-container" id="profileNavigation">
+                    <div class="profile-nav-header">
+                        <h3>프로필 관리</h3>
+                        <button class="profile-nav-close" id="profileNavClose">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <nav class="profile-nav">
+                        <a href="/mypage" class="profile-nav-item">
+                            <span class="material-symbols-outlined">person</span>
+                            <span>프로필 보기</span>
                         </a>
+                        <a href="/mypage/edit" class="profile-nav-item active">
+                            <span class="material-symbols-outlined">edit</span>
+                            <span>프로필 수정</span>
+                        </a>
+                        <a href="#activity" class="profile-nav-item">
+                            <span class="material-symbols-outlined">history</span>
+                            <span>활동</span>
+                        </a>
+                        <a href="#guestbook" class="profile-nav-item">
+                            <span class="material-symbols-outlined">book</span>
+                            <span>방명록</span>
+                        </a>
+                        <a href="/mypage/edit/password" class="profile-nav-item">
+                            <span class="material-symbols-outlined">lock</span>
+                            <span>비밀번호 변경</span>
+                        </a>
+                        <div class="profile-nav-divider"></div>
+                        <button class="profile-nav-item profile-nav-delete" id="navDeleteAccount">
+                            <span class="material-symbols-outlined">delete_forever</span>
+                            <span>회원 탈퇴</span>
+                        </button>
+                    </nav>
+                </div>
+
+                <div class="profile-nav-overlay" id="profileNavOverlay"></div>
+
+                <div class="container">
+                    <div class="mypage-header">
+                        <h1 class="title">프로필 수정</h1>
+                        <div id="admin-button-container"></div>
                     </div>
 
                     <div class="profile-section">
@@ -32,28 +84,34 @@
                             <div id="profile-image" class="profile-image">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
-                            <div class="profile-image-actions" id="profile-image-actions"></div>
-                            <input
-                                type="file"
-                                id="profile-image-input"
-                                hidden
-                                accept="image/*"
-                            />
+                            <div class="profile-image-actions" id="profile-image-actions">
+                                <input
+                                    type="file"
+                                    id="profile-image-input"
+                                    hidden
+                                    accept="image/*"
+                                />
+                            </div>
                         </div>
 
-                        <div class="profile-form">
+                        <div class="profile-info">
                             <div class="form-inputs" id="profile-form-container"></div>
-                            
-                            <div class="readonly-info">
-                                <h3>읽기 전용 정보</h3>
-                                <div class="info-item">
-                                    <label>가입일</label>
-                                    <div id="created-at" class="info-value">...</div>
-                                </div>
-                                <div class="info-item">
-                                    <label>UID</label>
-                                    <div id="uid" class="info-value">...</div>
-                                </div>
+                        </div>
+                    </div>
+                    <div class="only-read-info">
+                        <div class="readonly-info">
+                            <h3>읽기 전용 정보</h3>
+                            <div class="info-item">
+                                <label>아이디</label>
+                                <div id="user-id" class="info-value">...</div>
+                            </div>
+                            <div class="info-item">
+                                <label>이메일</label>
+                                <div id="user-email" class="info-value">...</div>
+                            </div>
+                            <div class="info-item">
+                                <label>UID</label>
+                                <div id="uid" class="info-value">...</div>
                             </div>
                         </div>
                     </div>
@@ -66,6 +124,6 @@
         <%- include('../partials/footer') %>
 
         <div class="notice-container"></div>
-        <script src="/user/edit-profile.mjs" type="module"></script>
+        <script type="module" src="/user/edit-profile.mjs"></script>
     </body>
 </html>

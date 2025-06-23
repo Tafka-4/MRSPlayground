@@ -246,9 +246,12 @@
 }
 
 .social-link:hover {
-    color: white;
     transform: translateY(-3px) scale(1.05);
     box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+}
+
+.social-link:hover .material-symbols-outlined {
+    color: var(--primary-color);
 }
 
 .social-link .material-symbols-outlined {
@@ -328,8 +331,16 @@
 }
 
 [data-theme='dark'] .social-link:hover {
-    color: white;
+    background: linear-gradient(
+        135deg,
+        rgba(139, 92, 246, 0.2) 0%,
+        rgba(139, 92, 246, 0.1) 100%
+    );
     box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4);
+}
+
+[data-theme='dark'] .social-link:hover .material-symbols-outlined {
+    color: #a855f7;
 }
 
 [data-theme='dark'] .scroll-to-top {

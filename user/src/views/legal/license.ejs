@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>라이선스 - 마법연구회</title>
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+            rel="stylesheet"
+        />
+
+        <link rel="stylesheet" href="/component/style/base.css" />
+        <link rel="stylesheet" href="/component/style/badges.css" />
+        <link rel="stylesheet" href="/component/style/buttons.css" />
+        <link rel="stylesheet" href="/component/style/cards.css" />
+        <link rel="stylesheet" href="/user/mypage.css" />
+    </head>
+    <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
+        <div id="root">
+            <%- include('../partials/header') %>
+
+            <main class="main-content">
+                <div class="container">
+                    <div class="mypage-header">
+                        <h1 class="title">라이선스</h1>
+                    </div>
+
+                    <div class="license-section">
+                        <div class="license-overview">
+                            <div class="overview-card">
+                                <div class="overview-icon">
+                                    <span class="material-symbols-outlined">gavel</span>
+                                </div>
+                                <div class="overview-content">
+                                    <h3>오픈소스 라이선스</h3>
+                                    <p>마법연구회 플랫폼은 오픈소스 소프트웨어입니다. MIT 라이선스 하에 배포되며, 누구나 자유롭게 사용, 수정, 배포할 수 있습니다.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="license-content">
+                            <div class="license-card">
+                                <h3>MIT License</h3>
+                                <div class="license-text">
+                                    <p><strong>Copyright (c) 2025 Tafka</strong></p>
+                                    
+                                    <p>Permission is hereby granted, free of charge, to any person obtaining a copy
+                                    of this software and associated documentation files (the "Software"), to deal
+                                    in the Software without restriction, including without limitation the rights
+                                    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+                                    copies of the Software, and to permit persons to whom the Software is
+                                    furnished to do so, subject to the following conditions:</p>
+
+                                    <p>The above copyright notice and this permission notice shall be included in all
+                                    copies or substantial portions of the Software.</p>
+
+                                    <p><strong>THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+                                    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+                                    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+                                    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+                                    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+                                    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+                                    SOFTWARE.</strong></p>
+                                </div>
+                            </div>
+
+                            <div class="license-card">
+                                <h3>한국어 요약</h3>
+                                <div class="license-summary">
+                                    <div class="permission-section">
+                                        <h4>✅ 허용사항</h4>
+                                        <ul>
+                                            <li><strong>상업적 이용</strong> - 상업적 목적으로 사용 가능</li>
+                                            <li><strong>수정</strong> - 소스코드를 수정하여 사용 가능</li>
+                                            <li><strong>배포</strong> - 소프트웨어를 배포할 수 있음</li>
+                                            <li><strong>사적 이용</strong> - 개인적인 용도로 사용 가능</li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="condition-section">
+                                        <h4>📋 조건사항</h4>
+                                        <ul>
+                                            <li><strong>라이선스 및 저작권 고지 포함</strong> - 소프트웨어의 모든 사본에 라이선스와 저작권 고지를 포함해야 함</li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="limitation-section">
+                                        <h4>❌ 제한사항</h4>
+                                        <ul>
+                                            <li><strong>책임 제한</strong> - 저작자는 소프트웨어와 관련된 어떠한 손해에 대해서도 책임지지 않음</li>
+                                            <li><strong>보증 없음</strong> - 소프트웨어는 "있는 그대로" 제공되며 어떠한 보증도 하지 않음</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="license-card">
+                                <h3>서드파티 라이선스</h3>
+                                <div class="third-party-licenses">
+                                    <div class="dependency-item">
+                                        <h5>Node.js & npm packages</h5>
+                                        <p>다양한 오픈소스 라이브러리를 사용하며, 각각의 라이선스를 준수합니다.</p>
+                                    </div>
+
+                                    <div class="dependency-item">
+                                        <h5>Google Material Symbols</h5>
+                                        <p>Apache License 2.0 하에 제공되는 아이콘을 사용합니다.</p>
+                                    </div>
+
+                                    <div class="dependency-item">
+                                        <h5>ONE-Mobile-POP Font</h5>
+                                        <p>네이버 클라우드 플랫폼에서 제공하는 무료 폰트를 사용합니다.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="license-card">
+                                <h3>소스코드</h3>
+                                <div class="source-info">
+                                    <p>전체 소스코드는 GitHub에서 확인하실 수 있습니다:</p>
+                                    <a href="https://github.com/Tafka-4/MRSPlayground" class="github-link" target="_blank" rel="noopener noreferrer">
+                                        <span class="material-symbols-outlined">code</span>
+                                        <span>GitHub Repository</span>
+                                        <span class="material-symbols-outlined">open_in_new</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="license-card">
+                                <h3>문의사항</h3>
+                                <div class="contact-info">
+                                    <p>라이선스와 관련된 문의사항이 있으시면 언제든지 연락해주세요:</p>
+                                    <div class="contact-links">
+                                        <a href="/contact" class="contact-link">
+                                            <span class="material-symbols-outlined">mail</span>
+                                            <span>문의하기</span>
+                                        </a>
+                                        <a href="https://github.com/Tafka-4/MRSPlayground/issues" class="contact-link" target="_blank" rel="noopener noreferrer">
+                                            <span class="material-symbols-outlined">bug_report</span>
+                                            <span>GitHub Issues</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <%- include('../partials/footer') %>
+
+        <style>
+            .license-section {
+                margin-top: 1rem;
+                display: flex;
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .license-overview {
+                margin-bottom: 1rem;
+            }
+
+            .overview-card {
+                display: flex;
+                gap: 1rem;
+                padding: 2rem;
+                background: linear-gradient(135deg, var(--primary-color) 0%, #667eea 100%);
+                border-radius: 1rem;
+                color: white;
+                box-shadow: var(--shadow);
+            }
+
+            [data-theme='dark'] .overview-card {
+                background: linear-gradient(135deg, #8b5cf6 0%, #667eea 100%);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+
+            .overview-icon {
+                flex-shrink: 0;
+                width: 64px;
+                height: 64px;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 1rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .overview-icon .material-symbols-outlined {
+                font-size: 2rem;
+            }
+
+            .overview-content h3 {
+                margin: 0 0 1rem 0;
+                font-size: 1.5rem;
+                font-weight: 500;
+            }
+
+            .overview-content p {
+                margin: 0;
+                line-height: 1.6;
+                opacity: 0.9;
+            }
+
+            .license-content {
+                display: flex;
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .license-card {
+                background: var(--card-background);
+                border-radius: 1rem;
+                padding: 2rem;
+                box-shadow: var(--shadow);
+                transition: all 0.2s ease;
+            }
+
+            .license-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            }
+
+            [data-theme='dark'] .license-card:hover {
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            }
+
+            .license-card h3 {
+                color: var(--text-primary);
+                font-size: 1.3rem;
+                font-weight: 500;
+                margin: 0 0 1.5rem 0;
+                border-bottom: 2px solid var(--primary-color);
+                padding-bottom: 0.5rem;
+            }
+
+            .license-text {
+                background: var(--background-color);
+                border-radius: 0.5rem;
+                padding: 1.5rem;
+                font-family: 'Courier New', monospace;
+                font-size: 0.9rem;
+                line-height: 1.6;
+                color: var(--text-secondary);
+                border-left: 4px solid var(--primary-color);
+            }
+
+            .license-text p {
+                margin: 0 0 1rem 0;
+            }
+
+            .license-text p:last-child {
+                margin-bottom: 0;
+            }
+
+            .license-summary {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .permission-section h4,
+            .condition-section h4,
+            .limitation-section h4 {
+                color: var(--text-primary);
+                font-size: 1.1rem;
+                font-weight: 500;
+                margin: 0 0 1rem 0;
+            }
+
+            .permission-section h4 {
+                color: #48bb78;
+            }
+
+            .condition-section h4 {
+                color: #4299e1;
+            }
+
+            .limitation-section h4 {
+                color: #f56565;
+            }
+
+            .license-summary ul {
+                margin: 0;
+                padding-left: 1.25rem;
+                color: var(--text-secondary);
+            }
+
+            .license-summary li {
+                margin-bottom: 0.75rem;
+                line-height: 1.5;
+            }
+
+            .third-party-licenses {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .dependency-item {
+                background: var(--background-color);
+                border-radius: 0.5rem;
+                padding: 1rem;
+                border-left: 3px solid var(--primary-color);
+            }
+
+            .dependency-item h5 {
+                color: var(--text-primary);
+                font-size: 1rem;
+                font-weight: 500;
+                margin: 0 0 0.5rem 0;
+            }
+
+            .dependency-item p {
+                color: var(--text-secondary);
+                margin: 0;
+                line-height: 1.5;
+            }
+
+            .github-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                background: var(--primary-color);
+                color: white;
+                text-decoration: none;
+                border-radius: 0.5rem;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                margin-top: 1rem;
+            }
+
+            .github-link:hover {
+                background: var(--primary-hover);
+                transform: translateY(-1px);
+            }
+
+            [data-theme='dark'] .github-link {
+                background: #8b5cf6;
+                color: white;
+            }
+
+            [data-theme='dark'] .github-link:hover {
+                background: #7c3aed;
+            }
+
+            .contact-links {
+                display: flex;
+                gap: 1rem;
+                margin-top: 1rem;
+            }
+
+            .contact-link {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 1rem;
+                background: var(--border-color);
+                color: var(--text-primary);
+                text-decoration: none;
+                border-radius: 0.5rem;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                font-size: 0.9rem;
+            }
+
+            .contact-link:hover {
+                background: var(--background-color);
+                transform: translateY(-1px);
+            }
+
+            @media (max-width: 1024px) {
+                .license-summary {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            @media (max-width: 768px) {
+                .overview-card {
+                    padding: 1.5rem;
+                }
+
+                .overview-icon {
+                    width: 48px;
+                    height: 48px;
+                }
+
+                .overview-icon .material-symbols-outlined {
+                    font-size: 1.5rem;
+                }
+
+                .license-card {
+                    padding: 1.5rem;
+                }
+
+                .license-text {
+                    padding: 1rem;
+                    font-size: 0.8rem;
+                }
+
+                .contact-links {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            }
+        </style>
+    </body>
+</html> 
