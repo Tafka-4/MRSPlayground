@@ -1,0 +1,16 @@
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Deploy to dev-test-master for develop
+        if: github.ref == 'refs/heads/develop'
+        run: |
+          ssh deploy@dev-test-master 'bash /opt/app/deploy.sh'
+
+      - name: Deploy to k8s-master for main
+        if: github.ref == 'refs/heads/main'
+        run: |
+          kubectl --kubeconfig ~/.kube/config apply -f k8s/
