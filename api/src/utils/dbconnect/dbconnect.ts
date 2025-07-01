@@ -11,9 +11,6 @@ const redisConfig: redis.RedisClientOptions = {
 const mongoConfigOptions: mongoose.ConnectOptions = {
     serverSelectionTimeoutMS: 10000,
     socketTimeoutMS: 45000,
-    bufferMaxEntries: 0,
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
 };
 
 const redisClient = redis.createClient(redisConfig);
