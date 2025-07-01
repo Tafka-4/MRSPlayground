@@ -80,6 +80,7 @@ services:
             - REQDB_NAME=${REQDB_NAME}
             - REQDB_PORT=${REQDB_PORT}
             - REDIS_URL=${REDIS_URL}
+            - REDIS_PASSWORD=${REDIS_PASSWORD}
             - JWT_SECRET=${JWT_SECRET}
             - CAT_NAME=${CAT_NAME}
             - EMAIL_USER=${EMAIL_USER}
@@ -207,21 +208,23 @@ services:
         image: redis:7-alpine
         expose:
             - '6379'
+        environment:
+            - REDIS_PASSWORD=${REDIS_PASSWORD}
         volumes:
             - redis_data:/data
-        command: >
-            sh -c "
-            if [ -n '${REDIS_PASSWORD}' ]; then
-                redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
-            else
-                redis-server --appendonly yes
-            fi
-            "
+            - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+            - ./redis/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+        entrypoint: ["/usr/local/bin/docker-entrypoint.sh"]
         restart: unless-stopped
         networks:
             - app-network
         healthcheck:
-            test: ["CMD", "redis-cli", "ping"]
+            test: |
+                if [ -n "$REDIS_PASSWORD" ]; then
+                    redis-cli -a "$REDIS_PASSWORD" ping
+                else
+                    redis-cli ping
+                fi
             interval: 30s
             timeout: 10s
             retries: 3
