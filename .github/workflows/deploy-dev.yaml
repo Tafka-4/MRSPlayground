@@ -18,15 +18,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Sync repo to dev-test via rsync
-        uses: burnett01/rsync-deployments@7.0.2
-        with:
-          switches: -avzr --delete
-          path: ./
-          remote_path: /opt/app/MRSPlayground/
-          remote_host: ${{ secrets.DEV_TEST_HOST }}
-          remote_user: ${{ secrets.DEV_TEST_USER }}
-          remote_key:  ${{ secrets.DEV_TEST_SSH_KEY }}
+      - name: write ssh key
+        run: |
+          echo "${{ secrets.DEV_TEST_SSH_KEY }}" > /tmp/deploy_key
+          chmod 600 /tmp/deploy_key
+
+      - name: Rsync manually
+        uses: appleboy/ssh-action@v1.0.0
+        run: |
+          rsync -avzr --delete -e "ssh -i /tmp/deploy_key deploy@${{ secrets.DEV_TEST_HOST }}" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
+
+      - name: Remove ssh key
+        run: rm /tmp/deploy_key
 
       - name: Create .env file
         run: echo "${{ secrets.ENV_FILE_DEV }}" > .env
