@@ -24,7 +24,6 @@ jobs:
           chmod 600 /tmp/deploy_key
 
       - name: Rsync manually
-        uses: appleboy/ssh-action@v1.0.0
         run: |
           rsync -avzr --delete -e "ssh -i /tmp/deploy_key deploy@${{ secrets.DEV_TEST_HOST }}" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
 
