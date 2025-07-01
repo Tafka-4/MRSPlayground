@@ -1,283 +1,283 @@
 services:
-    # Nginx Reverse Proxy
-    nginx:
-        image: nginx:alpine
-        ports:
-            - '80:80'
-            - '443:443'
-        volumes:
-            - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-            - ./nginx/logs:/var/log/nginx
-        depends_on:
-            api:
-                condition: service_started
-            user-service:
-                condition: service_healthy
-            user:
-                condition: service_started
-        restart: unless-stopped
-        networks:
-            - app-network
-        healthcheck:
-            test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health", "||", "exit", "1"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 30s
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/logs:/var/log/nginx
+    depends_on:
+      api:
+        condition: service_started
+      user-service:
+        condition: service_healthy
+      user:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
-    # API Gateway / Main API Service
-    api:
-        build:
-            context: ./api
-            dockerfile: Dockerfile
-        expose:
-            - '5000'
-        environment:
-            - NODE_ENV=${NODE_ENV}
-            - USER_SERVICE_URL=${USER_SERVICE_URL}
-            - JWT_SECRET=${JWT_SECRET}
-            - MONGO_URI=${MONGO_URI}
-            - MONGO_USER=${MONGO_USER}
-            - MONGO_PW=${MONGO_PW}
-            - REDIS_URL=${REDIS_URL}
-            - REDIS_PASSWORD=${REDIS_PASSWORD}
-        depends_on:
-            user-service:
-                condition: service_healthy
-            redis:
-                condition: service_healthy
-            mongodb:
-                condition: service_healthy
-        restart: unless-stopped
-        networks:
-            - app-network
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:5000/health", "||", "exit", "1"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 60s
+  # API Gateway / Main API Service
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    expose:
+      - '5000'
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PW=${MONGO_PW}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      user-service:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-    # User & Auth Microservice
-    user-service:
-        build:
-            context: ./user-service
-            dockerfile: Dockerfile
-        expose:
-            - '3001'
-        volumes:
-            - user_uploads:/app/uploads
-        environment:
-            - NODE_ENV=${NODE_ENV}
-            - DB_HOST=${DB_HOST}
-            - DB_USER=${DB_USER}
-            - DB_PASSWORD=${DB_PASSWORD}
-            - DB_NAME=${DB_NAME}
-            - DB_PORT=${DB_PORT}
-            - REQDB_HOST=${REQDB_HOST}
-            - REQDB_USER=${REQDB_USER}
-            - REQDB_PASSWORD=${REQDB_PASSWORD}
-            - REQDB_NAME=${REQDB_NAME}
-            - REQDB_PORT=${REQDB_PORT}
-            - REDIS_URL=${REDIS_URL}
-            - REDIS_PASSWORD=${REDIS_PASSWORD}
-            - JWT_SECRET=${JWT_SECRET}
-            - CAT_NAME=${CAT_NAME}
-            - EMAIL_USER=${EMAIL_USER}
-            - EMAIL_PASS=${EMAIL_PASS}
-            - BOT_ID=${BOT_ID}
-            - BOT_PW=${BOT_PW}
-            - BOT_EMAIL=${BOT_EMAIL}
-        depends_on:
-            userdb:
-                condition: service_healthy
-            requestdb:
-                condition: service_healthy
-            redis:
-                condition: service_healthy
-        restart: unless-stopped
-        networks:
-            - app-network
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:3001/health", "||", "exit", "1"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 60s
+  # User & Auth Microservice
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    expose:
+      - '3001'
+    volumes:
+      - user_uploads:/app/uploads
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - DB_HOST=${DB_HOST}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+      - DB_PORT=${DB_PORT}
+      - REQDB_HOST=${REQDB_HOST}
+      - REQDB_USER=${REQDB_USER}
+      - REQDB_PASSWORD=${REQDB_PASSWORD}
+      - REQDB_NAME=${REQDB_NAME}
+      - REQDB_PORT=${REQDB_PORT}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - CAT_NAME=${CAT_NAME}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASS=${EMAIL_PASS}
+      - BOT_ID=${BOT_ID}
+      - BOT_PW=${BOT_PW}
+      - BOT_EMAIL=${BOT_EMAIL}
+    depends_on:
+      userdb:
+        condition: service_healthy
+      requestdb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
-    # Frontend Service
-    user:
-        build:
-            context: ./user
-            dockerfile: Dockerfile
-        expose:
-            - '3000'
-        volumes:
-            - ./user/src:/app/src
-            - ./user/package.json:/app/package.json
-            - ./user/package-lock.json:/app/package-lock.json
-            - ./user/tsconfig.json:/app/tsconfig.json
-            - /app/node_modules
-        environment:
-            - NODE_ENV=${NODE_ENV}
-            - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
-        restart: unless-stopped
-        networks:
-            - app-network
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:3000/health", "||", "exit", "1"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 45s
+  # Frontend Service
+  user:
+    build:
+      context: ./user
+      dockerfile: Dockerfile
+    expose:
+      - '3000'
+    volumes:
+      - ./user/src:/app/src
+      - ./user/package.json:/app/package.json
+      - ./user/package-lock.json:/app/package-lock.json
+      - ./user/tsconfig.json:/app/tsconfig.json
+      - /app/node_modules
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health", "||", "exit", "1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 45s
 
-    # MySQL Database for User Service
-    userdb:
-        image: mysql:8.0
-        environment:
-            - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-            - MYSQL_DATABASE=${DB_NAME}
-        expose:
-            - '3306'
-        volumes:
-            - userdb_data:/var/lib/mysql
-            - ./userdb/init:/docker-entrypoint-initdb.d
-        healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
-            timeout: 20s
-            retries: 10
-            interval: 10s
-            start_period: 40s
-        restart: unless-stopped
-        networks:
-            - app-network
+  # MySQL Database for User Service
+  userdb:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+    expose:
+      - '3306'
+    volumes:
+      - userdb_data:/var/lib/mysql
+      - ./userdb/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+      timeout: 30s    # Increased timeout
+      retries: 15     # Increased retries
+      interval: 10s
+      start_period: 60s # Increased start_period
+    restart: unless-stopped
+    networks:
+      - app-network
 
-    # Discord Bot Service
-    bot:
-        build:
-            context: ./bot
-            dockerfile: Dockerfile
-        environment:
-            - NODE_ENV=${NODE_ENV}
-            - USER_SERVICE_URL=${USER_SERVICE_URL}
-            - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
-            - DISCORD_BOT_CLIENT_ID=${DISCORD_BOT_CLIENT_ID}
-            - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
-            - BOT_ID=${BOT_ID}
-            - BOT_EMAIL=${BOT_EMAIL}
-            - BOT_PW=${BOT_PW}
-            - BOT_NICKNAME=${BOT_NICKNAME}
-        depends_on:
-            user-service:
-                condition: service_healthy
-        restart: unless-stopped
-        networks:
-            - app-network
-        healthcheck:
-            test: ["CMD", "node", "-e", "process.exit(0)"]
-            interval: 60s
-            timeout: 10s
-            retries: 3
-            start_period: 30s
+  # Discord Bot Service
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_BOT_CLIENT_ID=${DISCORD_BOT_CLIENT_ID}
+      - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
+      - BOT_ID=${BOT_ID}
+      - BOT_EMAIL=${BOT_EMAIL}
+      - BOT_PW=${BOT_PW}
+      - BOT_NICKNAME=${BOT_NICKNAME}
+    depends_on:
+      user-service:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "process.exit(0)"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
-    # MySQL Database for Request Tracking
-    requestdb:
-        image: mysql:8.0
-        environment:
-            - MYSQL_ROOT_PASSWORD=${REQDB_PASSWORD}
-            - MYSQL_DATABASE=${REQDB_NAME}
-            - MYSQL_USER=${REQDB_USER}
-            - MYSQL_PASSWORD=${REQDB_PASSWORD}
-        expose:
-            - '3306'
-        volumes:
-            - requestdb_data:/var/lib/mysql
-            - ./requestdb/init:/docker-entrypoint-initdb.d:ro
-        healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${REQDB_PASSWORD}"]
-            timeout: 20s
-            retries: 10
-            interval: 10s
-            start_period: 40s
-        restart: unless-stopped
-        networks:
-            - app-network
+  # MySQL Database for Request Tracking
+  requestdb:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${REQDB_PASSWORD}
+      - MYSQL_DATABASE=${REQDB_NAME}
+      - MYSQL_USER=${REQDB_USER}
+      - MYSQL_PASSWORD=${REQDB_PASSWORD}
+    expose:
+      - '3306'
+    volumes:
+      - requestdb_data:/var/lib/mysql
+      - ./requestdb/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${REQDB_PASSWORD}"]
+      timeout: 30s    # Increased timeout
+      retries: 15     # Increased retries
+      interval: 10s
+      start_period: 60s # Increased start_period
+    restart: unless-stopped
+    networks:
+      - app-network
 
-    # Redis for Session Management
-    redis:
-        image: redis:7-alpine
-        expose:
-            - '6379'
-        environment:
-            - REDIS_PASSWORD=${REDIS_PASSWORD}
-        volumes:
-            - redis_data:/data
-            - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-            - ./redis/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
-        entrypoint: ["/usr/local/bin/docker-entrypoint.sh"]
-        restart: unless-stopped
-        networks:
-            - app-network
-        healthcheck:
-            test: |
-                if [ -n "$REDIS_PASSWORD" ]; then
-                    redis-cli -a "$REDIS_PASSWORD" ping
-                else
-                    redis-cli ping
-                fi
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 30s
+  # Redis for Session Management
+  redis:
+    image: redis:7-alpine
+    expose:
+      - '6379'
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+    entrypoint: ["/usr/local/bin/docker-entrypoint.sh"]
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: |
+        if [ -n "$REDIS_PASSWORD" ]; then
+          redis-cli -a "$REDIS_PASSWORD" ping
+        else
+          redis-cli ping
+        fi
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
-    # MongoDB for Content Storage
-    mongodb:
-        image: mongo:4.4
-        environment:
-            - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
-            - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PW}
-        expose:
-            - '27017'
-        volumes:
-            - mongodb_data:/data/db
-            - mongodb_config:/data/configdb
-        restart: unless-stopped
-        networks:
-            - app-network
-        healthcheck:
-            test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 40s
+  # MongoDB for Content Storage
+  mongodb:
+    image: mongo:4.4
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PW}
+    expose:
+      - '27017'
+    volumes:
+      - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
-    # Cloudflare Tunnel
-    cloudflared:
-        image: cloudflare/cloudflared:latest
-        restart: unless-stopped
-        command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
-        depends_on:
-            nginx:
-                condition: service_healthy
-        networks:
-            - app-network
-        profiles:
-            - production
+  # Cloudflare Tunnel
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
+    depends_on:
+      nginx:
+        condition: service_healthy
+    networks:
+      - app-network
+    profiles:
+      - production
 
 volumes:
-    userdb_data:
-        driver: local
-    requestdb_data:
-        driver: local
-    redis_data:
-        driver: local
-    mongodb_data:
-        driver: local
-    mongodb_config:
-        driver: local
-    user_uploads:
-        driver: local
+  userdb_data:
+    driver: local
+  requestdb_data:
+    driver: local
+  redis_data:
+    driver: local
+  mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
+  user_uploads:
+    driver: local
 
 networks:
-    app-network:
-        driver: bridge
+  app-network:
+    driver: bridge
