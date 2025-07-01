@@ -28,7 +28,7 @@ jobs:
 
       - name: Rsync manually
         run: |
-          rsync -avz --delete -e "ssh -i /tmp/key" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
+          sudo rsync -avz --delete -e "ssh -i /tmp/key" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
 
       - name: Run deploy.sh remotely
         run: |
