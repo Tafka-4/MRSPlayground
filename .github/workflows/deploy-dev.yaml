@@ -35,4 +35,4 @@ jobs:
           ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "cd /opt/app/MRSPlayground && sudo ./deploy.sh"
 
       - name: Remove ssh key
-        run: rm /tmp/key
+        run: rm /tmp/key && rm /opt/app/MRSPlayground/.env
