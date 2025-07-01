@@ -10,6 +10,7 @@ cp /usr/local/etc/redis/redis.conf /tmp/redis.conf
 
 # Set password if REDIS_PASSWORD is provided
 if [ -n "$REDIS_PASSWORD" ]; then
+    echo "" >> /tmp/redis.conf
     echo "requirepass $REDIS_PASSWORD" >> /tmp/redis.conf
     echo "Redis password protection enabled"
 else
