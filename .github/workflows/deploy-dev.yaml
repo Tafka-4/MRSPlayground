@@ -40,5 +40,4 @@ jobs:
           username: ${{ secrets.DEV_TEST_USER }}
           key: ${{ secrets.DEV_TEST_SSH_KEY }}
           script: |
-            cd /opt/app/MRSPlayground
-            sudo ./deploy.sh
+            sudo /opt/app/MRSPlayground/deploy.sh
