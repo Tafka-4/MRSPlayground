@@ -19,7 +19,10 @@ export const getUser: RequestHandler = async (req: Request, res: Response) => {
     if (!user) {
         throw new UserNotFoundError('User not found');
     }
-    res.status(200).json(user.toJSON());
+    res.status(200).json({
+        success: true,
+        user: user.toJSON()
+    });
 };
 
 export const getUserList: RequestHandler = async (
@@ -48,7 +51,10 @@ export const getUserList: RequestHandler = async (
     console.log('Final searchQuery:', searchQuery);
 
     const users = await User.find(searchQuery, limitNumber);
-    res.status(200).json(users.map((user) => user.toJSON()));
+    res.status(200).json({
+        success: true,
+        users: users.map((user) => user.toJSON())
+    });
 };
 
 // login required
@@ -69,7 +75,10 @@ export const updateUser: RequestHandler = async (
     if (user.userid !== currentUser?.userid) {
         throw new UserForbiddenError('You are not allowed to update this user');
     }
-    res.status(200).json(user.toJSON());
+    res.status(200).json({
+        success: true,
+        user: user.toJSON()
+    });
 };
 
 // login required
@@ -92,6 +101,7 @@ export const uploadUserProfileImage: RequestHandler = async (
 
     await user.uploadProfileImage(req.file);
     res.status(200).json({
+        success: true,
         message: 'Profile image updated successfully',
         profileImage: user.profileImage
     });
@@ -116,7 +126,10 @@ export const deleteUserProfileImage: RequestHandler = async (
     }
 
     await user.deleteProfileImage();
-    res.status(200).json({ message: 'Profile image deleted successfully' });
+    res.status(200).json({
+        success: true,
+        message: 'Profile image deleted successfully'
+    });
 };
 
 // login required
@@ -145,7 +158,10 @@ export const deleteUser: RequestHandler = async (
         path: '/'
     });
 
-    res.status(200).json({ message: 'User deleted successfully' });
+    res.status(200).json({
+        success: true,
+        message: 'User deleted successfully'
+    });
 };
 
 // login required

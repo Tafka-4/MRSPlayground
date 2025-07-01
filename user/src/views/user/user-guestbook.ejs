@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>방명록 - 마법연구회</title>
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+            rel="stylesheet"
+        />
+
+        <link rel="stylesheet" href="/component/style/base.css" />
+        <link rel="stylesheet" href="/component/style/badges.css" />
+        <link rel="stylesheet" href="/component/style/buttons.css" />
+        <link rel="stylesheet" href="/component/style/modals.css" />
+        <link rel="stylesheet" href="/component/style/cards.css" />
+        <link rel="stylesheet" href="/user/user-profile.css" />
+        <link rel="stylesheet" href="/user/user-guestbook.css" />
+    </head>
+    <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
+        <div id="root">
+            <%- include('../partials/header') %>
+
+            <main class="main-content">
+                <div class="mobile-profile-header">
+                    <button class="profile-menu-toggle" id="profileMenuToggle">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                    <h2 class="mobile-page-title" id="mobile-title">방명록</h2>
+                </div>
+
+                <div class="profile-navigation-container" id="profileNavigation">
+                    <div class="profile-nav-header">
+                        <h3>사용자 메뉴</h3>
+                        <button class="profile-nav-close" id="profileNavClose">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <nav class="profile-nav">
+                        <a href="#" class="profile-nav-item" id="profile-nav-link">
+                            <span class="material-symbols-outlined">person</span>
+                            <span>프로필</span>
+                        </a>
+                        <a href="#" class="profile-nav-item" id="activity-nav-link">
+                            <span class="material-symbols-outlined">history</span>
+                            <span>활동</span>
+                        </a>
+                        <a href="#" class="profile-nav-item active" id="guestbook-nav-link">
+                            <span class="material-symbols-outlined">book</span>
+                            <span>방명록</span>
+                        </a>
+                    </nav>
+                </div>
+
+                <div class="profile-nav-overlay" id="profileNavOverlay"></div>
+
+                <div class="container">
+                    <div id="loading" class="loading">프로필을 불러오는 중...</div>
+
+                    <div
+                        id="error-container"
+                        class="error-container"
+                        style="display: none"
+                    >
+                        <div class="error-message" id="error-message">
+                            사용자를 찾을 수 없습니다.
+                        </div>
+                    </div>
+
+                    <div id="profile-container" style="display: none">
+                        <div class="tab-header">
+                            <h2 class="tab-title">
+                                <span class="material-symbols-outlined">book</span>
+                                <span id="user-nickname">사용자</span>님의 방명록
+                            </h2>
+                        </div>
+                        <div class="guestbook-content">
+                            <div class="guestbook-form">
+                                <textarea
+                                    id="guestbook-message"
+                                    placeholder="방명록을 남겨주세요..."
+                                    rows="4"
+                                    maxlength="150"
+                                ></textarea>
+                                <div class="guestbook-form-footer">
+                                    <div class="char-counter" id="guestbook-char-counter">0/150</div>
+                                    <button class="btn btn-primary" id="submit-guestbook">
+                                        <span class="material-symbols-outlined">send</span>
+                                        방명록 남기기
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="guestbook-list" id="guestbook-list">
+                                <div class="empty-state">
+                                    <span class="material-symbols-outlined">book</span>
+                                    <p>아직 방명록이 없습니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <%- include('../partials/footer') %>
+
+        <div class="notice-container"></div>
+        <script type="module" src="/user/user-guestbook.mjs"></script>
+    </body>
+</html> 

@@ -5,345 +5,330 @@ import Episode from "../model/episodeModel.js";
 import Novel from "../model/novelModel.js";
 import Post from "../model/postModel.js";
 import Gallery from "../model/galleryModel.js";
+import postError from "../utils/error/postError.js";
+import episodeError from "../utils/error/episodeError.js";
+import galleryError from "../utils/error/galleryError.js";
+import novelError from "../utils/error/novelError.js";
 
 // login required
 export const createComment = async (req: Request, res: Response) => {
-    const { content, commentType, commentTypeRefId, parentCommentId, tempPassword, isHidden } = req.body;
+    const { galleryId, novelId, targetId, targetType, content, parentId, isHidden, tempPassword } = req.body;
+    const userid = req.user?.userid;
+    const ip = req.ip;
+    const userAgent = req.headers["user-agent"];
 
-    if (!content || !commentType || !commentTypeRefId) {
-        throw new commentError.CommentError("Invalid comment: Missing required fields");
+    if (galleryId && novelId) throw new commentError.CommentError("Cannot have both galleryId and novelId");
+    if (!galleryId && !novelId) throw new commentError.CommentError("Must have either galleryId or novelId");
+
+    if (galleryId) await findGalleryById(galleryId);
+    if (novelId) await findNovelById(novelId);
+
+    await findTargetById(targetId, targetType);
+
+    if (typeof isHidden !== "boolean") {
+        throw new commentError.CommentError("Invalid isHidden type");
+    }
+    if (isHidden && !tempPassword) {
+        throw new commentError.CommentError("Temporary password is required for hidden comments");
+    }
+    if (tempPassword && !/^[a-zA-Z0-9]{8,}$/.test(tempPassword)) {
+        throw new commentError.CommentError("Invalid temporary password format (must be at least 8 alphanumeric characters)");
+    }
+    if (!isHidden && tempPassword) {
+        throw new commentError.CommentError("Temporary password is not allowed for public comments");
     }
 
-    switch (commentType) {
-        case "episode":
-            const episode = await Episode.findOne({ episodeId: commentTypeRefId });
-            if (!episode) {
-                throw new commentError.CommentNotFoundError("Invalid comment: Episode not found");
-            }
-            break;
-        case "novel":
-            const novel = await Novel.findOne({ novelId: commentTypeRefId });
-            if (!novel) {
-                throw new commentError.CommentNotFoundError("Invalid comment: Novel not found");
-            }
-            break;
-        case "post":
-            const post = await Post.findOne({ postId: commentTypeRefId });
-            if (!post) {
-                throw new commentError.CommentNotFoundError("Invalid comment: Post not found");
-            }
-            const gallery = await Gallery.findOne({ galleryId: post.galleryId });
-            if (!gallery) {
-                throw new commentError.CommentNotFoundError("Invalid comment: Gallery not found");
-            }
-            const blockUsers = await gallery.getGalleryBlockUsers();
-            const blockIPs = await gallery.getGalleryBlockIPs();
-            if (blockUsers.includes(req.user?.userid as string) || blockIPs.includes(req.ip as string)) {
-                throw new commentError.CommentInteractionFailedError("You are blocked from commenting on this post");
-            }
-            break;
-        default:
-            throw new commentError.CommentError("Invalid comment Type");
-    }
-    
-    let author;
-    let comment;
+    const commentData = {
+        galleryId,
+        novelId,
+        commentTargetId: targetId,
+        commentTargetType: targetType,
+        commentParentId: parentId,
+        content,
+        isHidden,
+        author: isHidden ? `익명(${ip?.split(".").slice(0, 1).join(".")})` : userid,
+        clientInfo: { ip, userAgent },
+        ...(isHidden && { tempPassword }),
+    };
 
-    if (isHidden) {
-        author = `익명(${req.ip?.split(".").slice(0, 1).join(".")})`;
-        if (!tempPassword) {
-            throw new commentError.CommentError("Invalid comment: Temp password is required");
-        }
-    }
-    if (parentCommentId) {
-        const parentComment = await Comment.findOne({ commentId: parentCommentId });
-        comment = await Comment.create({ content, commentType, commentTypeRefId, author: author, parentCommentId, tempPassword, isHidden, clientInfo: { ip: req.ip, userAgent: req.headers["user-agent"] } });
-        if (!parentComment) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Parent comment not found");
-        }
-        await parentComment.addChildComment(comment.commentId);
-    } else {
-        comment = await Comment.create({ content, commentType, commentTypeRefId, author: author, tempPassword, isHidden, clientInfo: { ip: req.ip, userAgent: req.headers["user-agent"] } });
-    }
-    res.status(201).json(comment);
+    const comment = new Comment(commentData);
+    const savedComment = await saveAndReturnComment(comment);
+
+    res.status(201).json({
+        success: true,
+        comment: savedComment
+    });
 };
 
 // login required
 export const getComments = async (req: Request, res: Response) => {
-    const { commentType, commentTypeRefId, limit, page, sort } = req.query;
-    const limitNumber = parseInt(limit as string) || 10;
-    const pageNumber = parseInt(page as string) || 1;
-    const sortType = sort as "asc" | "desc" | "likes" | "childComments" || "desc";
-    if (!commentType || !commentTypeRefId) {
-        throw new commentError.CommentError("Invalid comment: Missing required fields");
-    }
+    const { galleryId, novelId, targetId, targetType } = req.params;
+    const { page, limit } = req.query;
 
-    let sortOptions: any = {};
-    switch (sortType) {
-        case "asc":
-            sortOptions.createdAt = 1;
-            break;
-        case "likes":
-            sortOptions.likes = -1;
-            break;
-        case "childComments":
-            sortOptions.childCommentCount = -1;
-            break;
-        case "desc":
-        default:
-            sortOptions.createdAt = -1;
-            break;
-    }
+    if (galleryId && galleryId !== "undefined") await findGalleryById(galleryId);
+    if (novelId && novelId !== "undefined") await findNovelById(novelId);
 
-    if (commentType === "post") {
-        const post = await Post.findOne({ postId: commentTypeRefId });
-        if (!post) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Post not found");
-        }
-        const gallery = await Gallery.findOne({ galleryId: post.galleryId });
-        if (!gallery) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Gallery not found");
-        }
-        const blockUsers = await gallery.getGalleryBlockUsers();
-        const blockIPs = await gallery.getGalleryBlockIPs();
-        if (blockUsers.includes(req.user?.userid as string) || blockIPs.includes(req.ip as string)) {
-            throw new commentError.CommentInteractionFailedError("You are blocked from commenting on this post");
-        }
-    }
+    await findTargetById(targetId, targetType);
 
-    const query = { commentType, commentTypeRefId, parentCommentId: null };
+    let query: any = {
+        commentTargetId: targetId,
+        commentTargetType: targetType,
+    };
+
+    if (galleryId && galleryId !== "undefined") {
+        query.galleryId = galleryId;
+    }
+    if (novelId && novelId !== "undefined") {
+        query.novelId = novelId;
+    }
 
     const comments = await Comment.find(query)
-        .sort(sortOptions)
-        .limit(limitNumber)
-        .skip((pageNumber - 1) * limitNumber);
-
-    const totalComments = await Comment.countDocuments(query);
+        .populate("commentTargetId")
+        .populate("commentParentId")
+        .skip((Number(page) - 1) * Number(limit))
+        .limit(Number(limit))
+        .exec();
 
     res.status(200).json({
-        comments,
-        totalPages: Math.ceil(totalComments / limitNumber),
-        currentPage: pageNumber,
+        success: true,
+        comments
     });
 };
 
 // login required
 export const getComment = async (req: Request, res: Response) => {
     const { commentId } = req.params;
-    const comment = await Comment.findOne({ commentId });
-    if (!comment) {
-        throw new commentError.CommentError("Comment not found");
-    }
-    res.status(200).json(comment);
+    const comment = await Comment.findOne({ commentId }).populate("commentTargetId").populate("commentParentId").exec();
+    if (!comment) throw new commentError.CommentNotFoundError("Comment not found");
+    res.status(200).json({
+        success: true,
+        comment
+    });
 };
 
 // login required
 export const updateComment = async (req: Request, res: Response) => {
-    const { commentId } = req.params;
+    const { commentId, tempPassword } = req.params;
     const { content } = req.body;
+    const userid = req.user?.userid;
     const comment = await Comment.findOne({ commentId });
-    
-    if (!comment) {
-        throw new commentError.CommentError("Comment not found");
+    if (!comment) throw new commentError.CommentNotFoundError("Comment not found");
+    if (comment.author !== userid) {
+        throw new commentError.CommentNotAuthorError("Comment not authorized");
     }
-    
-    if (comment.commentType === "post") {
-        const post = await Post.findOne({ postId: comment.commentTypeRefId });
-        if (!post) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Post not found");
-        }
-        const gallery = await Gallery.findOne({ galleryId: post.galleryId });
-        if (!gallery) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Gallery not found");
-        }
-        const blockUsers = await gallery.getGalleryBlockUsers();
-        const blockIPs = await gallery.getGalleryBlockIPs();
-        if (blockUsers.includes(req.user?.userid as string) || blockIPs.includes(req.ip as string)) {
-            throw new commentError.CommentInteractionFailedError("You are blocked from commenting on this post");
-        }
+    if (comment.isHidden && comment.tempPassword !== tempPassword) {
+        throw new commentError.CommentError("Invalid temp password");
     }
-    if (comment.isHidden) {
-        const { tempPassword } = req.body;
-        if (!tempPassword || tempPassword !== comment.tempPassword) {
-            throw new commentError.CommentError("Invalid password for hidden comment");
-        }
-    } else {
-        if (comment.author !== req.user?.userid) {
-            throw new commentError.CommentError("You are not authorized to update this comment");
-        }
+
+    if (comment.isDeleted) {
+        throw new commentError.CommentError("Cannot update deleted comment");
     }
-    
+
+    const hasReplies = await Comment.findOne({
+        commentParentId: commentId,
+        isDeleted: false,
+    });
+
+    if (hasReplies) {
+        throw new commentError.CommentError("Cannot update comment with replies");
+    }
+
     comment.content = content;
     await comment.save();
-    
-    res.status(200).json({ message: "Comment updated successfully" });
+    res.status(200).json({
+        success: true,
+        message: "Comment updated successfully"
+    });
 };
 
 // login required
 export const deleteComment = async (req: Request, res: Response) => {
-    const { commentId } = req.params;
+    const { commentId, tempPassword } = req.params;
+    const userid = req.user?.userid;
     const comment = await Comment.findOne({ commentId });
-    
-    if (!comment) {
-        throw new commentError.CommentError("Comment not found");
+    if (!comment) throw new commentError.CommentNotFoundError("Comment not found");
+
+    let isGalleryManager = false;
+    if (comment.galleryId) {
+        const gallery = await Gallery.findOne({ galleryId: comment.galleryId });
+        if (
+            gallery &&
+            (gallery.galleryAdmin === userid || gallery.galleryManager.includes(userid as string))
+        ) {
+            isGalleryManager = true;
+        }
     }
 
-    if (comment.commentType === "post") {
-        const post = await Post.findOne({ postId: comment.commentTypeRefId });
-        if (!post) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Post not found");
-        }
-        const gallery = await Gallery.findOne({ galleryId: post.galleryId });
-        if (!gallery) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Gallery not found");
-        }
-        const blockUsers = await gallery.getGalleryBlockUsers();
-        const blockIPs = await gallery.getGalleryBlockIPs();
-        if (blockUsers.includes(req.user?.userid as string) || blockIPs.includes(req.ip as string)) {
-            throw new commentError.CommentInteractionFailedError("You are blocked from commenting on this post");
+    let isNovelAuthor = false;
+    if (comment.novelId) {
+        const novel = await Novel.findOne({ novelId: comment.novelId });
+        if (novel && novel.author === userid) {
+            isNovelAuthor = true;
         }
     }
-    
-    if (comment.isHidden) {
-        const { tempPassword } = req.body;
-        if (!tempPassword || tempPassword !== comment.tempPassword) {
-            throw new commentError.CommentError("Invalid password for hidden comment");
-        }
-    } else {
-        if (comment.author !== req.user?.userid) {
-            throw new commentError.CommentError("You are not authorized to delete this comment");
-        }
+
+    if (isGalleryManager || isNovelAuthor) {
+        await Comment.deleteOne({ commentId });
+        return res.status(200).json({
+            success: true,
+            message: "Comment deleted successfully"
+        });
     }
-    
-    // 자식 댓글이 있는 경우, 댓글을 삭제하지 않고 내용만 변경
-    if (comment.childComments && comment.childComments.length > 0) {
+
+    if (comment.author !== userid) {
+        throw new commentError.CommentNotAuthorError("Comment not authorized");
+    }
+    if (comment.isHidden && comment.tempPassword !== tempPassword) {
+        throw new commentError.CommentError("Invalid temp password");
+    }
+
+    const hasReplies = await Comment.findOne({
+        commentParentId: commentId,
+        isDeleted: false,
+    });
+
+    if (hasReplies) {
         comment.content = "삭제된 댓글입니다.";
+        comment.isDeleted = true;
         await comment.save();
-        return res.status(200).json({ message: "Comment content updated due to existing replies" });
+        return res.status(200).json({
+            success: true,
+            message: "Comment content updated due to existing replies"
+        });
     }
-    
-    // 부모 댓글이 있는 경우, 부모 댓글에서 이 댓글 참조 제거
-    if (comment.parentCommentId) {
-        const parentComment = await Comment.findOne({ commentId: comment.parentCommentId });
-        if (parentComment) {
-            await parentComment.removeChildComment(commentId);
-        }
-    }
-    
-    await comment.deleteOne();
-    res.status(200).json({ message: "Comment deleted successfully" });
+
+    await Comment.deleteOne({ commentId });
+    res.status(200).json({
+        success: true,
+        message: "Comment deleted successfully"
+    });
 };
 
 // login required
 export const likeComment = async (req: Request, res: Response) => {
     const { commentId } = req.params;
+    const userid = req.user?.userid;
     const comment = await Comment.findOne({ commentId });
-    if (!comment) {
-        throw new commentError.CommentError("Comment not found");
-    }
-
-    if (comment.commentType === "post") {
-        const post = await Post.findOne({ postId: comment.commentTypeRefId });
-        if (!post) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Post not found");
-        }
-        const gallery = await Gallery.findOne({ galleryId: post.galleryId });
-        if (!gallery) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Gallery not found");
-        }
-        const blockUsers = await gallery.getGalleryBlockUsers();
-        const blockIPs = await gallery.getGalleryBlockIPs();
-        if (blockUsers.includes(req.user?.userid as string) || blockIPs.includes(req.ip as string)) {
-            throw new commentError.CommentInteractionFailedError("You are blocked from commenting on this post");
-        }
-    }
-    
-    await comment.like(req.user?.userid as string);
-    await comment.save();
-    
-    res.status(200).json({ message: "Comment liked successfully" });
+    if (!comment) throw new commentError.CommentNotFoundError("Comment not found");
+    await comment.like(userid as string);
+    res.status(200).json({
+        success: true,
+        message: "Comment liked successfully"
+    });
 };
 
 // login required
 export const dislikeComment = async (req: Request, res: Response) => {
     const { commentId } = req.params;
+    const userid = req.user?.userid;
     const comment = await Comment.findOne({ commentId });
-    if (!comment) {
-        throw new commentError.CommentError("Comment not found");
+    if (!comment) throw new commentError.CommentNotFoundError("Comment not found");
+    await comment.dislike(userid as string);
+    res.status(200).json({
+        success: true,
+        message: "Comment disliked successfully"
+    });
+};
+
+export const getCommentsWithPagination = async (req: Request, res: Response) => {
+    const { galleryId, novelId, targetId, targetType } = req.params;
+    const { page = 1, limit = 10, sort = "latest" } = req.query;
+
+    if (galleryId && galleryId !== "undefined") await findGalleryById(galleryId);
+    if (novelId && novelId !== "undefined") await findNovelById(novelId);
+
+    await findTargetById(targetId, targetType);
+
+    let query: any = {
+        commentTargetId: targetId,
+        commentTargetType: targetType,
+        isDeleted: false,
+    };
+
+    if (galleryId && galleryId !== "undefined") {
+        query.galleryId = galleryId;
     }
-    if (comment.commentType === "post") {
-        const post = await Post.findOne({ postId: comment.commentTypeRefId });
-        if (!post) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Post not found");
-        }
-        const gallery = await Gallery.findOne({ galleryId: post.galleryId });
-        if (!gallery) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Gallery not found");
-        }
-        const blockUsers = await gallery.getGalleryBlockUsers();
-        const blockIPs = await gallery.getGalleryBlockIPs();
-        if (blockUsers.includes(req.user?.userid as string) || blockIPs.includes(req.ip as string)) {
-            throw new commentError.CommentInteractionFailedError("You are blocked from commenting on this post");
-        }
+    if (novelId && novelId !== "undefined") {
+        query.novelId = novelId;
     }
-    await comment.dislike(req.user?.userid as string);
-    await comment.save();
-    
-    res.status(200).json({ message: "Comment disliked successfully" });
+
+    let sortOption: any = {};
+    switch (sort) {
+        case "latest":
+            sortOption = { createdAt: -1 };
+            break;
+        case "oldest":
+            sortOption = { createdAt: 1 };
+            break;
+        case "likes":
+            sortOption = { likes: -1 };
+            break;
+        default:
+            sortOption = { createdAt: -1 };
+    }
+
+    const totalComments = await Comment.countDocuments(query);
+
+    const comments = await Comment.find(query)
+        .sort(sortOption)
+        .skip((Number(page) - 1) * Number(limit))
+        .limit(Number(limit))
+        .populate("commentTargetId")
+        .populate("commentParentId")
+        .exec();
+
+    const totalPages = Math.ceil(totalComments / Number(limit));
+
+    res.status(200).json({
+        success: true,
+        comments,
+        pagination: {
+            currentPage: Number(page),
+            totalPages,
+            totalComments,
+            hasNext: Number(page) < totalPages,
+            hasPrev: Number(page) > 1,
+        }
+    });
+};
+
+const findTargetById = async (targetId: string, targetType: string) => {
+    let target;
+    switch (targetType) {
+        case "post":
+            target = await Post.findOne({ postId: targetId });
+            if (!target) throw new postError.PostNotFoundError("Post not found");
+            break;
+        case "episode":
+            target = await Episode.findOne({ episodeId: targetId });
+            if (!target) throw new episodeError.EpisodeNotFoundError("Episode not found");
+            break;
+        default:
+            throw new commentError.CommentError("Invalid target type");
+    }
+    return target;
+};
+
+const findGalleryById = async (galleryId: string) => {
+    const gallery = await Gallery.findOne({ galleryId });
+    if (!gallery) throw new galleryError.GalleryNotFoundError("Gallery not found");
+    return gallery;
+};
+
+const findNovelById = async (novelId: string) => {
+    const novel = await Novel.findOne({ novelId });
+    if (!novel) throw new novelError.NovelNotFoundError("Novel not found");
+    return novel;
 };
 
 // login required
-export const getChildComments = async (req: Request, res: Response) => {
-    const { commentId } = req.params;
-    const { limit, page, sort } = req.query;
-    const limitNumber = parseInt(limit as string) || 10;
-    const pageNumber = parseInt(page as string) || 1;
-    const sortType = sort as "asc" | "desc" | "likes" || "asc";
-    
-    const parentComment = await Comment.findOne({ commentId });
-    if (!parentComment) {
-        throw new commentError.CommentError("Parent comment not found");
-    }
-    if (parentComment.commentType === "post") {
-        const post = await Post.findOne({ postId: parentComment.commentTypeRefId });
-        if (!post) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Post not found");
-        }
-        const gallery = await Gallery.findOne({ galleryId: post.galleryId });
-        if (!gallery) {
-            throw new commentError.CommentNotFoundError("Invalid comment: Gallery not found");
-        }
-        const blockUsers = await gallery.getGalleryBlockUsers();
-        const blockIPs = await gallery.getGalleryBlockIPs();
-        if (blockUsers.includes(req.user?.userid as string) || blockIPs.includes(req.ip as string)) {
-            throw new commentError.CommentInteractionFailedError("You are blocked from commenting on this post");
-        }
-    }
-
-    let sortOptions: any = {};
-    switch (sortType) {
-        case "desc":
-            sortOptions.createdAt = -1;
-            break;
-        case "likes":
-            sortOptions.likeCount = -1;
-            break;
-        case "asc":
-        default:
-            sortOptions.createdAt = 1;
-            break;
-    }
-    
-    const comments = await Comment.find({ parentCommentId: commentId })
-        .sort(sortOptions)
-        .limit(limitNumber)
-        .skip((pageNumber - 1) * limitNumber);
-    
-    const totalComments = await Comment.countDocuments({ parentCommentId: commentId });
-    
-    res.status(200).json({
-        comments,
-        totalPages: Math.ceil(totalComments / limitNumber),
-        currentPage: pageNumber,
-    });
+const saveAndReturnComment = async (comment: any) => {
+    await comment.save();
+    const populatedComment = await Comment.findOne({
+        commentId: comment.commentId,
+    })
+        .populate("commentTargetId")
+        .populate("commentParentId")
+        .exec();
+    return populatedComment;
 };

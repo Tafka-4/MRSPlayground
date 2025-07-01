@@ -3,12 +3,19 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>내부 구성원 인증</title>
-        <link rel="stylesheet" href="/auth/verify-internal-member.css" />
+        <title>내부 구성원 인증 - 마법연구회</title>
+
         <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
             rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
         />
+
+        <link rel="stylesheet" href="/component/style/base.css" />
+        <!-- forms.css 제거 - auth 페이지에서는 auth-common.css 사용 -->
+        <link rel="stylesheet" href="/component/style/buttons.css" />
+        <link rel="stylesheet" href="/auth/auth-common.css" />
+        <link rel="stylesheet" href="/auth/verify-internal-member.css" />
+        <script src="/auth/verify-internal-member.mjs" type="module"></script>
     </head>
     <body>
         <script>
@@ -17,39 +24,67 @@
                 document.documentElement.setAttribute('data-theme', savedTheme);
             })();
         </script>
-        <div class="container">
-            <div class="mypage-header">
-                <h1 class="title">내부 구성원 인증</h1>
-                <a onclick="history.back()" class="back-button">
-                    <span class="material-symbols-outlined">arrow_back</span>
-                    이전으로 돌아가기
-                </a>
-            </div>
+        <div id="root">
+            <%- include('../partials/header') %>
 
-            <div class="info-text">
-                내부 구성원 인증을 위해 아래 정보를 입력해주세요.
-            </div>
+            <main class="main-content auth-layout">
+                <div class="auth-container">
+                    <div class="auth-card">
+                        <div class="auth-header">
+                            <div class="auth-icon">
+                                <span class="material-symbols-outlined">admin_panel_settings</span>
+                            </div>
+                            <h1 class="auth-title">내부 구성원 인증</h1>
+                            <p class="auth-subtitle">
+                                마법연구회 내부 구성원 인증을 위해<br>
+                                인증 코드를 입력해주세요
+                            </p>
+                        </div>
 
-            <form class="verify-form" id="verify-form">
-                <div class="form-group">
-                    <label for="verification-code">인증 코드</label>
-                    <input
-                        type="text"
-                        id="verification-code"
-                        name="key"
-                        placeholder="인증 코드를 입력하세요"
-                        required
-                    />
+                        <div class="message-card">
+                            <div class="message-content message-info">
+                                <div class="message-icon">
+                                    <span class="material-symbols-outlined">info</span>
+                                </div>
+                                <div class="info-text">
+                                    <strong>인증 안내</strong><br>
+                                    내부 구성원만 접근 가능한 기능들을 이용하기 위해서는 별도의 인증이 필요합니다.
+                                </div>
+                            </div>
+                        </div>
+
+                        <form class="auth-form" id="verify-form">
+                            <div class="form-group">
+                                <label for="verification-code">인증 코드</label>
+                                <div class="input-wrapper">
+                                    <input
+                                        type="text"
+                                        id="verification-code"
+                                        name="key"
+                                        placeholder="인증 코드를 입력하세요"
+                                        required
+                                    />
+                                    <span class="material-symbols-outlined">key</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="auth-btn auth-btn-primary">
+                                    <span class="material-symbols-outlined">verified</span>
+                                    인증하기
+                                </button>
+                                <button type="button" onclick="history.back()" class="auth-btn auth-btn-secondary">
+                                    <span class="material-symbols-outlined">arrow_back</span>
+                                    이전으로 돌아가기
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="notice-container"></div>
                 </div>
-                <button type="submit" class="verify-button">
-                    <span class="material-symbols-outlined">verified</span>
-                    인증하기
-                </button>
-            </form>
+            </main>
         </div>
-
-        <div class="notice-container"></div>
-
-        <script type="module" src="/auth/verify-internal-member.mjs"></script>
+        <%- include('../partials/footer') %>
     </body>
 </html>

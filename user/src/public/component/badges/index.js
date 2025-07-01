@@ -120,7 +120,7 @@ export function createVerificationBadge(isVerified = false, onClick = null) {
 /**
  * 사용자의 역할을 나타내는 뱃지를 생성합니다.
  *
- * @param {string} [role='user'] - 사용자 역할 ('admin', 'moderator', 'premium', 'user').
+ * @param {string} [role='user'] - 사용자 역할 ('admin', 'bot', 'moderator', 'premium', 'user').
  * @returns {HTMLSpanElement} 생성된 역할 뱃지.
  */
 export function createRoleBadge(role = 'user') {
@@ -130,6 +130,12 @@ export function createRoleBadge(role = 'user') {
             variant: 'danger',
             icon: 'admin_panel_settings',
             tooltip: '시스템 관리자'
+        },
+        bot: {
+            text: '오토마타',
+            variant: 'custom-bot',
+            icon: 'smart_toy',
+            tooltip: '시스템 봇'
         },
         moderator: {
             text: '운영자',

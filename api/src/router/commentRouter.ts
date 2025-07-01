@@ -7,7 +7,7 @@ import {
     deleteComment, 
     likeComment, 
     dislikeComment, 
-    getChildComments 
+    getCommentsWithPagination 
 } from "../controller/commentController.js";
 import { loginRequired } from "../utils/middleware/login.js";
 import asyncWrapper from "../utils/middleware/asyncWrapper.js";
@@ -21,6 +21,6 @@ router.put("/:commentId", loginRequired, asyncWrapper(updateComment));
 router.delete("/:commentId", loginRequired, asyncWrapper(deleteComment));
 router.post("/:commentId/like", loginRequired, asyncWrapper(likeComment));
 router.post("/:commentId/dislike", loginRequired, asyncWrapper(dislikeComment));
-router.get("/:commentId/replies", asyncWrapper(getChildComments));
+router.get("/:commentId/replies", asyncWrapper(getCommentsWithPagination));
 
 export default router; 

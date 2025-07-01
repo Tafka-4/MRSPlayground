@@ -4,7 +4,6 @@ import Novel from "../model/novelModel.js";
 import novelError from "../utils/error/novelError.js";
 import userError from "../utils/error/userError.js";
 
-// User Service API 호출을 위한 헬퍼 함수
 const callUserService = async (endpoint: string, options: RequestInit = {}) => {
     const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-service:3001';
     const response = await fetch(`${userServiceUrl}${endpoint}`, {

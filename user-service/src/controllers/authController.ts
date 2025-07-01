@@ -341,7 +341,12 @@ export const sendVerificationEmail: RequestHandler = async (req, res) => {
     const isVerified = await redisClient.get(`${email}:isVerified`);
     const isDuplicate = await User.findOne({ email });
     if (isVerified || isDuplicate) {
-        throw new AuthError('이미 인증된 이메일입니다');
+        res.status(200).json({
+            success: true,
+            alreadyVerified: true,
+            message: '이미 인증된 이메일입니다'
+        });
+        return;
     }
     const verificationCode = Math.floor(
         100000 + Math.random() * 900000
@@ -374,6 +379,18 @@ export const sendVerificationEmail: RequestHandler = async (req, res) => {
 export const verifyEmail: RequestHandler = async (req, res) => {
     const { email, pin } = req.body;
     const verificationCode = pin || req.body.verificationCode;
+    
+    const isVerified = await redisClient.get(`${email}:isVerified`);
+    const isDuplicate = await User.findOne({ email });
+    if (isVerified || isDuplicate) {
+        res.status(200).json({
+            success: true,
+            alreadyVerified: true,
+            message: '이미 인증된 이메일입니다'
+        });
+        return;
+    }
+    
     const verificationCodeFromRedis = await redisClient.get(
         `${email}:verificationCode`
     );
@@ -781,6 +798,17 @@ export const systemCleanup: RequestHandler = async (req, res) => {
 };
 
 // admin required
+export const checkEmailVerificationStatus: RequestHandler = async (req, res) => {
+    const { email } = req.body;
+    const isVerified = await redisClient.get(`${email}:isVerified`);
+    const isDuplicate = await User.findOne({ email });
+    
+    res.status(200).json({
+        success: true,
+        isVerified: !!(isVerified || isDuplicate)
+    });
+};
+
 export const getCurrentKey: RequestHandler = async (req, res) => {
     const user = (req as any).user;
     if (!user) {

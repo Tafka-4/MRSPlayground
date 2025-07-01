@@ -1075,12 +1075,8 @@ async function handleUserSearch(event) {
             `/api/v1/users/admin/search?q=${encodeURIComponent(query)}&limit=5`
         );
 
-        if (response.ok) {
-            const data = await response.json();
-            showUserSuggestions(data.users || []);
-        } else {
-            hideUserSuggestions();
-        }
+        const data = await response;
+        showUserSuggestions(data.users || []);
     } catch (error) {
         console.error('사용자 검색 실패:', error);
         hideUserSuggestions();

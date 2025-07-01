@@ -1,94 +1,215 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>서버 오류 - 500</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .error-container {
-            background: white;
-            padding: 3rem;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-        }
-        .error-code {
-            font-size: 6rem;
-            font-weight: bold;
-            color: #ff6b6b;
-            margin: 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        .error-title {
-            font-size: 2rem;
-            color: #2c3e50;
-            margin: 1rem 0;
-        }
-        .error-message {
-            font-size: 1.1rem;
-            color: #7f8c8d;
-            margin: 1.5rem 0;
-            line-height: 1.6;
-        }
-        .btn-home {
-            display: inline-block;
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: 500;
-            transition: transform 0.3s ease;
-            margin-top: 1rem;
-        }
-        .btn-home:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        .icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-        .support-info {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            border-left: 4px solid #ff6b6b;
-            font-size: 0.9rem;
-        }
-    </style>
-</head>
-<body>
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        })();
-    </script>
-    <div class="error-container">
-        <div class="icon">⚠️</div>
-        <h1 class="error-code">500</h1>
-        <h2 class="error-title">서버 내부 오류</h2>
-        <p class="error-message">
-            <%= message || '서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' %>
-        </p>
-        <div class="support-info">
-            문제가 지속될 경우 관리자에게 문의해주세요.
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>서버 오류 - 500</title>
+
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+            rel="stylesheet"
+        />
+
+        <link rel="stylesheet" href="/component/style/base.css" />
+        <link rel="stylesheet" href="/component/style/buttons.css" />
+    </head>
+    <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
+        <div id="root">
+            <%- include('../partials/header') %>
+
+            <main class="main-content">
+                <div class="error-container">
+                    <div class="error-icon">
+                        <span class="material-symbols-outlined">warning</span>
+                    </div>
+                    <h1 class="error-code">500</h1>
+                    <h2 class="error-title">서버 내부 오류</h2>
+                    <p class="error-message">
+                        <%= message || '서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.' %>
+                    </p>
+                    <div class="support-info">
+                        <span class="material-symbols-outlined">support</span>
+                        <div>
+                            <strong>문제가 지속될 경우</strong><br>
+                            관리자에게 문의해주세요
+                        </div>
+                    </div>
+                    <div class="error-actions">
+                        <a href="/" class="btn btn-primary">
+                            <span class="material-symbols-outlined">home</span>
+                            홈으로 돌아가기
+                        </a>
+                        <button onclick="location.reload()" class="btn btn-secondary">
+                            <span class="material-symbols-outlined">refresh</span>
+                            새로고침
+                        </button>
+                        <a href="/support/contact" class="btn btn-secondary">
+                            <span class="material-symbols-outlined">mail</span>
+                            문의하기
+                        </a>
+                    </div>
+                </div>
+            </main>
         </div>
-        <a href="/" class="btn-home">홈으로 돌아가기</a>
-    </div>
-</body>
+        <%- include('../partials/footer') %>
+
+        <style>
+            .main-content {
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                min-height: calc(100vh - 120px) !important;
+                padding: 2rem 1rem !important;
+            }
+
+            .error-container {
+                background: var(--card-background);
+                padding: 3rem;
+                border-radius: 1rem;
+                box-shadow: var(--shadow);
+                text-align: center;
+                max-width: 500px;
+                width: 100%;
+            }
+
+            .error-icon {
+                margin-bottom: 1rem;
+            }
+
+            .error-icon .material-symbols-outlined {
+                font-size: 4rem;
+                color: var(--error-color);
+                opacity: 0.7;
+            }
+
+            .error-code {
+                font-size: 6rem;
+                font-weight: bold;
+                color: var(--error-color);
+                margin: 0;
+                line-height: 1;
+            }
+
+            .error-title {
+                font-size: 2rem;
+                color: var(--text-primary);
+                margin: 1rem 0;
+                font-weight: 500;
+            }
+
+            .error-message {
+                font-size: 1.1rem;
+                color: var(--text-secondary);
+                margin: 1.5rem 0;
+                line-height: 1.6;
+            }
+
+            .support-info {
+                background: var(--lighter-background);
+                padding: 1rem;
+                border-radius: 0.5rem;
+                margin: 1.5rem 0;
+                border-left: 4px solid var(--error-color);
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                text-align: left;
+            }
+
+            .support-info .material-symbols-outlined {
+                color: var(--error-color);
+                font-size: 1.5rem;
+                flex-shrink: 0;
+            }
+
+            .support-info strong {
+                color: var(--text-primary);
+            }
+
+            .support-info div {
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+                line-height: 1.4;
+            }
+
+            .error-actions {
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+                margin-top: 2rem;
+            }
+
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 0.5rem;
+                font-weight: 500;
+                cursor: pointer;
+                text-decoration: none;
+                transition: var(--transition);
+            }
+
+            .btn-primary {
+                background: var(--primary-color);
+                color: var(--card-background);
+            }
+
+            .btn-primary:hover {
+                background: var(--primary-hover);
+                transform: translateY(-1px);
+            }
+
+            .btn-secondary {
+                background: var(--lighter-background);
+                color: var(--text-primary);
+                border: 1px solid var(--border-color);
+            }
+
+            .btn-secondary:hover {
+                background: var(--background-color);
+                transform: translateY(-1px);
+            }
+
+            @media (max-width: 768px) {
+                .error-container {
+                    padding: 2rem 1.5rem;
+                    margin: 1rem;
+                }
+
+                .error-code {
+                    font-size: 4rem;
+                }
+
+                .error-title {
+                    font-size: 1.5rem;
+                }
+
+                .error-actions {
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .btn {
+                    width: 100%;
+                    max-width: 250px;
+                }
+
+                .support-info {
+                    flex-direction: column;
+                    text-align: center;
+                    gap: 0.5rem;
+                }
+            }
+        </style>
+    </body>
 </html> 

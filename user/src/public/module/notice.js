@@ -129,6 +129,30 @@ class NoticeBox {
         </div>
         `;
     }
+
+    static success(message, displayImage = null) {
+        const notice = new NoticeBox(message, 'success', displayImage);
+        notice.show();
+        return notice;
+    }
+
+    static error(message, displayImage = null) {
+        const notice = new NoticeBox(message, 'error', displayImage);
+        notice.show();
+        return notice;
+    }
+
+    static warning(message, displayImage = null) {
+        const notice = new NoticeBox(message, 'warning', displayImage);
+        notice.show();
+        return notice;
+    }
+
+    static info(message, displayImage = null) {
+        const notice = new NoticeBox(message, 'info', displayImage);
+        notice.show();
+        return notice;
+    }
 }
 
 export default NoticeBox;

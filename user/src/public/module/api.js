@@ -1,6 +1,5 @@
 class ApiClient {
     constructor() {
-        this.baseURL = '';
         this.isRefreshing = false;
         this.failedQueue = [];
     }
@@ -12,6 +11,15 @@ class ApiClient {
     async makeRequest(url, options = {}) {
         const token = localStorage.getItem('accessToken');
         const requestId = this.generateRequestId();
+        const fullUrl = url;
+        
+        console.log('API Request:', { 
+            url, 
+            fullUrl, 
+            method: options.method || 'GET',
+            hasToken: !!token 
+        });
+        
         const requestOptions = {
             ...options,
             credentials: 'include',
@@ -23,23 +31,62 @@ class ApiClient {
         };
 
         try {
-            const response = await fetch(url, requestOptions);
+            const response = await fetch(fullUrl, requestOptions);
 
-            if (response.status === 401) {
+            if (response.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/refresh') && window.location.pathname !== '/login') {
+                const publicPages = [
+                    '/help', 
+                    '/contact', 
+                    '/feedback', 
+                    '/notice', 
+                    '/license'
+                ];
+                const userProfilePattern = /^\/user\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(\/activity|\/guestbook)?$/;
+                const isPublicPage = publicPages.includes(window.location.pathname) || userProfilePattern.test(window.location.pathname);
+                
+                if (isPublicPage) {
+                    const errorData = await response.json().catch(() => ({}));
+                    const error = new Error(errorData.message || 'Authentication required');
+                    error.status = response.status;
+                    error.data = errorData;
+                    throw error;
+                }
+                
                 if (this.isRefreshing) {
                     return new Promise((resolve, reject) => {
                         this.failedQueue.push({
                             resolve,
                             reject,
-                            url,
+                            url: fullUrl,
                             options: requestOptions
                         });
                     });
                 }
-                return this.handleTokenRefresh(url, requestOptions);
+                return this.handleTokenRefresh(fullUrl, requestOptions);
             }
-            return response;
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('API Response:', { url: fullUrl, status: response.status, data });
+                return data;
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                console.error('API Error:', { 
+                    url: fullUrl, 
+                    status: response.status, 
+                    errorData,
+                    statusText: response.statusText
+                });
+                const error = new Error(errorData.message || 'API request failed');
+                error.status = response.status;
+                error.data = errorData;
+                throw error;
+            }
         } catch (error) {
+            if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                console.error('Network error:', error);
+                throw new Error('네트워크 연결을 확인해주세요.');
+            }
             console.error('Request failed:', error);
             throw error;
         }
@@ -55,7 +102,15 @@ class ApiClient {
                 originalOptions.headers[
                     'Authorization'
                 ] = `Bearer ${newAccessToken}`;
-                return await fetch(originalUrl, originalOptions);
+                const response = await fetch(originalUrl, originalOptions);
+                if (response.ok) {
+                    return await response.json();
+                } else {
+                    const errorData = await response.json().catch(() => ({}));
+                    const error = new Error(errorData.message || 'Request failed');
+                    error.status = response.status;
+                    throw error;
+                }
             } else {
                 this.processQueue(new Error('Token refresh failed'), null);
                 this.redirectToLogin();
@@ -105,7 +160,10 @@ class ApiClient {
                         Authorization: `Bearer ${token}`
                     }
                 };
-                prom.resolve(fetch(prom.url, newOptions));
+                fetch(prom.url, newOptions)
+                    .then(response => response.json())
+                    .then(data => prom.resolve(data))
+                    .catch(err => prom.reject(err));
             }
         });
         this.failedQueue = [];
@@ -113,7 +171,6 @@ class ApiClient {
 
     redirectToLogin() {
         localStorage.removeItem('accessToken');
-        // 세션 쿠키 삭제 ( refreshToken )
         document.cookie =
             'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
         if (window.location.pathname !== '/login') {

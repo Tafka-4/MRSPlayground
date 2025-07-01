@@ -147,9 +147,51 @@ router.get(
 );
 
 router.get(
-    '/:userid([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})',
+    '/admin/contact',
+    adminLimiter,
+    adminAccessLogger,
+    authMiddleware,
+    (req: Request, res: Response) => {
+        if (req.userAuthority !== 'admin' && req.userAuthority !== 'bot') {
+            res.redirect('/mypage');
+            return;
+        }
+        res.render('./admin/contact');
+    }
+);
+
+router.get(
+    '/admin/feedback',
+    adminLimiter,
+    adminAccessLogger,
+    authMiddleware,
+    (req: Request, res: Response) => {
+        if (req.userAuthority !== 'admin' && req.userAuthority !== 'bot') {
+            res.redirect('/mypage');
+            return;
+        }
+        res.render('./admin/feedback');
+    }
+);
+
+router.get(
+    '/user/:userid([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})',
     (req: Request, res: Response) => {
         res.render('./user/user');
+    }
+);
+
+router.get(
+    '/user/:userid([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/activity',
+    (req: Request, res: Response) => {
+        res.render('./user/user-activity');
+    }
+);
+
+router.get(
+    '/user/:userid([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/guestbook',
+    (req: Request, res: Response) => {
+        res.render('./user/user-guestbook');
     }
 );
 

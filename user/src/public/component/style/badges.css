@@ -207,6 +207,11 @@
     color: white;
 }
 
+.role-badge.role-bot {
+    background-color: #06b6d4;
+    color: white;
+}
+
 .role-badge.role-moderator {
     background-color: var(--warning-color);
     color: white;
@@ -308,6 +313,11 @@
     color: white;
 }
 
+[data-theme='dark'] .role-badge.bot {
+    background-color: #0891b2;
+    color: white;
+}
+
 [data-theme='dark'] .role-badge.moderator {
     background-color: var(--warning-color);
     color: rgb(20, 20, 20);
@@ -378,5 +388,10 @@
 /* Verification Status Badges */
 .badge-custom-verified {
     background-color: var(--success-color);
+    color: white;
+}
+
+.badge-custom-bot {
+    background-color: #06b6d4;
     color: white;
 }

@@ -1,7 +1,7 @@
 <% const headerData = { brandText: locals.brandText || '마법연구회', brandHref:
 locals.brandHref || '/', userName: locals.userName || 'User', userRole:
 locals.userRole || '사용자', notificationCount: locals.notificationCount || 0,
-showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
+...locals }; %>
 
 <link rel="stylesheet" href="/partials/header.css" />
 
@@ -43,16 +43,7 @@ showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
                         <span>마법연구소</span>
                     </a>
                 </li>
-                <% if (headerData.showAdminMenu) { %>
-                <li class="nav-item">
-                    <a href="/admin" class="nav-link admin-link">
-                        <span class="material-symbols-outlined"
-                            >admin_panel_settings</span
-                        >
-                        <span>관리자</span>
-                    </a>
-                </li>
-                <% } %>
+
             </ul>
 
             <!-- Mobile Navigation -->
@@ -97,17 +88,7 @@ showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
                             <span>마법연구소</span>
                         </a>
                     </li>
-                    <% if (headerData.showAdminMenu) { %>
-                    <li class="dropdown-divider"></li>
-                    <li>
-                        <a href="/admin" class="dropdown-link admin-link">
-                            <span class="material-symbols-outlined"
-                                >admin_panel_settings</span
-                            >
-                            <span>관리자</span>
-                        </a>
-                    </li>
-                    <% } %>
+
                 </ul>
             </div>
         </nav>
@@ -151,12 +132,20 @@ showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
                             <span>마이페이지</span>
                         </a>
                     </li>
-                    <li>
+                                        <li>
                         <a href="/settings" class="dropdown-link">
                             <span class="material-symbols-outlined"
                                 >settings</span
                             >
                             <span>설정</span>
+                        </a>
+                    </li>
+                    <li id="admin-menu-item" style="display: none;">
+                        <a href="/admin" class="dropdown-link admin-dropdown-link">
+                            <span class="material-symbols-outlined"
+                                >admin_panel_settings</span
+                            >
+                            <span>관리자 메뉴</span>
                         </a>
                     </li>
                     <li>
@@ -192,6 +181,30 @@ showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
     </div>
 </header>
 
+
+<style>
+    .admin-dropdown-link,
+    .admin-dropdown-link .material-symbols-outlined {
+        color: #f59e0b;
+        font-weight: 500;
+    }
+
+    .admin-dropdown-link:hover,
+    .admin-dropdown-link:hover .material-symbols-outlined {
+        color: #d97706;
+    }
+
+    [data-theme="dark"] .admin-dropdown-link,
+    [data-theme="dark"] .admin-dropdown-link .material-symbols-outlined {
+        color: #fbbf24;
+    }
+
+    [data-theme="dark"] .admin-dropdown-link:hover,
+    [data-theme="dark"] .admin-dropdown-link:hover .material-symbols-outlined {
+        color: #f59e0b;
+    }
+</style>
+ 
 <script>
     document.body.classList.add('has-header');
 
@@ -278,11 +291,9 @@ showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
                         const { default: apiClient } = await import(
                             '/module/api.js'
                         );
-                        const response = await apiClient.post(
-                            '/api/v1/auth/logout'
-                        );
-
-                        if (response.ok) {
+                        const response = await apiClient.post('/api/v1/auth/logout');
+                        
+                        if (response && response.success) {
                             window.location.href = '/login';
                         } else {
                             localStorage.removeItem('accessToken');
@@ -303,16 +314,24 @@ showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
             if (window.headerUserDataSetup) return;
             window.headerUserDataSetup = true;
 
+            const authPages = ['/login', '/register', '/find-password'];
+            if (authPages.includes(window.location.pathname)) {
+                updateUIForGuest();
+                return;
+            }
+
+            const publicPages = ['/help', '/contact', '/feedback', '/notice', '/license'];
+            const userProfilePattern = /^\/user\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(\/activity|\/guestbook)?$/;
+            const isPublicPage = publicPages.includes(window.location.pathname) || userProfilePattern.test(window.location.pathname);
+
             try {
                 const { default: apiClient } = await import('/module/api.js');
-                const res = await apiClient.get('/api/v1/auth/me', {
-                    noRedirectOnFail: true
-                });
-
-                if (!res.ok) {
-                    throw new Error('인증 정보를 가져오는데 실패했습니다.');
+                const data = await apiClient.get('/api/v1/auth/me');
+                
+                if (!data || !data.user) {
+                    throw new Error('사용자 정보를 가져올 수 없습니다.');
                 }
-                const data = await res.json();
+                
                 const user = data.user;
 
                 document
@@ -334,10 +353,11 @@ showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
                         count > 0 ? 'inline' : 'none';
                 }
 
-                document.querySelectorAll('.admin-link').forEach((link) => {
-                    link.style.display =
+                const adminMenuItem = document.getElementById('admin-menu-item');
+                if (adminMenuItem) {
+                    adminMenuItem.style.display =
                         user.authority === 'admin' ? 'block' : 'none';
-                });
+                }
 
                 const avatarDiv = document.querySelector('.user-avatar');
                 if (avatarDiv && user.profileImage) {
@@ -349,6 +369,9 @@ showAdminMenu: locals.showAdminMenu || false, ...locals }; %>
                 );
             } catch (error) {
                 console.error('Header user data update failed:', error);
+                if (isPublicPage) {
+                    console.log('공개 페이지에서 인증 실패, 게스트 UI 표시');
+                }
                 updateUIForGuest();
             }
         }

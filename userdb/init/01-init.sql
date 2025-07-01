@@ -38,6 +38,55 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE CASCADE
 );
 
+-- Create contact table for contact form submissions
+CREATE TABLE IF NOT EXISTS contacts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    subject VARCHAR(500) NOT NULL,
+    category ENUM('general', 'technical', 'feature', 'account', 'other') NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    status ENUM('pending', 'in_progress', 'resolved', 'closed') DEFAULT 'pending',
+    userid VARCHAR(36) NULL,
+    admin_notes TEXT DEFAULT NULL,
+    admin_userid VARCHAR(36) NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_status (status),
+    INDEX idx_category (category),
+    INDEX idx_email (email),
+    INDEX idx_userid (userid),
+    INDEX idx_admin_userid (admin_userid),
+    FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE SET NULL,
+    FOREIGN KEY (admin_userid) REFERENCES users(userid) ON DELETE SET NULL
+);
+
+-- Create feedback table for bug reports and feature requests
+CREATE TABLE IF NOT EXISTS feedback (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(500) NOT NULL,
+    type ENUM('bug', 'feature', 'improvement', 'vulnerability', 'other') NOT NULL,
+    priority ENUM('low', 'medium', 'high', 'critical') DEFAULT 'medium',
+    description TEXT NOT NULL,
+    steps_to_reproduce TEXT DEFAULT NULL,
+    expected_behavior TEXT DEFAULT NULL,
+    actual_behavior TEXT DEFAULT NULL,
+    browser_info TEXT DEFAULT NULL,
+    screenshot_url VARCHAR(500) DEFAULT NULL,
+    status ENUM('pending', 'confirmed', 'in_progress', 'testing', 'resolved', 'closed', 'rejected') DEFAULT 'pending',
+    userid VARCHAR(36) NULL,
+    admin_notes TEXT DEFAULT NULL,
+    admin_userid VARCHAR(36) NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_type (type),
+    INDEX idx_priority (priority),
+    INDEX idx_status (status),
+    INDEX idx_userid (userid),
+    INDEX idx_admin_userid (admin_userid),
+    FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE SET NULL,
+    FOREIGN KEY (admin_userid) REFERENCES users(userid) ON DELETE SET NULL
+);
+
 -- Insert sample admin user (password: admin123!)
 INSERT IGNORE INTO users (
     userid, 

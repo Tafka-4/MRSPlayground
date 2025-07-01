@@ -16,17 +16,11 @@ async function loadDashboardStats() {
             '/api/v1/users/admin/statistics'
         );
 
-        let userStats;
-        if (userStatsResponse.ok) {
-            const userStatsData = await userStatsResponse.json();
-            userStats = userStatsData.statistics;
-        } else {
-            userStats = {
-                totalUsers: 0,
-                newUsers: 0,
-                activeUsers: 0
-            };
-        }
+        const userStats = userStatsResponse.statistics || {
+            totalUsers: 0,
+            newUsers: 0,
+            activeUsers: 0
+        };
 
         document.getElementById('total-users').textContent =
             userStats.totalUsers.toLocaleString();
@@ -526,16 +520,8 @@ function updateCurrentKeyDisplay(key, timestamp) {
 
 async function loadCurrentKey() {
     try {
-        const response = await apiClient.get('/api/v1/auth/current-key');
-
-        if (response.ok) {
-            const data = await response.json();
-            updateCurrentKeyDisplay(data.key);
-        } else {
-            document.getElementById('current-key').textContent = '키 로드 실패';
-            document.getElementById('current-key-sub-header-text').textContent =
-                '키 로드 실패';
-        }
+        const data = await apiClient.get('/api/v1/auth/current-key');
+        updateCurrentKeyDisplay(data.key);
     } catch (error) {
         console.error('현재 키 로딩 실패:', error);
         document.getElementById('current-key').textContent = '키 로드 실패';

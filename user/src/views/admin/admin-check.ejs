@@ -4,10 +4,13 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>관리자 확인</title>
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
         <script type="module">
-            import { apiClient } from './module/api.js';
-            const response = await apiClient.get('/api/v1/auth/me');
-            const data = await response.json();
+            import apiClient from '/module/api.js';
+            const data = await apiClient.get('/api/v1/auth/me');
             data.user.authority === 'admin' ? window.location.href = '/admin' : window.location.href = '/';
         </script>
         <style>
@@ -27,10 +30,27 @@
             }
 
             body {
+                background-color: var(--bg-color, #ffffff);
+                color: var(--text-color, #000000);
+                transition: background-color 0.3s ease, color 0.3s ease;
+            }
+
+            [data-theme="dark"] {
+                --bg-color: #1a1a1a;
+                --text-color: #ffffff;
+            }
+
+            [data-theme="light"] {
+                --bg-color: #ffffff;
+                --text-color: #000000;
+            }
+
+            .main-content {
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 height: 100vh;
+                padding-top: 80px;
             }
 
             #loading {
@@ -42,9 +62,21 @@
 
             #content {
                 display: flex;
+                flex-direction: column;
                 justify-content: center;
                 align-items: center;
-                height: 100vh;
+                text-align: center;
+                gap: 1rem;
+            }
+
+            #content h1 {
+                font-size: 2rem;
+                margin-bottom: 0.5rem;
+            }
+
+            #content p {
+                font-size: 1.1rem;
+                opacity: 0.8;
             }
         </style>
     </head>
@@ -55,10 +87,15 @@
                 document.documentElement.setAttribute('data-theme', savedTheme);
             })();
         </script>
-        <div id="loading">로딩 중...</div>
-        <div id="content">
-            <h1>관리자 확인</h1>
-            <p>관리자 확인 중...</p>
-        </div>
+        
+        <%- include('../partials/header') %>
+
+        <main class="main-content">
+            <div id="loading">로딩 중...</div>
+            <div id="content">
+                <h1>관리자 확인</h1>
+                <p>관리자 확인 중...</p>
+            </div>
+        </main>
     </body>
 </html>

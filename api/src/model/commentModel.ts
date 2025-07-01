@@ -5,7 +5,11 @@ import { v4 as uuidv4 } from "uuid";
 
 interface IComment extends mongoose.Document {
     commentId: string;
-    parentCommentId: string | null;
+    galleryId?: string;
+    novelId?: string;
+    commentTargetId: string;
+    commentTargetType: string;
+    commentParentId: string | null;
     childComments: string[];
     content: string;
     commentType: string;
@@ -14,6 +18,7 @@ interface IComment extends mongoose.Document {
     dislikeCount: number;
     author: string;
     isHidden: boolean;
+    isDeleted: boolean;
     tempPassword: string | null;
     clientInfo: {
         ip: string;
@@ -29,6 +34,10 @@ interface IComment extends mongoose.Document {
 
 const commentSchema = new mongoose.Schema({
     commentId: { type: String, required: true, unique: true, default: uuidv4() },
+    galleryId: { type: String, required: false },
+    novelId: { type: String, required: false },
+    commentTargetId: { type: String, required: true },
+    commentTargetType: { type: String, enum: ["episode", "post", "novel"], required: true },
     parentCommentId: { type: String, required: false, default: null },
     childComments: { type: [String], required: false, default: [] },
     content: { type: String, required: true },
@@ -38,6 +47,7 @@ const commentSchema = new mongoose.Schema({
     dislikeCount: { type: Number, required: false, default: 0 },
     author: { type: String, required: true },
     isHidden: { type: Boolean, required: false, default: false },
+    isDeleted: { type: Boolean, required: false, default: false },
     tempPassword: { type: String, required: false, default: null },
     clientInfo: {
         ip: { type: String, required: false },

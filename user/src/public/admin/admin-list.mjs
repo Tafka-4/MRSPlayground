@@ -10,13 +10,7 @@ async function loadAdmins() {
         tableContent.innerHTML =
             '<div class="loading">관리자 목록을 불러오는 중...</div>';
 
-        const response = await apiClient.get('/api/v1/auth/admin/user-list');
-
-        if (!response.ok) {
-            throw new Error('관리자 목록을 불러오는데 실패했습니다.');
-        }
-
-        const data = await response.json();
+        const data = await apiClient.get('/api/v1/auth/admin/user-list');
         currentAdmins = data.users || [];
         displayAdmins(currentAdmins);
     } catch (error) {
@@ -95,7 +89,7 @@ function displayAdmins(admins) {
 }
 
 function viewUser(userid) {
-    window.open(`/${userid}`, '_blank');
+    window.open(`/user/${userid}`, '_blank');
 }
 
 document.getElementById('refresh-button').addEventListener('click', () => {

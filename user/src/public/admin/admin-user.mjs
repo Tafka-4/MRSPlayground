@@ -15,20 +15,25 @@ async function loadUsers(query = '', limit = 10) {
         tableContent.innerHTML =
             '<div class="loading">사용자 목록을 불러오는 중...</div>';
 
-        const response = await apiClient.get('/api/v1/users', {
-            query: {
-                query: query,
-                limit: limit
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error('사용자 목록을 불러오는데 실패했습니다.');
+                    let response;
+        if (query && query.trim().length >= 2) {
+            response = await apiClient.get('/api/v1/users/admin/search', {
+                query: {
+                    q: query.trim(),
+                    limit: limit
+                }
+            });
+        } else {
+            response = await apiClient.get('/api/v1/users', {
+                query: {
+                    limit: limit
+                }
+            });
         }
 
-        const users = await response.json();
-        currentUsers = users;
-        displayUsers(users);
+        const users = response.users || [];
+    currentUsers = users;
+    displayUsers(users);
     } catch (error) {
         console.error('사용자 로딩 실패:', error);
         document.getElementById('table-content').innerHTML =
@@ -145,7 +150,7 @@ function displayUsers(users) {
 }
 
 function viewUser(userid) {
-    window.open(`/${userid}`, '_blank');
+    window.open(`/user/${userid}`, '_blank');
 }
 
 function confirmDeleteUser(userid, nickname) {
@@ -158,14 +163,9 @@ function confirmDeleteUser(userid, nickname) {
 
 async function deleteUser(userid) {
     try {
-        const response = await apiClient.delete(
+        await apiClient.delete(
             `/api/v1/auth/admin/user-delete/${userid}`
         );
-
-        if (!response.ok) {
-            const errorMessage = await response.json();
-            throw new Error(errorMessage.error);
-        }
 
         new NoticeBox('사용자가 성공적으로 삭제되었습니다.').show();
         loadUsers(currentQuery);
@@ -194,16 +194,10 @@ async function performAdminAction(userid, action) {
             action === 'set'
                 ? `/api/v1/auth/admin/set-admin/${userid}`
                 : `/api/v1/auth/admin/unset-admin/${userid}`;
-        let response;
         if (action === 'set') {
-            response = await apiClient.post(endpoint);
+            await apiClient.post(endpoint);
         } else {
-            response = await apiClient.delete(endpoint);
-        }
-
-        if (!response.ok) {
-            const errorMessage = await response.json();
-            throw new Error(errorMessage.error);
+            await apiClient.delete(endpoint);
         }
 
         const message =
@@ -237,16 +231,10 @@ async function performVerifyAction(userid, action) {
             action === 'verify'
                 ? `/api/v1/auth/admin/verify-user/${userid}`
                 : `/api/v1/auth/admin/unverify-user/${userid}`;
-        let response;
         if (action === 'verify') {
-            response = await apiClient.post(endpoint);
+            await apiClient.post(endpoint);
         } else {
-            response = await apiClient.delete(endpoint);
-        }
-
-        if (!response.ok) {
-            const errorMessage = await response.json();
-            throw new Error(errorMessage.error);
+            await apiClient.delete(endpoint);
         }
 
         const message =
@@ -305,7 +293,6 @@ document
         }
     });
 
-// Admin action modal event listeners
 document.getElementById('admin-modal-close').addEventListener('click', () => {
     document.getElementById('admin-modal-overlay').style.display = 'none';
     pendingAdminAction = null;
@@ -340,7 +327,6 @@ document
         }
     });
 
-// Verify action modal event listeners
 document.getElementById('verify-modal-close').addEventListener('click', () => {
     document.getElementById('verify-modal-overlay').style.display = 'none';
     pendingVerifyAction = null;

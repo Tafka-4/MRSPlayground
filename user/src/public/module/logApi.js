@@ -51,13 +51,7 @@ class LogApiClient {
         if (onlyErrors) params.append('onlyErrors', 'true');
         if (isExport) params.append('export', 'true');
 
-        const response = await apiClient.get(`${this.baseUrl}/logs?${params}`);
-
-        if (!response.ok) {
-            throw new Error(`로그 조회 실패: ${response.status}`);
-        }
-
-        return response.json();
+        return await apiClient.get(`${this.baseUrl}/logs?${params}`);
     }
 
     /**
@@ -93,13 +87,7 @@ class LogApiClient {
      * @returns {Promise<Object>} 통계 데이터
      */
     async getStatistics() {
-        const response = await apiClient.get(`${this.baseUrl}/logs/statistics`);
-
-        if (!response.ok) {
-            throw new Error(`통계 조회 실패: ${response.status}`);
-        }
-
-        return response.json();
+        return await apiClient.get(`${this.baseUrl}/logs/statistics`);
     }
 
     /**
@@ -116,15 +104,9 @@ class LogApiClient {
             limit: limit.toString()
         });
 
-        const response = await apiClient.get(
+        return await apiClient.get(
             `${this.baseUrl}/logs/route-errors?${params}`
         );
-
-        if (!response.ok) {
-            throw new Error(`라우트 에러 조회 실패: ${response.status}`);
-        }
-
-        return response.json();
     }
 
     /**
@@ -137,15 +119,9 @@ class LogApiClient {
         const params = new URLSearchParams({ beforeDate });
         if (status) params.append('status', status);
 
-        const response = await apiClient.delete(
+        return await apiClient.delete(
             `${this.baseUrl}/logs/cleanup?${params}`
         );
-
-        if (!response.ok) {
-            throw new Error(`로그 정리 실패: ${response.status}`);
-        }
-
-        return response.json();
     }
 
     /**

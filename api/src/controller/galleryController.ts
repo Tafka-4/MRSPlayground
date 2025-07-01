@@ -12,7 +12,10 @@ export const createGallery = async (req: Request, res: Response) => {
         throw new galleryError.GalleryError("Gallery ID already exists");
     }
     await Gallery.create({ galleryId, title, description, galleryAdmin: req.user?.userid });
-    res.status(201).json({ message: "Gallery created successfully" });
+    res.status(201).json({
+        success: true,
+        message: "Gallery created successfully"
+    });
 };
 
 // login required
@@ -22,7 +25,10 @@ export const getGallery = async (req: Request, res: Response) => {
     if (!gallery) {
         throw new galleryError.GalleryNotFoundError("Gallery not found");
     }
-    res.status(200).json(gallery);
+    res.status(200).json({
+        success: true,
+        gallery
+    });
 };
 
 // login required
@@ -44,7 +50,10 @@ export const updateGallery = async (req: Request, res: Response) => {
         throw new galleryError.GalleryIsNotAdminError("You are not the admin of this gallery");
     }
     await Gallery.updateOne({ galleryId }, { title, description });
-    res.status(200).json({ message: "Gallery updated successfully" });
+    res.status(200).json({
+        success: true,
+        message: "Gallery updated successfully"
+    });
 };
 
 // login required
@@ -58,7 +67,10 @@ export const deleteGallery = async (req: Request, res: Response) => {
         throw new galleryError.GalleryIsNotAdminError("You are not the admin of this gallery");
     }
     await Gallery.deleteOne({ galleryId });
-    res.status(200).json({ message: "Gallery deleted successfully" });
+    res.status(200).json({
+        success: true,
+        message: "Gallery deleted successfully"
+    });
 };
 
 // login required
@@ -69,7 +81,10 @@ export const subscribeGallery = async (req: Request, res: Response) => {
         throw new galleryError.GalleryNotFoundError("Gallery not found");
     }
     await gallery.subscribe(req.user?.userid as string);
-    res.status(200).json({ message: "Gallery subscribed successfully" });
+    res.status(200).json({
+        success: true,
+        message: "Gallery subscribed successfully"
+    });
 };
 
 // login required
@@ -80,7 +95,10 @@ export const unsubscribeGallery = async (req: Request, res: Response) => {
         throw new galleryError.GalleryNotFoundError("Gallery not found");
     }
     await gallery.unsubscribe(req.user?.userid as string);
-    res.status(200).json({ message: "Gallery unsubscribed successfully" });
+    res.status(200).json({
+        success: true,
+        message: "Gallery unsubscribed successfully"
+    });
 };
 
 // login required
@@ -95,7 +113,10 @@ export const galleryAdminChange = async (req: Request, res: Response) => {
         throw new galleryError.GalleryIsNotAdminError("You are not the admin of this gallery");
     }
     await gallery.galleryAdminChange(admin);
-    res.status(200).json({ message: "Gallery admin changed successfully" });
+    res.status(200).json({
+        success: true,
+        message: "Gallery admin changed successfully"
+    });
 };
 
 // login required
@@ -113,7 +134,10 @@ export const galleryManagerAdd = async (req: Request, res: Response) => {
         throw new galleryError.GalleryInteractionFailedError("You are already a manager of this gallery");
     }
     await gallery.galleryManagerAdd(manager);
-    res.status(200).json({ message: "Gallery manager added successfully" });
+    res.status(200).json({
+        success: true,
+        message: "Gallery manager added successfully"
+    });
 };
 
 // login required
@@ -131,7 +155,10 @@ export const galleryManagerDelete = async (req: Request, res: Response) => {
         throw new galleryError.GalleryInteractionFailedError("You are not a manager of this gallery");
     }
     await gallery.galleryManagerDelete(manager);
-    res.status(200).json({ message: "Gallery manager deleted successfully" });
+    res.status(200).json({
+        success: true,
+        message: "Gallery manager deleted successfully"
+    });
 };
 
 // login required
@@ -146,7 +173,10 @@ export const galleryThumbnailUpload = async (req: Request, res: Response) => {
         throw new galleryError.GalleryIsNotAdminError("You are not the admin of this gallery"); 
     }
     await gallery.galleryThumbnailUpload(thumbnail);
-    res.status(200).json({ message: "Gallery thumbnail uploaded successfully" });
+    res.status(200).json({
+        success: true,
+        message: "Gallery thumbnail uploaded successfully"
+    });
 };
 
 // login required
@@ -160,7 +190,10 @@ export const galleryThumbnailDelete = async (req: Request, res: Response) => {
         throw new galleryError.GalleryIsNotAdminError("You are not the admin of this gallery");
     }
     await gallery.galleryThumbnailDelete();
-    res.status(200).json({ message: "Gallery thumbnail deleted successfully" });
+    res.status(200).json({
+        success: true,
+        message: "Gallery thumbnail deleted successfully"
+    });
 };
 
 // login required

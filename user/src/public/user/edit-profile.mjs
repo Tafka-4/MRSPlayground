@@ -113,7 +113,7 @@ class EditProfilePage {
                     'User data is null or undefined in API response.'
                 );
             }
-            this.userData = (await userData.json()).user;
+            this.userData = userData.user;
             this.render();
         } catch (error) {
             console.error('Error fetching user data:', error);
@@ -360,11 +360,10 @@ class EditProfilePage {
         formData.append('profileImage', file);
 
         try {
-            const response = await apiClient.post(
+            const result = await apiClient.post(
                 '/api/v1/users/upload-profile',
                 formData
             );
-            const result = await response.json();
             this.userData.profileImage = result.profileImage;
             this.updateProfileImage();
             this.profileImageInput.value = '';
@@ -399,8 +398,7 @@ class EditProfilePage {
         };
 
         try {
-            const response = await apiClient.put('/api/v1/users/update', payload);
-            const result = await response.json();
+            const result = await apiClient.put('/api/v1/users/update', payload);
             this.userData.nickname = result.nickname;
             this.userData.description = result.description;
             this.hasChanges = false;

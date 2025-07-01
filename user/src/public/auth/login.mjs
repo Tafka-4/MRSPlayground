@@ -7,84 +7,31 @@ window.addEventListener('load', async () => {
     console.log('Window loaded, starting initialization...');
     await new Promise(resolve => setTimeout(resolve, 100));
     
-    // Check if we need to create HTML dynamically or if it already exists
     const existingForm = document.getElementById('loginForm');
-    const existingContainers = document.querySelector('.id-input') && 
-                              document.querySelector('.password-input') && 
-                              document.querySelector('.login-button');
+    const existingInputs = document.querySelector('input[name="id"]') && 
+                          document.querySelector('input[name="password"]') && 
+                          document.querySelector('#login-button');
     
-    if (!existingForm || !existingContainers) {
-        console.warn('Login form or containers not found in HTML, creating them dynamically...');
-        createLoginFormHTML();
-        await new Promise(resolve => setTimeout(resolve, 100));
+    if (!existingForm || !existingInputs) {
+        console.warn('Login form or inputs not found in HTML');
+        return;
     }
     
     try {
-        const { createInput, createButton } = await import('/component/index.js');
-        console.log('Components imported successfully');
-        
-        const success = initializeLoginComponents(createInput, createButton);
-        if (success) {
-            setupEventListeners();
-            await checkLogin();
-            checkRememberMe();
-        } else {
-            console.log('Component initialization failed, trying basic form...');
-            const basicSuccess = initializeBasicLoginForm();
-            if (basicSuccess) {
-                setupEventListeners();
-                await checkLogin();
-                checkRememberMe();
-            }
-        }
+        console.log('Using static HTML form');
+        setupPasswordToggle();
+        setupEventListeners();
+        await checkLogin();
+        checkRememberMe();
     } catch (error) {
-        console.error('Failed to import components:', error);
-        const success = initializeBasicLoginForm();
-        if (success) {
-            setupEventListeners();
-            await checkLogin();
-            checkRememberMe();
-        }
+        console.error('Failed to initialize login:', error);
     }
 });
 
 function createLoginFormHTML() {
     console.log('Creating login form HTML dynamically...');
     
-    document.body.innerHTML = `
-        <div class="container">
-            <form class="login-form" id="loginForm">
-                <h1 class="title">로그인</h1>
-                
-                <div class="id-input"></div>
-                <div class="password-input"></div>
-                
-                <div class="util-container">
-                    <div class="remember-me-container">
-                        <input type="checkbox" id="remember-me" name="remember-me">
-                        <label for="remember-me">
-                            <span>기억하기</span>
-                        </label>
-                    </div>
-                    <div class="find-password-container">
-                        <a href="/find-password" class="find-password">비밀번호 찾기</a>
-                    </div>
-                </div>
-                
-                <div class="login-button"></div>
-                
-                <hr class="divider">
-                
-                <div class="register-container">
-                    아직 계정이 없나요? <a href="/register" class="register-link">회원가입</a>
-                </div>
-            </form>
-            
-            <div class="notice-container" id="noticeContainer"></div>
-        </div>
-    `;
-    
-    console.log('Login form HTML created successfully');
+    console.warn('This should not be called - using existing HTML structure');
 }
 
 function initializeLoginComponents(createInput, createButton) {
@@ -96,34 +43,16 @@ function initializeLoginComponents(createInput, createButton) {
     
     if (!userIdContainer || !passwordContainer || !buttonContainer) {
         console.error('Required DOM elements not found!');
-        
-        if (!window.componentRetryCount) window.componentRetryCount = 0;
-        if (window.componentRetryCount < 3) {
-            window.componentRetryCount++;
-            console.log(`Retrying in 500ms... (attempt ${window.componentRetryCount}/3)`);
-            setTimeout(() => {
-                const retry = initializeLoginComponents(createInput, createButton);
-                if (retry) {
-                    setupEventListeners();
-                    checkLogin();
-                    checkRememberMe();
-                }
-            }, 500);
-        } else {
-            console.error('Max retries reached, falling back to basic form');
-            const basicSuccess = initializeBasicLoginForm();
-            if (basicSuccess) {
-                setupEventListeners();
-                checkLogin();
-                checkRememberMe();
-            }
-        }
-        
         return false;
     }
     
     try {
+        userIdContainer.innerHTML = '';
+        passwordContainer.innerHTML = '';
+        buttonContainer.innerHTML = '';
+        
         const userIdInput = createInput({
+            id: 'user-id',
             type: 'text',
             name: 'id',
             placeholder: '아이디',
@@ -145,11 +74,11 @@ function initializeLoginComponents(createInput, createButton) {
         passwordContainer.appendChild(passwordInput);
 
         const loginButton = createButton({
+            id: 'login-button',
             text: '로그인',
             type: 'submit',
             variant: 'primary',
-            className: 'login-button',
-            id: 'login-button'
+            className: 'auth-btn auth-btn-primary'
         });
         
         if (!loginButton) {
@@ -158,10 +87,7 @@ function initializeLoginComponents(createInput, createButton) {
         }
         buttonContainer.appendChild(loginButton);
         
-        // Verify that inputs were actually created
         console.log('Checking created components...');
-        console.log('UserIdContainer HTML:', userIdContainer.innerHTML);
-        console.log('PasswordContainer HTML:', passwordContainer.innerHTML);
         
         const createdIdInput = userIdContainer.querySelector('input[name="id"]') || 
                               userIdContainer.querySelector('input[type="text"]') ||
@@ -194,23 +120,6 @@ function initializeBasicLoginForm() {
     
     if (!userIdContainer || !passwordContainer || !buttonContainer) {
         console.error('Required DOM elements not found!');
-        
-        if (!window.basicRetryCount) window.basicRetryCount = 0;
-        if (window.basicRetryCount < 3) {
-            window.basicRetryCount++;
-            console.log(`Basic form retrying in 500ms... (attempt ${window.basicRetryCount}/3)`);
-            setTimeout(() => {
-                const retry = initializeBasicLoginForm();
-                if (retry) {
-                    setupEventListeners();
-                    checkLogin();
-                    checkRememberMe();
-                }
-            }, 500);
-        } else {
-            console.error('Basic form max retries reached, giving up');
-        }
-        
         return false;
     }
     
@@ -234,7 +143,10 @@ function initializeBasicLoginForm() {
         `;
         
         buttonContainer.innerHTML = `
-            <button type="submit" id="login-button" class="btn btn-primary login-button">로그인</button>
+            <button type="submit" id="login-button" class="auth-btn auth-btn-primary">
+                <span class="material-symbols-outlined">login</span>
+                로그인
+            </button>
         `;
         
         setupPasswordToggle();
@@ -252,6 +164,7 @@ function createPasswordInput(createInput) {
     passwordContainer.className = 'input-wrapper';
     
     const passwordInput = createInput({
+        id: 'user-password',
         type: 'password',
         name: 'password',
         placeholder: '비밀번호',
@@ -309,12 +222,16 @@ function togglePasswordVisibility(passwordInput = null) {
     
     if (input.type === 'password') {
         input.type = 'text';
+        input.style.fontFamily = 'ONE-Mobile-POP';
         visibilityOn.style.display = 'none';
         visibilityOff.style.display = 'block';
     } else {
         input.type = 'password';
         visibilityOn.style.display = 'block';
         visibilityOff.style.display = 'none';
+        if (input.value.length > 0) {
+            input.style.fontFamily = 'Courier New';
+        }
     }
 }
 
@@ -322,7 +239,7 @@ function setupEventListeners() {
     console.log('Setting up event listeners...');
     
     const form = document.getElementById('loginForm');
-    const loginButton = document.getElementById('login-button');
+    const loginButton = document.getElementById('login-button') || document.querySelector('.auth-btn');
     const rememberMeCheckbox = document.getElementById('remember-me');
     
     if (!form) {
@@ -330,13 +247,18 @@ function setupEventListeners() {
         return false;
     }
     
-    // Form submission
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         login();
     });
     
-    // Button click
+    form.addEventListener('click', (e) => {
+        if (e.target.tagName === 'A' || e.target.closest('a')) {
+            console.log('링크 클릭 감지됨, 기본 동작 허용');
+            return;
+        }
+    });
+    
     if (loginButton) {
         loginButton.addEventListener('click', (event) => {
             event.preventDefault();
@@ -351,7 +273,6 @@ function setupEventListeners() {
         });
     }
     
-    // Input Enter key
     const inputs = document.querySelectorAll('input[name="id"], input[name="password"]');
     inputs.forEach(input => {
         input.addEventListener('keydown', (event) => {
@@ -362,9 +283,24 @@ function setupEventListeners() {
         });
     });
     
-    // Remember me functionality
     if (rememberMeCheckbox) {
         rememberMeCheckbox.addEventListener('click', rememberMe);
+    }
+    
+    const findPasswordLink = document.querySelector('a[href="/find-password"]');
+    if (findPasswordLink) {
+        findPasswordLink.addEventListener('click', (event) => {
+            console.log('비밀번호 찾기 링크 클릭됨');
+            event.stopPropagation();
+        });
+    }
+    
+    const registerLink = document.querySelector('a[href="/register"]');
+    if (registerLink) {
+        registerLink.addEventListener('click', (event) => {
+            console.log('회원가입 링크 클릭됨');
+            event.stopPropagation();
+        });
     }
     
     console.log('Event listeners set up successfully');
@@ -377,11 +313,10 @@ function login() {
         return;
     }
 
-    // Wait a bit and try to find elements with retries
     setTimeout(() => {
         const idInput = document.querySelector('input[name="id"]');
         const passwordInput = document.querySelector('input[name="password"]');
-        const loginButton = document.getElementById('login-button') || document.querySelector('.btn.login-button') || document.querySelector('button[type="submit"]');
+        const loginButton = document.getElementById('login-button') || document.querySelector('.auth-btn') || document.querySelector('button[type="submit"]');
         
         console.log('Found elements:', {
             idInput: !!idInput,
@@ -393,217 +328,131 @@ function login() {
         
         if (!idInput || !passwordInput) {
             console.error('Input elements not found');
-            // Try to initialize components again
-            console.log('Retrying component initialization...');
-            const containers = {
-                id: document.querySelector('.id-input'),
-                password: document.querySelector('.password-input'),
-                button: document.querySelector('.login-button')
-            };
-            console.log('Container elements:', containers);
-            
-            if (containers.id && containers.password && containers.button) {
-                // Containers exist but are empty, create basic inputs
-                console.log('Creating basic inputs in existing containers...');
-                containers.id.innerHTML = `
-                    <div class="input-wrapper">
-                        <span class="material-symbols-outlined">person</span>
-                        <input type="text" name="id" placeholder="아이디" required>
-                    </div>
-                `;
-                
-                containers.password.innerHTML = `
-                    <div class="input-wrapper">
-                        <span class="material-symbols-outlined">lock</span>
-                        <input type="password" name="password" placeholder="비밀번호" required>
-                        <div class="visibility-container">
-                            <span class="material-symbols-outlined" id="visibility-on">visibility</span>
-                            <span class="material-symbols-outlined" id="visibility-off" style="display: none;">visibility_off</span>
-                        </div>
-                    </div>
-                `;
-                
-                containers.button.innerHTML = `
-                    <button type="submit" id="login-button" class="btn btn-primary login-button">로그인</button>
-                `;
-                
-                setupPasswordToggle();
-                
-                // Try login again after a short delay
-                setTimeout(() => {
-                    const newIdInput = document.querySelector('input[name="id"]');
-                    const newPasswordInput = document.querySelector('input[name="password"]');
-                    const newLoginButton = document.getElementById('login-button');
-                    
-                    if (newIdInput && newPasswordInput) {
-                        console.log('Inputs created successfully, proceeding with login...');
-                        performLogin(newIdInput, newPasswordInput, newLoginButton);
-                    } else {
-                        let notice = new NoticeBox('페이지를 새로고침해주세요.', 'error');
-                        notice.show();
-                    }
-                }, 200);
-                return;
-            } else {
-                let notice = new NoticeBox('페이지를 새로고침해주세요.', 'error');
-                notice.show();
-                return;
-            }
+            NoticeBox.error('폼 요소를 찾을 수 없습니다. 페이지를 새로고침해주세요.');
+            return;
         }
-        
-        performLogin(idInput, passwordInput, loginButton);
+
+        const id = idInput.value.trim();
+        const password = passwordInput.value.trim();
+
+        if (!id || !password) {
+            NoticeBox.error('아이디와 비밀번호를 모두 입력해주세요.');
+            return;
+        }
+
+        isLoggingIn = true;
+
+        if (loginButton) {
+            loginButton.disabled = true;
+            const originalText = loginButton.textContent;
+            loginButton.textContent = '로그인 중...';
+            
+            setTimeout(() => {
+                loginButton.disabled = false;
+                loginButton.textContent = originalText;
+                isLoggingIn = false;
+            }, 10000);
+        }
+
+        performLogin(id, password, loginButton);
     }, 100);
 }
 
-function performLogin(idInput, passwordInput, loginButton) {
-    const id = idInput.value.trim();
-    const password = passwordInput.value;
+async function performLogin(id, password, loginButton) {
+    try {
+        const loginData = {
+            id: id,
+            password: password
+        };
 
-    // Validation
-    if (id === '' || password === '') {
-        let notice = new NoticeBox(
-            '아이디와 비밀번호를 입력해주세요.',
-            'error'
-        );
-        notice.show();
-        return;
-    }
-    
-    if (password.length < 8) {
-        let notice = new NoticeBox(
-            '비밀번호는 8자 이상이어야 합니다.',
-            'error'
-        );
-        notice.show();
-        return;
-    }
+        console.log('Attempting login with:', { id });
 
-    if (/[^a-zA-Z0-9!@#$%^&*()_{}]/g.test(id)) {
-        let notice = new NoticeBox(
-            '아이디는 영문자, 숫자, 특수문자만 사용할 수 있습니다.',
-            'error'
-        );
-        notice.show();
-        return;
-    }
-    
-    if (
-        !password.match(/[a-zA-Z]/g) ||
-        !password.match(/[0-9]/g) ||
-        !password.match(/[!@#$%^&*()_{}]/g)
-    ) {
-        let notice = new NoticeBox(
-            '비밀번호는 영문자, 숫자, 특수문자를 포함해야 합니다.',
-            'error'
-        );
-        notice.show();
-        return;
-    }
+        const response = await apiClient.post('/api/v1/auth/login', loginData);
 
-    isLoggingIn = true;
-    if (loginButton) {
-        loginButton.disabled = true;
-        const originalButtonText = loginButton.textContent;
-        loginButton.textContent = '로그인 중...';
-        
-        apiClient
-            .post('/api/v1/auth/login', { id, password })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data.success) {
-                    localStorage.setItem('accessToken', data.accessToken);
-                    let notice = new NoticeBox(
-                        data.message || '로그인 성공',
-                        'success'
-                    );
-                    notice.show();
-                    setTimeout(() => {
-                        const redirectUrl = new URLSearchParams(
-                            window.location.search
-                        ).get('redirect');
-                        if (redirectUrl) {
-                            window.location.href = redirectUrl;
-                        } else {
-                            window.location.href = '/';
-                        }
-                    }, 1000);
-                } else {
-                    let notice = new NoticeBox(data.message, 'error');
-                    notice.show();
-                    passwordInput.value = '';
-                }
-            })
-            .catch((error) => {
-                console.error('Login error:', error);
-                let notice = new NoticeBox(
-                    '로그인 중 오류가 발생했습니다.',
-                    'error'
-                );
-                notice.show();
-            })
-            .finally(() => {
-                isLoggingIn = false;
-                if (loginButton) {
-                    loginButton.disabled = false;
-                    loginButton.textContent = originalButtonText;
-                }
-            });
-    }
-}
-
-function rememberMe() {
-    const rememberMeCheckbox = document.getElementById('remember-me');
-    const idInput = document.querySelector('input[name="id"]');
-    
-    if (rememberMeCheckbox && idInput) {
-        if (rememberMeCheckbox.checked) {
-            localStorage.setItem('username', idInput.value);
+        if (response && response.user) {
+            NoticeBox.success('로그인이 완료되었습니다.');
+            
+            const rememberMeCheckbox = document.getElementById('remember-me');
+            if (rememberMeCheckbox && rememberMeCheckbox.checked) {
+                localStorage.setItem('rememberMe', 'true');
+                localStorage.setItem('rememberedUserId', id);
+            } else {
+                localStorage.removeItem('rememberMe');
+                localStorage.removeItem('rememberedUserId');
+            }
+            
+            setTimeout(() => {
+                window.location.href = '/mypage';
+            }, 1000);
         } else {
-            localStorage.removeItem('username');
+            throw new Error('로그인 응답이 올바르지 않습니다.');
+        }
+    } catch (error) {
+        console.error('Login error:', error);
+        
+        let errorMessage = '로그인에 실패했습니다.';
+        
+        if (error.status === 401) {
+            errorMessage = '아이디 또는 비밀번호가 올바르지 않습니다.';
+        } else if (error.status === 429) {
+            errorMessage = '너무 많은 로그인 시도가 있었습니다. 잠시 후 다시 시도해주세요.';
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        NoticeBox.error(errorMessage);
+    } finally {
+        isLoggingIn = false;
+        if (loginButton) {
+            loginButton.disabled = false;
+            loginButton.innerHTML = '<span class="material-symbols-outlined">login</span>로그인';
         }
     }
 }
 
 async function checkLogin() {
-    const accessToken = localStorage.getItem('accessToken');
-
-    if (!accessToken) {
-        return;
-    }
-
     try {
-        const response = await apiClient.post('/api/v1/auth/check-token');
-        const data = await response.json();
-
-        if (data.success) {
-            const redirectUrl = new URLSearchParams(window.location.search).get(
-                'redirect'
-            );
-            if (redirectUrl) {
-                window.location.href = redirectUrl;
-            } else {
-                window.location.href = '/';
-            }
-        } else {
-            localStorage.removeItem('accessToken');
-            document.cookie =
-                'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        const response = await apiClient.get('/api/v1/auth/me');
+        if (response && response.user) {
+            console.log('User already logged in, redirecting to mypage...');
+            window.location.href = '/mypage';
         }
     } catch (error) {
-        localStorage.removeItem('accessToken');
-        document.cookie =
-            'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        console.error('토큰 검증 중 오류:', error);
+        if (error.status === 401) {
+            console.log('User not logged in, staying on login page');
+        } else {
+            console.error('Login check error:', error);
+        }
     }
 }
 
 function checkRememberMe() {
-    const rememberUsername = localStorage.getItem('username');
-    const idInput = document.querySelector('input[name="id"]');
-    const rememberMeCheckbox = document.getElementById('remember-me');
+    const rememberMe = localStorage.getItem('rememberMe');
+    const rememberedUserId = localStorage.getItem('rememberedUserId');
     
-    if (rememberUsername && idInput && rememberMeCheckbox) {
-        idInput.value = rememberUsername;
-        rememberMeCheckbox.checked = true;
+    if (rememberMe === 'true' && rememberedUserId) {
+        const rememberMeCheckbox = document.getElementById('remember-me');
+        const idInput = document.querySelector('input[name="id"]');
+        
+        if (rememberMeCheckbox) {
+            rememberMeCheckbox.checked = true;
+        }
+        
+        if (idInput) {
+            idInput.value = rememberedUserId;
+        }
+    }
+}
+
+function rememberMe() {
+    const checkbox = document.getElementById('remember-me');
+    const idInput = document.querySelector('input[name="id"]');
+    
+    if (checkbox && checkbox.checked && idInput && idInput.value.trim()) {
+        localStorage.setItem('rememberMe', 'true');
+        localStorage.setItem('rememberedUserId', idInput.value.trim());
+    } else {
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('rememberedUserId');
     }
 }

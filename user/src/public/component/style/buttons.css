@@ -10,21 +10,12 @@
     font-size: 1rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color var(--transition);
+    transition: background-color 0.2s ease;
     text-decoration: none;
     height: 2.5rem;
     min-width: 0;
 }
 
-.btn:hover {
-    transition: filter 0.2s ease-in-out;
-    filter: brightness(0.95) !important;
-}
-
-[data-theme='dark'] .btn:hover {
-    transition: filter 0.2s ease-in-out;
-    filter: brightness(1.05) !important;
-}
 
 .btn:disabled {
     opacity: 0.6;
@@ -35,6 +26,11 @@
 .btn-primary {
     background-color: var(--primary-color);
     color: white;
+    transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
 }
 
 .form-container .btn-primary {
@@ -42,9 +38,14 @@
 }
 
 .btn-secondary {
-    background-color: rgb(230, 230, 230);
-    color: var(--primary-color);
+    background-color: var(--lighter-background);
+    color: var(--text-primary);
     border: 1px solid var(--border-color);
+    transition: background-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background-color: var(--background-color);
 }
 
 .btn-error,

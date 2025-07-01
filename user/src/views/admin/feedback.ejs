@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>피드백 관리 - 관리자</title>
+        <link rel="stylesheet" href="/admin/admin-dashboard.css" />
+        <link rel="stylesheet" href="/admin/admin-feedback.css" />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
+        <style>
+            .main-content {
+                padding-top: 80px;
+            }
+        </style>
+    </head>
+    <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
+        
+        <%- include('../partials/header') %>
+
+        <main class="main-content">
+            <div class="container">
+                <div class="admin-header">
+                    <h1 class="title">피드백 관리</h1>
+                </div>
+
+                <div class="feedback-filters">
+                    <div class="filter-group">
+                        <label for="typeFilter">유형</label>
+                        <select id="typeFilter">
+                            <option value="">전체</option>
+                            <option value="bug">버그</option>
+                            <option value="vulnerability">취약점</option>
+                            <option value="feature">기능 요청</option>
+                            <option value="improvement">개선사항</option>
+                            <option value="other">기타</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="priorityFilter">우선순위</label>
+                        <select id="priorityFilter">
+                            <option value="">전체</option>
+                            <option value="low">낮음</option>
+                            <option value="medium">보통</option>
+                            <option value="high">높음</option>
+                            <option value="critical">긴급</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="statusFilter">상태</label>
+                        <select id="statusFilter">
+                            <option value="">전체</option>
+                            <option value="pending">대기 중</option>
+                            <option value="confirmed">확인됨</option>
+                            <option value="in_progress">진행 중</option>
+                            <option value="testing">테스트 중</option>
+                            <option value="resolved">해결됨</option>
+                            <option value="closed">종료됨</option>
+                            <option value="rejected">거부됨</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="searchInput">검색</label>
+                        <input type="text" id="searchInput" placeholder="제목으로 검색">
+                    </div>
+                    <button class="nav-button secondary" onclick="loadFeedback()">
+                        <span class="material-symbols-outlined">search</span>
+                        검색
+                    </button>
+                </div>
+
+                <div class="feedback-list">
+                    <table class="feedback-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>제목</th>
+                                <th>유형</th>
+                                <th>우선순위</th>
+                                <th>상태</th>
+                                <th>작성자</th>
+                                <th>작성일</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="feedbackTableBody">
+                            <tr>
+                                <td colspan="8" style="text-align: center; padding: 2rem;">
+                                    로딩 중...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="pagination">
+                </div>
+            </div>
+
+            <div class="feedback-modal" id="feedbackModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>피드백 상세</h3>
+                        <button class="modal-close" onclick="closeModal()">&times;</button>
+                    </div>
+                    <div id="modalContent">
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <script type="module" src="/admin/admin-feedback.mjs"></script>
+    </body>
+</html> 

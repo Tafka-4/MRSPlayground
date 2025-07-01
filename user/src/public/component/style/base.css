@@ -15,6 +15,7 @@
 :root {
     /* Light Theme Colors */
     --primary-color: rgb(10, 10, 10);
+    --primary-hover: rgba(10, 10, 10, 0.8);
     --secondary-color: rgb(100, 100, 100);
     --background-color: rgb(240, 240, 240);
     --card-background: white;
@@ -39,9 +40,10 @@
     --text-muted: rgb(150, 150, 150);
 }
 
-/* Dark Theme */
+
 [data-theme='dark'] {
     --primary-color: rgb(255, 255, 255);
+    --primary-hover: rgba(255, 255, 255, 0.8);
     --secondary-color: rgb(180, 180, 180);
     --background-color: rgb(30, 30, 30);
     --card-background: rgb(40, 40, 40);

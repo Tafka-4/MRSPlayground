@@ -62,6 +62,11 @@ router.post(
     userRequestWatchStart,
     asyncWrapper(authController.verifyEmail)
 );
+router.post(
+    '/check-email-verification',
+    userRequestWatchStart,
+    asyncWrapper(authController.checkEmailVerificationStatus)
+);
 // Password management routes
 router.put(
     '/change-email',

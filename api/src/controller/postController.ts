@@ -43,7 +43,10 @@ const createPost = async (req: Request, res: Response) => {
     const post = new Post(postData);
     await post.save();
 
-    res.status(201).json(post);
+    res.status(201).json({
+        success: true,
+        post
+    });
 };
 
 // login required
@@ -54,7 +57,10 @@ const getPosts = async (req: Request, res: Response) => {
     }
     const { page, limit } = req.query;
     const posts = await Post.find({ galleryId }).skip((Number(page) - 1) * Number(limit)).limit(Number(limit));
-    res.status(200).json(posts);
+    res.status(200).json({
+        success: true,
+        posts
+    });
 };
 
 // login required
@@ -65,7 +71,10 @@ const getPost = async (req: Request, res: Response) => {
     }
     const post = await Post.findOne({ postId, galleryId });
     if (!post) throw new postError.PostNotFoundError("Post not found");
-    res.status(200).json(post);
+    res.status(200).json({
+        success: true,
+        post
+    });
 };
 
 // login required
@@ -83,7 +92,10 @@ const updatePost = async (req: Request, res: Response) => {
     post.title = title;
     post.content = content;
     await post.save();
-    res.status(200).json(post);
+    res.status(200).json({
+        success: true,
+        post
+    });
 };
 
 // login required
@@ -97,7 +109,10 @@ const deletePost = async (req: Request, res: Response) => {
     }
     if (gallery.galleryAdmin === userid || gallery.galleryManager.includes(userid as string)) {
         await post.deleteOne();
-        res.status(200).json({ message: "Post deleted" });
+        res.status(200).json({
+            success: true,
+            message: "Post deleted"
+        });
         return;
     }
     if (post.author !== userid) {
@@ -108,7 +123,10 @@ const deletePost = async (req: Request, res: Response) => {
     }
     
     await post.deleteOne();
-    res.status(200).json({ message: "Post deleted" });
+    res.status(200).json({
+        success: true,
+        message: "Post deleted"
+    });
 };
 
 // login required
@@ -121,7 +139,10 @@ const likePost = async (req: Request, res: Response) => {
     const post = await Post.findOne({ postId, galleryId });
     if (!post) throw new postError.PostNotFoundError("Post not found");
     await post.like(userid as string);
-    res.status(200).json({ message: "Post liked" });
+    res.status(200).json({
+        success: true,
+        message: "Post liked"
+    });
 };
 
 // login required
@@ -134,7 +155,10 @@ const dislikePost = async (req: Request, res: Response) => {
     const post = await Post.findOne({ postId, galleryId });
     if (!post) throw new postError.PostNotFoundError("Post not found");
     await post.dislike(userid as string);
-    res.status(200).json({ message: "Post disliked" });
+    res.status(200).json({
+        success: true,
+        message: "Post disliked"
+    });
 };
 
 export { createPost, getPosts, getPost, updatePost, deletePost, likePost, dislikePost };

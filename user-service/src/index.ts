@@ -12,6 +12,8 @@ import { connectRedis } from './config/redis.js';
 import userRoutes from './routes/userRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import logRoutes from './routes/logRoutes.js';
+import contactRoutes from './routes/contactRoutes.js';
+import feedbackRoutes from './routes/feedbackRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { identify } from './middleware/identify.js';
 import LogWebSocketServer from './websocket/logSocket.js';
@@ -43,6 +45,8 @@ app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/logs', logRoutes);
+app.use('/api/v1/contact', contactRoutes);
+app.use('/api/v1/feedback', feedbackRoutes);
 
 app.get('/api/v1/health', (req, res) => {
     res.status(200).json({
@@ -61,6 +65,8 @@ app.get('/api/v1/', (req, res) => {
             users: '/api/v1/users',
             auth: '/api/v1/auth',
             logs: '/api/v1/logs',
+            contact: '/api/v1/contact',
+            feedback: '/api/v1/feedback',
             health: '/api/v1/health'
         }
     });

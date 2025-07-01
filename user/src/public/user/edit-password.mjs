@@ -260,15 +260,12 @@ class EditPasswordPage {
         }
 
         try {
-            const response = await fetch('/api/v1/auth/change-password', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ currentPassword, newPassword })
+            const result = await apiClient.put('/api/v1/auth/change-password', {
+                currentPassword,
+                newPassword
             });
 
-            const result = await response.json();
-
-            if (response.ok) {
+            if (result) {
                 showSuccess('비밀번호가 성공적으로 변경되었습니다.');
                 this.currentPasswordInput.value = '';
                 this.newPasswordInput.value = '';

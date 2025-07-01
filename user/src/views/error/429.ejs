@@ -1,120 +1,246 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>요청 제한 - 429</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .error-container {
-            background: white;
-            padding: 3rem;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 500px;
-            width: 90%;
-        }
-        .error-code {
-            font-size: 6rem;
-            font-weight: bold;
-            color: #f5576c;
-            margin: 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-        }
-        .error-title {
-            font-size: 2rem;
-            color: #2c3e50;
-            margin: 1rem 0;
-        }
-        .error-message {
-            font-size: 1.1rem;
-            color: #7f8c8d;
-            margin: 1.5rem 0;
-            line-height: 1.6;
-        }
-        .retry-info {
-            background: #f8f9fa;
-            padding: 1rem;
-            border-radius: 8px;
-            margin: 1rem 0;
-            border-left: 4px solid #f5576c;
-        }
-        .btn-home {
-            display: inline-block;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: 500;
-            transition: transform 0.3s ease;
-            margin-top: 1rem;
-        }
-        .btn-home:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        .icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-        }
-        .countdown {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #f5576c;
-            margin: 1rem 0;
-        }
-    </style>
-</head>
-<body>
-    <script>
-        (function() {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
-        })();
-    </script>
-    <div class="error-container">
-        <div class="icon">⏰</div>
-        <h1 class="error-code">429</h1>
-        <h2 class="error-title">요청 제한 초과</h2>
-        <p class="error-message">
-            <%= message || '너무 많은 요청이 발생했습니다.' %>
-        </p>
-        <% if (typeof retryAfter !== 'undefined' && retryAfter) { %>
-            <div class="retry-info">
-                <strong><%= retryAfter %></strong> 후에 다시 시도해주세요.
-            </div>
-        <% } %>
-        <div class="countdown" id="countdown"></div>
-        <a href="/" class="btn-home">홈으로 돌아가기</a>
-    </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>요청 제한 - 429</title>
 
-    <script>
-        let timeLeft = 60;
-        const countdownElement = document.getElementById('countdown');
-        
-        function updateCountdown() {
-            if (timeLeft > 0) {
-                countdownElement.textContent = `${timeLeft}초 후 새로고침 가능`;
-                timeLeft--;
-                setTimeout(updateCountdown, 1000);
-            } else {
-                countdownElement.textContent = '새로고침 가능';
-                countdownElement.style.color = '#27ae60';
+        <link
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+            rel="stylesheet"
+        />
+
+        <link rel="stylesheet" href="/component/style/base.css" />
+        <link rel="stylesheet" href="/component/style/buttons.css" />
+    </head>
+    <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
+        <div id="root">
+            <%- include('../partials/header') %>
+
+            <main class="main-content">
+                <div class="error-container">
+                    <div class="error-icon">
+                        <span class="material-symbols-outlined">schedule</span>
+                    </div>
+                    <h1 class="error-code">429</h1>
+                    <h2 class="error-title">요청 제한 초과</h2>
+                    <p class="error-message">
+                        <%= message || '너무 많은 요청이 발생했습니다.' %>
+                    </p>
+                    <% if (typeof retryAfter !== 'undefined' && retryAfter) { %>
+                        <div class="retry-info">
+                            <span class="material-symbols-outlined">timer</span>
+                            <div>
+                                <strong><%= retryAfter %></strong> 후에 다시 시도해주세요
+                            </div>
+                        </div>
+                    <% } %>
+                    <div class="countdown" id="countdown"></div>
+                    <div class="error-actions">
+                        <a href="/" class="btn btn-primary">
+                            <span class="material-symbols-outlined">home</span>
+                            홈으로 돌아가기
+                        </a>
+                        <button onclick="history.back()" class="btn btn-secondary">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                            이전 페이지
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+        <%- include('../partials/footer') %>
+
+        <style>
+            .main-content {
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                min-height: calc(100vh - 120px) !important;
+                padding: 2rem 1rem !important;
             }
-        }
-        
-        updateCountdown();
-    </script>
-</body>
+
+            .error-container {
+                background: var(--card-background);
+                padding: 3rem;
+                border-radius: 1rem;
+                box-shadow: var(--shadow);
+                text-align: center;
+                max-width: 500px;
+                width: 100%;
+            }
+
+            .error-icon {
+                margin-bottom: 1rem;
+            }
+
+            .error-icon .material-symbols-outlined {
+                font-size: 4rem;
+                color: var(--warning-color);
+                opacity: 0.7;
+            }
+
+            .error-code {
+                font-size: 6rem;
+                font-weight: bold;
+                color: var(--warning-color);
+                margin: 0;
+                line-height: 1;
+            }
+
+            .error-title {
+                font-size: 2rem;
+                color: var(--text-primary);
+                margin: 1rem 0;
+                font-weight: 500;
+            }
+
+            .error-message {
+                font-size: 1.1rem;
+                color: var(--text-secondary);
+                margin: 1.5rem 0;
+                line-height: 1.6;
+            }
+
+            .retry-info {
+                background: var(--lighter-background);
+                padding: 1rem;
+                border-radius: 0.5rem;
+                margin: 1.5rem 0;
+                border-left: 4px solid var(--warning-color);
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                text-align: left;
+            }
+
+            .retry-info .material-symbols-outlined {
+                color: var(--warning-color);
+                font-size: 1.5rem;
+                flex-shrink: 0;
+            }
+
+            .retry-info strong {
+                color: var(--text-primary);
+            }
+
+            .retry-info div {
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+            }
+
+            .countdown {
+                font-size: 1.2rem;
+                font-weight: bold;
+                color: var(--warning-color);
+                margin: 1rem 0;
+                padding: 1rem;
+                background: var(--lighter-background);
+                border-radius: 0.5rem;
+                border: 1px solid var(--border-color);
+            }
+
+            .countdown.ready {
+                color: var(--success-color);
+                border-color: var(--success-color);
+            }
+
+            .error-actions {
+                display: flex;
+                gap: 1rem;
+                justify-content: center;
+                flex-wrap: wrap;
+                margin-top: 2rem;
+            }
+
+            .btn {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.75rem 1.5rem;
+                border: none;
+                border-radius: 0.5rem;
+                font-weight: 500;
+                cursor: pointer;
+                text-decoration: none;
+                transition: var(--transition);
+            }
+
+            .btn-primary {
+                background: var(--primary-color);
+                color: var(--card-background);
+            }
+
+            .btn-primary:hover {
+                background: var(--primary-hover);
+                transform: translateY(-1px);
+            }
+
+            .btn-secondary {
+                background: var(--lighter-background);
+                color: var(--text-primary);
+                border: 1px solid var(--border-color);
+            }
+
+            .btn-secondary:hover {
+                background: var(--background-color);
+                transform: translateY(-1px);
+            }
+
+            @media (max-width: 768px) {
+                .error-container {
+                    padding: 2rem 1.5rem;
+                    margin: 1rem;
+                }
+
+                .error-code {
+                    font-size: 4rem;
+                }
+
+                .error-title {
+                    font-size: 1.5rem;
+                }
+
+                .error-actions {
+                    flex-direction: column;
+                    align-items: center;
+                }
+
+                .btn {
+                    width: 100%;
+                    max-width: 250px;
+                }
+
+                .retry-info {
+                    flex-direction: column;
+                    text-align: center;
+                    gap: 0.5rem;
+                }
+            }
+        </style>
+
+        <script>
+            let timeLeft = 60;
+            const countdownElement = document.getElementById('countdown');
+            
+            function updateCountdown() {
+                if (timeLeft > 0) {
+                    countdownElement.textContent = `${timeLeft}초 후 새로고침 가능`;
+                    timeLeft--;
+                    setTimeout(updateCountdown, 1000);
+                } else {
+                    countdownElement.textContent = '새로고침 가능';
+                    countdownElement.classList.add('ready');
+                }
+            }
+            
+            updateCountdown();
+        </script>
+    </body>
 </html> 

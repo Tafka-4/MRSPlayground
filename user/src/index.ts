@@ -54,12 +54,18 @@ app.disable('x-powered-by');
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.set('public', path.join(__dirname, 'public'));
-app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(express.static(path.join(__dirname, 'public'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.mjs')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        }
+    }
+}));
 
 app.use('/', userRoute);
 app.use('/test', testRoute);
 
-// for debug
 app.use('*', (req: express.Request, res: express.Response) => {
     console.log(req.originalUrl);
     if (req.originalUrl.startsWith('/api')) {

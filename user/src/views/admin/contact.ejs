@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>문의 관리 - 관리자</title>
+        <link rel="stylesheet" href="/admin/admin-dashboard.css" />
+        <link rel="stylesheet" href="/admin/admin-contact.css" />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
+        <style>
+            .main-content {
+                padding-top: 80px;
+            }
+        </style>
+    </head>
+    <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
+        
+        <%- include('../partials/header') %>
+
+        <main class="main-content">
+            <div class="container">
+                <div class="admin-header">
+                    <h1 class="title">문의 관리</h1>
+                </div>
+
+                <div class="contact-filters">
+                    <div class="filter-group">
+                        <label for="statusFilter">상태</label>
+                        <select id="statusFilter">
+                            <option value="">전체</option>
+                            <option value="pending">대기 중</option>
+                            <option value="in_progress">처리 중</option>
+                            <option value="resolved">해결됨</option>
+                            <option value="closed">종료됨</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="categoryFilter">카테고리</label>
+                        <select id="categoryFilter">
+                            <option value="">전체</option>
+                            <option value="general">일반 문의</option>
+                            <option value="technical">기술적 문제</option>
+                            <option value="feature">기능 요청</option>
+                            <option value="account">계정 관련</option>
+                            <option value="other">기타</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="searchInput">검색</label>
+                        <input type="text" id="searchInput" placeholder="제목이나 이메일로 검색">
+                    </div>
+                    <button class="nav-button secondary" onclick="loadContacts()">
+                        <span class="material-symbols-outlined">search</span>
+                        검색
+                    </button>
+                </div>
+
+                <div class="contact-list">
+                    <table class="contact-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>제목</th>
+                                <th>카테고리</th>
+                                <th>이메일</th>
+                                <th>상태</th>
+                                <th>작성일</th>
+                                <th>작업</th>
+                            </tr>
+                        </thead>
+                        <tbody id="contactTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 2rem;">
+                                    로딩 중...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="pagination">
+                </div>
+            </div>
+
+            <div class="contact-modal" id="contactModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>문의 상세</h3>
+                        <button class="modal-close" onclick="closeModal()">&times;</button>
+                    </div>
+                    <div id="modalContent">
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <script type="module" src="/admin/admin-contact.mjs"></script>
+    </body>
+</html> 

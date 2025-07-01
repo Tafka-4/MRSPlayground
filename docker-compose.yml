@@ -168,6 +168,13 @@ services:
         networks:
             - app-network
 
+    # Cloudflare Tunnel
+    cloudflared:
+        image: cloudflare/cloudflared:latest
+        restart: unless-stopped
+        command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
+        network_mode: host
+
 volumes:
     userdb_data:
     redis_data:

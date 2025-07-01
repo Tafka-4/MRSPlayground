@@ -111,17 +111,6 @@ function renderComponents() {
     if (navDeleteBtn) {
         navDeleteBtn.addEventListener('click', showAccountDeleteModal);
     }
-
-    const adminBtnContainer = document.getElementById('admin-button-container');
-    if (adminBtnContainer && currentUser && currentUser.authority === 'admin') {
-        const adminBtn = createButton({
-            text: '관리자 페이지',
-            variant: 'warning',
-            icon: 'admin_panel_settings',
-            onClick: () => (window.location.href = '/admin')
-        });
-        adminBtnContainer.appendChild(adminBtn);
-    }
 }
 
 function showAccountDeleteModal() {
@@ -224,11 +213,10 @@ async function handleImageUpload(event) {
     formData.append('profileImage', file);
 
     try {
-        const response = await apiClient.post(
+        const result = await apiClient.post(
             '/api/v1/users/upload-profile',
             formData
         );
-        const result = await response.json();
         currentUser.profileImage = result.profileImage;
         updateProfileImage();
         event.target.value = '';
@@ -287,8 +275,7 @@ async function initializePage() {
     initializeComponents();
     loadSavedTheme();
     try {
-        const response = await apiClient.get('/api/v1/auth/me');
-        const result = await response.json();
+        const result = await apiClient.get('/api/v1/auth/me');
         if (result.success) {
             displayUserData(result.user);
             renderComponents();

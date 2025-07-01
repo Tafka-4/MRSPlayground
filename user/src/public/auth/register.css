@@ -1,171 +1,15 @@
-@font-face {
-    font-family: 'ONE-Mobile-POP';
-    src: url('https://fastly.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff')
-        format('woff');
-    font-weight: normal;
-    font-style: normal;
-}
-
-* {
-    font-family: 'ONE-Mobile-POP';
-}
-
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    overflow: hidden;
-    background-color: rgb(240, 240, 240);
-}
-
-.register-form-header-title {
-    display: flex;
-    box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
-    color: rgb(10, 10, 10);
-    font-size: 2.5rem;
-    font-weight: 500;
-    margin-bottom: 0.25rem;
-}
-
-.register-form-header-subtitle {
-    display: flex;
-    box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
-    color: rgb(100, 100, 100);
-    margin-top: 0.5rem;
-    margin-bottom: 1rem;
-    font-size: 0.85rem;
-    font-weight: 300;
-}
-
-.register-form-header-subtitle a {
-    color: rgb(10, 10, 10);
-    text-decoration: none;
-    margin-left: 0.5rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition-duration: 0.1s;
-}
-
-.register-form-header-subtitle a:hover {
-    color: rgb(50, 50, 50);
-}
-
-.register-form-divider {
-    width: 100%;
-    height: 1px;
-    background-color: rgb(100, 100, 100);
-    margin: 0.5rem 0;
-}
-
-.register-form-body {
-    display: flex;
-    box-sizing: border-box;
-    flex-direction: column;
-    margin-bottom: 1rem;
-}
-
-.register-form-body-input {
-    display: flex;
-    box-sizing: border-box;
-    flex-direction: column;
-    width: 100%;
-    margin-bottom: 1rem;
-}
-
-.register-form-body-input-wrapper {
-    display: flex;
-    box-sizing: border-box;
-    width: 100%;
-    margin-bottom: 0.5rem;
-    position: relative;
-}
-
-.register-form-body-input-wrapper .material-symbols-outlined {
-    position: absolute;
-    left: 0.7rem;
-    top: 0.4rem;
-    color: rgb(100, 100, 100);
-    font-size: 1.5rem;
-    font-weight: 20;
-}
-
-input {
-    font-size: 1rem;
-    font-weight: 400;
-    color: rgb(50, 50, 50);
-    box-sizing: border-box;
-    width: 100%;
-    height: 2.15rem;
-    margin: 0;
-    padding: 0.5rem 0.5rem 0.5rem 3rem;
-    outline: none;
-    border: solid 1px rgb(100, 100, 100);
-    border-radius: 0.5rem;
-    background: rgb(240, 240, 240);
-}
-
-input::placeholder {
-    color: rgb(100, 100, 100);
-    padding-right: 0.5rem;
-    font-size: 1rem;
-    font-weight: 300;
-}
-
-input:focus {
-    background: rgb(230, 230, 230);
-    color: rgb(50, 50, 50);
-    outline: none;
-    transition-duration: 0.1s;
-}
-
-input:focus::placeholder {
-    color: rgb(100, 100, 100);
-}
-
-input[type='password'] {
-    font-family: 'pass', 'Roboto', Helvetica, Arial, sans-serif;
-    &::-webkit-input-placeholder {
-        transform-origin: 0 50%;
-    }
-}
-
-input[type='password']::placeholder {
-    font-family: 'ONE-Mobile-POP';
-    font-size: 1rem;
-    opacity: 1;
-}
-
-.register-form-body-button-container {
-    display: flex;
-    box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
-}
-
-.register-form-body-button-container button {
-    width: 100%;
-    height: 2.15rem;
-    border: none;
-    border-radius: 0.5rem;
-    background-color: rgb(10, 10, 10);
-}
-
-.register-form-body-button-container label {
-    color: rgb(240, 240, 240);
-    font-size: 1rem;
-    font-weight: 400;
-}
-
 .password-message-container {
     display: flex;
-    box-sizing: border-box;
     justify-content: center;
     align-items: center;
+    width: 100%;
+    min-height: 1.5rem;
+}
+
+.password-message-container-message {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-align: center;
 }
 
 .email-verification-ui {
@@ -177,8 +21,9 @@ input[type='password']::placeholder {
     width: 100%;
     height: 2.15rem;
     border-radius: 0.5rem;
-    border: 1px solid rgb(100, 100, 100);
-    background-color: rgb(230, 230, 230);
+    border: 1px solid var(--border-color);
+    background-color: var(--lighter-background);
+    color: var(--text-primary);
     cursor: pointer;
 }
 
@@ -191,7 +36,7 @@ input[type='password']::placeholder {
     opacity: 0;
     height: 0;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: none;
 }
 
 #pin-input-container.show {
@@ -207,37 +52,139 @@ input[type='password']::placeholder {
 }
 
 #pin-input-container input[name='pin'] {
-    flex: 1;
+    flex: 2;
     min-width: 0;
     font-size: 1rem;
     font-weight: 400;
-    color: rgb(50, 50, 50);
+    color: var(--text-primary);
     box-sizing: border-box;
     height: 2.15rem;
     padding: 0.5rem 1rem;
-    border: solid 1px rgb(100, 100, 100);
+    border: solid 1px var(--border-color);
     border-radius: 0.5rem;
-    background: rgb(240, 240, 240);
+    background: var(--background-color);
     outline: none;
 }
 
 #verify-pin-button {
-    flex-shrink: 0;
-    width: 80px;
+    flex: 1;
+    min-width: 100px;
     height: 2.15rem;
     border-radius: 0.5rem;
-    border: 1px solid rgb(100, 100, 100);
-    background-color: rgb(230, 230, 230);
+    border: 1px solid var(--border-color);
+    background-color: var(--lighter-background);
+    color: var(--text-primary);
     cursor: pointer;
     font-size: 0.9rem;
 }
 
 #pin-timer-message {
     font-size: 0.85rem;
-    color: rgb(100, 100, 100);
+    color: var(--text-secondary);
     text-align: center;
     min-height: 1.2rem;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+.verification-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    visibility: hidden;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+    transition: none;
+}
+
+.verification-container.show {
+    visibility: visible;
+    opacity: 1;
+    height: auto;
+}
+
+.verification-input-row input {
+    flex: 1;
+    min-width: 0;
+    height: var(--auth-input-height);
+    padding: 0 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--background-color);
+    color: var(--text-primary);
+    font-size: 1rem;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.verification-input-row input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(var(--primary-color-rgb), 0.1);
+}
+
+.auth-form .input-wrapper.icon-left input {
+    height: var(--auth-input-height);
+    padding: 0 1rem 0 3rem;
+}
+
+.auth-form .input-wrapper.icon-left .material-symbols-outlined {
+    left: 1rem;
+    right: auto;
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+}
+
+.auth-form .verification-section {
+    margin: 0;
+}
+
+.auth-form button[type="submit"] {
+    margin-top: 0.5rem;
+}
+
+.auth-form .visibility-container {
+    position: absolute;
+    right: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    z-index: 10;
+    border-radius: 50%;
+    transition: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    pointer-events: auto;
+}
+
+.auth-form .visibility-container .material-symbols-outlined {
+    font-size: 1.2rem;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+}
+
+.auth-form .input-wrapper.icon-left input {
+    padding: 0 3.5rem 0 3rem !important;
+}
+
+@media (max-width: 480px) {
+    .verification-input-row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .verification-btn {
+        width: 100%;
+        min-width: auto;
+    }
 }
