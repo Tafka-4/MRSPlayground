@@ -144,10 +144,10 @@ services:
       - ./userdb/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
-      timeout: 30s    # Increased timeout
-      retries: 15     # Increased retries
+      timeout: 30s
+      retries: 15
       interval: 10s
-      start_period: 60s # Increased start_period
+      start_period: 60s
     restart: unless-stopped
     networks:
       - app-network
@@ -186,8 +186,6 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD=${REQDB_PASSWORD}
       - MYSQL_DATABASE=${REQDB_NAME}
-      - MYSQL_USER=${REQDB_USER}
-      - MYSQL_PASSWORD=${REQDB_PASSWORD}
     expose:
       - '3306'
     volumes:
@@ -195,10 +193,10 @@ services:
       - ./requestdb/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${REQDB_PASSWORD}"]
-      timeout: 30s    # Increased timeout
-      retries: 15     # Increased retries
+      timeout: 30s
+      retries: 15
       interval: 10s
-      start_period: 60s # Increased start_period
+      start_period: 60s
     restart: unless-stopped
     networks:
       - app-network

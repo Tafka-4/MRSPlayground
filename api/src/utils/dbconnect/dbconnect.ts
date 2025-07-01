@@ -4,7 +4,8 @@ import mongoose from "mongoose";
 dotenv.config();
 
 const redisConfig: redis.RedisClientOptions = {
-    url: `redis://redis:6379`,
+    url: process.env.REDIS_URL || `redis://redis:6379`,
+    password: process.env.REDIS_PASSWORD,
     legacyMode: false,
 };
 
@@ -27,7 +28,8 @@ const connectRedis = async () => {
 
 const connectMongo = async () => {
     try {
-        const mongoUri = `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PW}@mongodb:27017/mrsplayground?authSource=admin`;
+        const mongoUri = process.env.MONGO_URI ||
+                        `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PW}@mongodb:27017/mrsplayground?authSource=admin`;
         await mongoose.connect(mongoUri, mongoConfigOptions);
         console.log("MongoDB connected");
     } catch (err) {
