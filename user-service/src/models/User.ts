@@ -97,7 +97,8 @@ export class User {
 
     static async find(
         query: Partial<IUser> & { nickname?: { $regex: string } },
-        limit?: number
+        limit?: number,
+        page?: number
     ): Promise<User[]> {
         let sql = 'SELECT * FROM users';
         const values: any[] = [];
@@ -124,10 +125,17 @@ export class User {
             sql += conditions.join(' AND ');
         }
 
+        sql += ' ORDER BY createdAt DESC';
+
         if (limit && limit > 0) {
-            const limitValue = Number(limit);
-            if (!isNaN(limitValue) && limitValue >= 1) {
-                sql += ` LIMIT ${Math.floor(limitValue)}`;
+            const limitValue = Math.floor(Number(limit));
+            const pageValue = Math.floor(Number(page || 1));
+            
+            if (!isNaN(limitValue) && limitValue >= 1 && limitValue <= 100 &&
+                !isNaN(pageValue) && pageValue >= 1 && pageValue <= 1000000) {
+                const offset = pageValue > 1 ? (pageValue - 1) * limitValue : 0;
+                sql += ` LIMIT ? OFFSET ?`;
+                values.push(limitValue, offset);
             }
         }
 

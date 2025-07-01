@@ -2,6 +2,8 @@ import { Request, Response, RequestHandler } from 'express';
 import { escape } from 'html-escaper';
 import { User } from '../models/User.js';
 import { pool } from '../config/database.js';
+import { redisClient } from '../config/redis.js';
+import { sanitizeString } from '../utils/sqlSecurity.js';
 import {
     UserError,
     UserNotFoundError,
@@ -29,31 +31,59 @@ export const getUserList: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
-    const { query, limit } = req.query;
+    const { query, limit, page = 1 } = req.query;
 
-    console.log('getUserList called with query:', query, 'limit:', limit);
+    console.log('getUserList called with query:', query, 'limit:', limit, 'page:', page);
 
+    // Validate limit
     let limitNumber = 10;
     if (limit) {
         const parsedLimit = parseInt(limit as string, 10);
-        if (!isNaN(parsedLimit) && parsedLimit >= 1 && parsedLimit <= 100) {
+        if (!isNaN(parsedLimit) && parsedLimit >= 1 && parsedLimit <= 50) {
             limitNumber = parsedLimit;
         } else {
-            throw new UserError('Limit number must be between 1 and 100');
+            throw new UserError('Limit number must be between 1 and 50');
+        }
+    }
+
+    // Validate page
+    let pageNumber = 1;
+    if (page) {
+        const parsedPage = parseInt(page as string, 10);
+        if (!isNaN(parsedPage) && parsedPage >= 1) {
+            pageNumber = parsedPage;
+        }
+    }
+
+    // If no search query, require specific permission (prevent loading all users)
+    if (!query || typeof query !== 'string' || query.trim().length < 2) {
+        const currentUser = (req as any).user;
+        if (!currentUser || currentUser.authority !== 'admin') {
+            res.status(400).json({
+                success: false,
+                error: 'Search query must be at least 2 characters long'
+            });
+            return;
         }
     }
 
     let searchQuery: any = {};
     if (query && typeof query === 'string' && query.trim() !== '') {
-        searchQuery = { nickname: { $regex: query.trim() } };
+        const sanitizedQuery = sanitizeString(query, 100);
+        searchQuery = { nickname: { $regex: sanitizedQuery } };
     }
 
     console.log('Final searchQuery:', searchQuery);
 
-    const users = await User.find(searchQuery, limitNumber);
+    const users = await User.find(searchQuery, limitNumber, pageNumber);
     res.status(200).json({
         success: true,
-        users: users.map((user) => user.toJSON())
+        users: users.map((user) => user.toJSON()),
+        pagination: {
+            page: pageNumber,
+            limit: limitNumber,
+            hasMore: users.length === limitNumber
+        }
     });
 };
 
@@ -225,28 +255,52 @@ export const getUserStatistics: RequestHandler = async (
     res: Response
 ) => {
     try {
-        const [totalUsersResult] = (await pool.execute(
-            'SELECT COUNT(*) as total FROM users'
-        )) as any[];
-        const totalUsers = totalUsersResult[0]?.total || 0;
+        const cacheKey = 'user_statistics';
+        
+        try {
+            const cachedData = await redisClient.get(cacheKey);
+            if (cachedData) {
+                const statistics = JSON.parse(cachedData);
+                res.status(200).json({
+                    success: true,
+                    statistics,
+                    cached: true
+                });
+                return;
+            }
+        } catch (cacheError) {
+            console.warn('Redis cache error, falling back to database:', cacheError);
+        }
 
-        const [newUsersResult] = (await pool.execute(
-            'SELECT COUNT(*) as total FROM users WHERE DATE(createdAt) = CURDATE()'
-        )) as any[];
-        const newUsers = newUsersResult[0]?.total || 0;
+        // Execute all queries in parallel for better performance
+        const [totalUsersResult, newUsersResult, activeUsersResult] = await Promise.all([
+            pool.execute('SELECT COUNT(*) as total FROM users'),
+            pool.execute('SELECT COUNT(*) as total FROM users WHERE DATE(createdAt) = CURDATE()'),
+            pool.execute('SELECT COUNT(DISTINCT userid) as total FROM refresh_tokens WHERE expires_at > NOW() AND issued_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)')
+        ]);
 
-        const [activeUsersResult] = (await pool.execute(
-            'SELECT COUNT(DISTINCT userid) as total FROM refresh_tokens WHERE expires_at > NOW() AND issued_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
-        )) as any[];
-        const activeUsers = activeUsersResult[0]?.total || 0;
+        const totalUsers = (totalUsersResult[0] as any[])[0]?.total || 0;
+        const newUsers = (newUsersResult[0] as any[])[0]?.total || 0;
+        const activeUsers = (activeUsersResult[0] as any[])[0]?.total || 0;
+
+        const statistics = {
+            totalUsers,
+            newUsers,
+            activeUsers
+        };
+
+        try {
+            await redisClient.set(cacheKey, JSON.stringify(statistics), {
+                EX: 300
+            });
+        } catch (cacheError) {
+            console.warn('Failed to cache user statistics:', cacheError);
+        }
 
         res.status(200).json({
             success: true,
-            statistics: {
-                totalUsers,
-                newUsers,
-                activeUsers
-            }
+            statistics,
+            cached: false
         });
     } catch (error) {
         console.error('Error fetching user statistics:', error);
@@ -277,7 +331,7 @@ export const searchUsers: RequestHandler = async (
             return;
         }
 
-        const searchQuery = q.trim();
+        const searchQuery = sanitizeString(q, 100);
         const limitNumber = Math.min(parseInt(limit as string) || 10, 50);
 
         const [users] = (await pool.execute(
@@ -289,11 +343,9 @@ export const searchUsers: RequestHandler = async (
                     WHEN userid = ? THEN 1
                     WHEN nickname = ? THEN 2
                     WHEN id = ? THEN 3
-                    WHEN userid LIKE ? THEN 4
-                    WHEN nickname LIKE ? THEN 5
-                    WHEN id LIKE ? THEN 6
-                    ELSE 7
-                END
+                    ELSE 4
+                END,
+                createdAt DESC
              LIMIT ?`,
             [
                 `%${searchQuery}%`,
@@ -302,9 +354,6 @@ export const searchUsers: RequestHandler = async (
                 searchQuery,
                 searchQuery,
                 searchQuery,
-                `${searchQuery}%`,
-                `${searchQuery}%`,
-                `${searchQuery}%`,
                 limitNumber
             ]
         )) as any[];

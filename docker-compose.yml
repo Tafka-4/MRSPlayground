@@ -12,7 +12,7 @@ services:
       api:
         condition: service_started
       user-service:
-        condition: service_healthy
+        condition: service_started
       user:
         condition: service_started
     restart: unless-stopped
@@ -23,7 +23,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 30s
+      start_period: 45s
 
   # API Gateway / Main API Service
   api:
@@ -43,9 +43,9 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
       user-service:
-        condition: service_healthy
+        condition: service_started
       redis:
-        condition: service_healthy
+        condition: service_started
       mongodb:
         condition: service_healthy
     restart: unless-stopped

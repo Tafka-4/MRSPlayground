@@ -3,11 +3,23 @@ import redis from "redis";
 import mongoose from "mongoose";
 dotenv.config();
 
-const redisConfig: redis.RedisClientOptions = {
-    url: process.env.REDIS_URL || `redis://redis:6379`,
-    password: process.env.REDIS_PASSWORD,
-    legacyMode: false,
+console.log('API Gateway Redis 연결 설정:');
+console.log('REDIS_URL:', process.env.REDIS_URL || 'redis://redis:6379');
+console.log('REDIS_PASSWORD 설정됨:', !!process.env.REDIS_PASSWORD);
+
+const redisConfig: any = {
+    url: process.env.REDIS_URL || 'redis://redis:6379',
+    socket: {
+        connectTimeout: 10000
+    }
 };
+
+if (process.env.REDIS_PASSWORD) {
+    redisConfig.password = process.env.REDIS_PASSWORD;
+    console.log('Redis 비밀번호로 연결 시도');
+} else {
+    console.log('Redis 비밀번호 없이 연결 시도');
+}
 
 const mongoConfigOptions: mongoose.ConnectOptions = {
     serverSelectionTimeoutMS: 10000,
@@ -16,13 +28,103 @@ const mongoConfigOptions: mongoose.ConnectOptions = {
 
 const redisClient = redis.createClient(redisConfig);
 
+redisClient.on('error', (error) => {
+    console.error('Redis 클라이언트 오류:', error);
+});
+
+redisClient.on('connect', () => {
+    console.log('Redis 클라이언트 연결됨');
+});
+
+redisClient.on('ready', () => {
+    console.log('Redis 클라이언트 준비됨');
+});
+
+redisClient.on('end', () => {
+    console.log('Redis 클라이언트 연결 종료됨');
+});
+
+redisClient.on('reconnecting', () => {
+    console.log('Redis 클라이언트 재연결 시도 중...');
+});
+
+const checkRedisConnection = async (): Promise<boolean> => {
+    try {
+        if (!redisClient.isOpen) {
+            return false;
+        }
+        const result = await redisClient.ping();
+        return result === 'PONG';
+    } catch (error) {
+        console.error('Redis 연결 확인 실패:', error);
+        return false;
+    }
+};
+
+const waitForRedis = async (
+    maxRetries: number = 30,
+    retryInterval: number = 2000
+): Promise<void> => {
+    let retries = 0;
+
+    while (retries < maxRetries) {
+        try {
+            console.log(`Redis 연결 시도 중... (${retries + 1}/${maxRetries})`);
+
+            if (redisClient.isOpen) {
+                try {
+                    await redisClient.disconnect();
+                } catch (disconnectError) {
+                    console.warn('기존 Redis 연결 정리 중 오류:', disconnectError);
+                }
+            }
+
+            await redisClient.connect();
+
+            const isConnected = await checkRedisConnection();
+            if (isConnected) {
+                console.log('Redis 연결 성공!');
+                return;
+            }
+
+            throw new Error('Redis ping 실패');
+        } catch (error) {
+            retries++;
+            console.error(`Redis 연결 오류 (시도 ${retries}/${maxRetries}):`, error instanceof Error ? error.message : String(error));
+
+            if (retries >= maxRetries) {
+                console.error('Redis 연결 최대 재시도 횟수 초과:', error);
+                throw new Error(
+                    `Redis 연결에 실패했습니다. ${maxRetries}번 재시도 후에도 연결할 수 없습니다.`
+                );
+            }
+
+            console.log(
+                `Redis 연결 실패. ${
+                    retryInterval / 1000
+                }초 후 재시도... (${retries}/${maxRetries})`
+            );
+
+            try {
+                if (redisClient.isOpen) {
+                    await redisClient.disconnect();
+                }
+            } catch (disconnectError) {
+                console.warn('Redis 연결 해제 오류:', disconnectError);
+            }
+
+            await new Promise((resolve) => setTimeout(resolve, retryInterval));
+        }
+    }
+};
+
 const connectRedis = async () => {
     try {
-        await redisClient.connect();
-        console.log("Redis connected");
-    } catch (err) {
-        console.error("Redis connection error:", err);
-        setTimeout(connectRedis, 5000);
+        console.log('API Gateway Redis 연결 초기화 시작...');
+        await waitForRedis();
+        console.log('API Gateway Redis 연결 완료');
+    } catch (error) {
+        console.error('API Gateway Redis 연결 실패:', error);
     }
 };
 
@@ -38,7 +140,6 @@ const connectMongo = async () => {
     }
 };
 
-// MongoDB connection event handlers
 mongoose.connection.on('connected', () => {
     console.log('Mongoose connected to MongoDB');
 });
@@ -51,4 +152,27 @@ mongoose.connection.on('disconnected', () => {
     console.log('Mongoose disconnected from MongoDB');
 });
 
-export { redisClient, mongoose, connectRedis, connectMongo };
+const disconnectRedis = async () => {
+    try {
+        if (redisClient.isOpen) {
+            await redisClient.disconnect();
+            console.log('API Gateway Redis 연결이 정상적으로 종료되었습니다');
+        }
+    } catch (error) {
+        console.error('API Gateway Redis 연결 종료 중 오류:', error);
+    }
+};
+
+process.on('SIGINT', async () => {
+    console.log('API Gateway 종료 신호 받음 (SIGINT)');
+    await disconnectRedis();
+    process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+    console.log('API Gateway 종료 신호 받음 (SIGTERM)');
+    await disconnectRedis();
+    process.exit(0);
+});
+
+export { redisClient, mongoose, connectRedis, connectMongo, checkRedisConnection, disconnectRedis };

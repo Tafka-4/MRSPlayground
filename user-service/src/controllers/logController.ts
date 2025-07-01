@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { requestPool, pool } from '../config/database.js';
 import { IUser } from '../models/User.js';
+import { validatePaginationParams, sanitizeString } from '../utils/sqlSecurity.js';
 
 const safeNumber = (value: any, defaultValue: number = 0): number => {
     const num = Number(value);
@@ -8,9 +9,7 @@ const safeNumber = (value: any, defaultValue: number = 0): number => {
 };
 
 const validatePagination = (page: any, limit: any) => {
-    const safePage = Math.max(1, safeNumber(page, 1));
-    const safeLimit = Math.min(Math.max(1, safeNumber(limit, 10)), 100);
-    return { page: safePage, limit: safeLimit };
+    return validatePaginationParams(page, limit);
 };
 
 const checkDatabaseConnection = async (): Promise<boolean> => {
@@ -36,8 +35,27 @@ interface LogFilters {
 }
 
 class LogQueryBuilder {
-    private baseQuery = 'SELECT * FROM user_requests';
-    private countQuery = 'SELECT COUNT(*) as total FROM user_requests';
+    private baseQuery = `
+        SELECT 
+            ur.request_id,
+            ur.user_id,
+            ur.route,
+            ur.method,
+            ur.status,
+            ur.created_at,
+            ur.updated_at,
+            ur.client_ip,
+            ur.user_agent,
+            ur.error_code,
+            ur.error_message,
+            ur.retry_count,
+            u.nickname as username,
+            u.email,
+            u.id as login_id
+        FROM user_requests ur
+        LEFT JOIN users u ON ur.user_id = u.userid
+    `;
+    private countQuery = 'SELECT COUNT(*) as total FROM user_requests ur';
     private conditions: string[] = [];
     private params: any[] = [];
 
@@ -97,9 +115,11 @@ class LogQueryBuilder {
 
         if (!isExport) {
             const offset = (page - 1) * limit;
-            query += ` LIMIT ${limit} OFFSET ${offset}`;
+            query += ` LIMIT ? OFFSET ?`;
+            this.params.push(limit, offset);
         } else {
-            query += ' LIMIT 10000';
+            query += ' LIMIT ?';
+            this.params.push(10000);
         }
 
         return query;
@@ -117,46 +137,6 @@ class LogQueryBuilder {
         return this.params;
     }
 }
-
-const enrichLogsWithUserData = async (logs: any[]): Promise<any[]> => {
-    if (logs.length === 0) return logs;
-
-    const userIds = [
-        ...new Set(logs.map((log) => log.user_id).filter(Boolean))
-    ];
-    if (userIds.length === 0) return logs;
-
-    try {
-        const placeholders = userIds.map(() => '?').join(',');
-        const [users] = await pool.execute(
-            `SELECT userid, id, nickname, email FROM users WHERE userid IN (${placeholders})`,
-            userIds
-        );
-
-        const usersMap = new Map();
-        (users as any[]).forEach((user) => {
-            if (user.userid) {
-                usersMap.set(user.userid, {
-                    username: user.nickname || null,
-                    email: user.email || null,
-                    login_id: user.id || null
-                });
-            }
-        });
-
-        return logs.map((log) => ({
-            ...log,
-            ...(usersMap.get(log.user_id) || {
-                username: null,
-                email: null,
-                login_id: null
-            })
-        }));
-    } catch (error) {
-        console.error('Error enriching logs with user data:', error);
-        return logs;
-    }
-};
 
 export const getLogs = async (req: Request, res: Response) => {
     try {
@@ -230,11 +210,9 @@ export const getLogs = async (req: Request, res: Response) => {
         );
         const [logs] = await requestPool.execute(logsQuery, params);
 
-        const enrichedLogs = await enrichLogsWithUserData(logs as any[]);
-
         const response: any = {
             success: true,
-            logs: enrichedLogs
+            logs: logs
         };
 
         if (isExport !== 'true') {
@@ -365,14 +343,16 @@ export const getRouteErrors = async (req: Request, res: Response) => {
         const [logs] = await requestPool.execute(
             `
             SELECT 
-                request_id, user_id, route, status, created_at, updated_at,
-                client_ip, user_agent, error_code, error_message, retry_count
-            FROM user_requests 
-            WHERE route = ? AND status = 'failed'
-            ORDER BY created_at DESC 
-            LIMIT ${safeLimit} OFFSET ${offset}
+                ur.request_id, ur.user_id, ur.route, ur.status, ur.created_at, ur.updated_at,
+                ur.client_ip, ur.user_agent, ur.error_code, ur.error_message, ur.retry_count,
+                u.nickname as username, u.email, u.id as login_id
+            FROM user_requests ur
+            LEFT JOIN users u ON ur.user_id = u.userid
+            WHERE ur.route = ? AND ur.status = 'failed'
+            ORDER BY ur.created_at DESC 
+            LIMIT ? OFFSET ?
         `,
-            [route]
+            [route, safeLimit, offset]
         );
 
         const [errorStats] = await requestPool.execute(
@@ -408,12 +388,11 @@ export const getRouteErrors = async (req: Request, res: Response) => {
         );
 
         const total = safeNumber((countResult as any[])[0]?.total, 0);
-        const enrichedLogs = await enrichLogsWithUserData(logs as any[]);
 
         res.status(200).json({
             success: true,
             route,
-            error_logs: enrichedLogs,
+            error_logs: logs,
             error_statistics: (errorStats as any[]).map((stat) => ({
                 error_code: stat.error_code || 'unknown',
                 error_message: stat.error_message || 'No message',

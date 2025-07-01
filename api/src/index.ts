@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { connectMongo, connectRedis } from './utils/dbconnect/dbconnect.js';
+import { connectMongo, connectRedis, checkRedisConnection, mongoose } from './utils/dbconnect/dbconnect.js';
 import novelRouter from './router/novelRouter.js';
 import galleryRouter from './router/galleryRouter.js';
 import postRouter from './router/postRouter.js';
@@ -14,8 +14,32 @@ dotenv.config();
 
 const app = express();
 
-connectMongo();
-connectRedis();
+const initializeConnections = async () => {
+    console.log('API Gateway 초기화 시작...');
+    
+    try {
+        await connectMongo();
+        console.log('✅ MongoDB 연결 완료');
+    } catch (error) {
+        console.error('❌ MongoDB 연결 실패:', error);
+        process.exit(1);
+    }
+    
+    try {
+        await connectRedis();
+        console.log('✅ Redis 연결 완료');
+    } catch (error) {
+        console.error('❌ Redis 연결 실패:', error);
+        console.warn('⚠️ Redis 없이 계속 진행합니다...');
+    }
+    
+    console.log('🚀 API Gateway 초기화 완료');
+};
+
+initializeConnections().catch((error) => {
+    console.error('API Gateway 초기화 실패:', error);
+    process.exit(1);
+});
 
 // Trust proxy for Nginx
 app.set('trust proxy', true);
@@ -45,14 +69,36 @@ app.use('/comment/v1', commentRouter);
 app.use('/episode/v1', episodeRouter);
 app.use('/emoji/v1', emojiRouter);
 
-// Health check
-app.get('/health', (req, res) => {
-    res.status(200).json({
-        status: 'OK',
-        service: 'API Gateway',
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime()
-    });
+// Health check with dependency status
+app.get('/health', async (req, res) => {
+    try {
+        const mongoStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+        const redisStatus = await checkRedisConnection() ? 'connected' : 'disconnected';
+        
+        const isHealthy = mongoStatus === 'connected';
+        const status = isHealthy ? 'OK' : 'UNHEALTHY';
+        const statusCode = isHealthy ? 200 : 503;
+        
+        res.status(statusCode).json({
+            status,
+            service: 'API Gateway',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            dependencies: {
+                mongodb: mongoStatus,
+                redis: redisStatus
+            }
+        });
+    } catch (error) {
+        console.error('Health check error:', error);
+        res.status(503).json({
+            status: 'ERROR',
+            service: 'API Gateway',
+            timestamp: new Date().toISOString(),
+            uptime: process.uptime(),
+            error: 'Health check failed'
+        });
+    }
 });
 
 // Root endpoint info

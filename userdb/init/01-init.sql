@@ -1,8 +1,6 @@
--- Create database if not exists
 CREATE DATABASE IF NOT EXISTS userapi;
 USE userapi;
 
--- Create users table
 CREATE TABLE IF NOT EXISTS users (
     userid VARCHAR(36) PRIMARY KEY,
     id VARCHAR(255) UNIQUE NOT NULL,
@@ -21,7 +19,6 @@ CREATE TABLE IF NOT EXISTS users (
     INDEX idx_nickname (nickname)
 );
 
--- Create refresh_tokens table
 CREATE TABLE IF NOT EXISTS refresh_tokens (
     id INT AUTO_INCREMENT PRIMARY KEY,
     userid VARCHAR(36) NOT NULL,
@@ -38,7 +35,6 @@ CREATE TABLE IF NOT EXISTS refresh_tokens (
     FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE CASCADE
 );
 
--- Create contact table for contact form submissions
 CREATE TABLE IF NOT EXISTS contacts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     subject VARCHAR(500) NOT NULL,
@@ -60,7 +56,6 @@ CREATE TABLE IF NOT EXISTS contacts (
     FOREIGN KEY (admin_userid) REFERENCES users(userid) ON DELETE SET NULL
 );
 
--- Create feedback table for bug reports and feature requests
 CREATE TABLE IF NOT EXISTS feedback (
     id INT AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(500) NOT NULL,
@@ -86,6 +81,14 @@ CREATE TABLE IF NOT EXISTS feedback (
     FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE SET NULL,
     FOREIGN KEY (admin_userid) REFERENCES users(userid) ON DELETE SET NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_users_search ON users(userid, nickname, id);
+
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(createdAt DESC);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_active ON refresh_tokens(expires_at, issued_at, userid);
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_weekly_active ON refresh_tokens(issued_at, expires_at, userid);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_cleanup ON refresh_tokens(expires_at, is_revoked);
 
 -- Insert sample admin user (password: admin123!)
 INSERT IGNORE INTO users (

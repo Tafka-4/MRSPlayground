@@ -74,8 +74,8 @@ export const waitForRedis = async (
                 }
             }
 
-            await redisClient.connect();
-            
+                await redisClient.connect();
+
             const isConnected = await checkRedisConnection();
             if (isConnected) {
                 console.log('Redis 연결 성공!');
