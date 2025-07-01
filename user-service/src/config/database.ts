@@ -11,18 +11,26 @@ const dbConfig = {
     port: parseInt(process.env.DB_PORT || '3306'),
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    acquireTimeout: 60000,
+    timeout: 60000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0,
 };
 
 const requestdbConfig = {
     host: process.env.REQDB_HOST || 'requestdb',
     user: process.env.REQDB_USER || 'root',
-    password: process.env.REQDB_PASSWORD || 'root',
+    password: process.env.REQDB_PASSWORD || process.env.DB_PASSWORD || 'root',
     database: process.env.REQDB_NAME || 'requestapi',
     port: parseInt(process.env.REQDB_PORT || '3306'),
     waitForConnections: true,
     connectionLimit: 10,
-    queueLimit: 0
+    queueLimit: 0,
+    acquireTimeout: 60000,
+    timeout: 60000,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0,
 };
 
 export const pool = mysql.createPool(dbConfig);
@@ -33,8 +41,16 @@ export const checkDatabaseConnection = async (): Promise<boolean> => {
         const connection = await pool.getConnection();
         await connection.ping();
         connection.release();
+        console.log(`✅ Main DB (${dbConfig.host}:${dbConfig.port}/${dbConfig.database}) connected successfully`);
         return true;
     } catch (error) {
+        console.error(`❌ Main DB connection failed:`, {
+            host: dbConfig.host,
+            port: dbConfig.port,
+            database: dbConfig.database,
+            user: dbConfig.user,
+            error: error instanceof Error ? error.message : error
+        });
         return false;
     }
 };
@@ -44,43 +60,64 @@ export const checkRequestDatabaseConnection = async (): Promise<boolean> => {
         const connection = await requestPool.getConnection();
         await connection.ping();
         connection.release();
+        console.log(`✅ Request DB (${requestdbConfig.host}:${requestdbConfig.port}/${requestdbConfig.database}) connected successfully`);
         return true;
     } catch (error) {
+        console.error(`❌ Request DB connection failed:`, {
+            host: requestdbConfig.host,
+            port: requestdbConfig.port,
+            database: requestdbConfig.database,
+            user: requestdbConfig.user,
+            error: error instanceof Error ? error.message : error
+        });
         return false;
     }
 };
 
 export const waitForDatabase = async (
-    maxRetries: number = 50,
-    retryInterval: number = 2000
+    maxRetries: number = 60,
+    retryInterval: number = 3000
 ): Promise<void> => {
     let retries = 0;
+
+    console.log('🔄 Starting database connection process...');
+    console.log('📊 Database configurations:');
+    console.log(`   Main DB: ${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`);
+    console.log(`   Request DB: ${requestdbConfig.host}:${requestdbConfig.port}/${requestdbConfig.database}`);
 
     while (retries < maxRetries) {
         try {
             console.log(
-                `Try to connect to database... (${retries + 1}/${maxRetries})`
+                `🔗 Attempting database connections... (${retries + 1}/${maxRetries})`
             );
 
             const isConnected = await checkDatabaseConnection();
             const isRequestConnected = await checkRequestDatabaseConnection();
+            
             if (isConnected && isRequestConnected) {
-                console.log('DB Connected!');
+                console.log('🎉 All databases connected successfully!');
                 return;
             }
-            throw new Error('DB Connection Failed');
+            
+            if (!isConnected) console.log('⚠️  Main DB connection failed');
+            if (!isRequestConnected) console.log('⚠️  Request DB connection failed');
+            
+            throw new Error('One or more database connections failed');
         } catch (error) {
             retries++;
             if (retries >= maxRetries) {
-                console.error('DB Connection Failed:', error);
+                console.error('💥 Database connection completely failed after maximum retries');
+                console.error('🔧 Please check:');
+                console.error('   1. Database services are running');
+                console.error('   2. Network connectivity');
+                console.error('   3. Environment variables');
+                console.error('   4. Database credentials');
                 throw new Error(
                     `DB Connection Failed. ${maxRetries} times retry failed.`
                 );
             }
             console.log(
-                `DB Connection Failed. ${
-                    retryInterval / 1000
-                } seconds later retry... (${retries}/${maxRetries})`
+                `⏳ Retrying in ${retryInterval / 1000} seconds... (${retries}/${maxRetries})`
             );
             await new Promise((resolve) => setTimeout(resolve, retryInterval));
         }

@@ -55,6 +55,11 @@ services:
             - DB_PASSWORD=${DB_PASSWORD}
             - DB_NAME=${DB_NAME}
             - DB_PORT=${DB_PORT}
+            - REQDB_HOST=${REQDB_HOST}
+            - REQDB_USER=${REQDB_USER}
+            - REQDB_PASSWORD=${REQDB_PASSWORD}
+            - REQDB_NAME=${REQDB_NAME}
+            - REQDB_PORT=${REQDB_PORT}
             - REDIS_URL=${REDIS_URL}
             - JWT_SECRET=${JWT_SECRET}
             - CAT_NAME=${CAT_NAME}
@@ -64,8 +69,12 @@ services:
             - BOT_PW=${BOT_PW}
             - BOT_EMAIL=${BOT_EMAIL}
         depends_on:
-            - userdb
-            - redis
+            userdb:
+                condition: service_healthy
+            requestdb:
+                condition: service_healthy
+            redis:
+                condition: service_started
         restart: unless-stopped
         networks:
             - app-network
@@ -101,6 +110,12 @@ services:
         volumes:
             - userdb_data:/var/lib/mysql
             - ./userdb/init:/docker-entrypoint-initdb.d
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+            timeout: 20s
+            retries: 10
+            interval: 10s
+            start_period: 40s
         restart: unless-stopped
         networks:
             - app-network
@@ -133,11 +148,18 @@ services:
         image: mysql:8.0
         environment:
             - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
-            - MYSQL_DATABASE=${DB_NAME}
+            - MYSQL_DATABASE=${REQDB_NAME}
         expose:
             - '3306'
         volumes:
+            - requestdb_data:/var/lib/mysql
             - ./requestdb/init:/docker-entrypoint-initdb.d
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
+            timeout: 20s
+            retries: 10
+            interval: 10s
+            start_period: 40s
         restart: unless-stopped
         networks:
             - app-network
@@ -177,6 +199,7 @@ services:
 
 volumes:
     userdb_data:
+    requestdb_data:
     redis_data:
     mongodb_data:
     user_uploads:
