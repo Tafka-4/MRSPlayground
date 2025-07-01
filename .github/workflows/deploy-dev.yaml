@@ -28,7 +28,7 @@ jobs:
 
       - name: nginx permission set
         run: |
-          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "sudo chown -R deploy:deploy /opt/app/MRSPlayground/nginx/logs/"
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "sudo mkdir -p /opt/app/MRSPlayground/nginx/logs/ && sudo chown -R deploy:deploy /opt/app/MRSPlayground/nginx/logs/"
 
       - name: Rsync manually
         run: |
