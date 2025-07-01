@@ -21,11 +21,11 @@ CREATE TABLE IF NOT EXISTS user_requests (
 );
 
 -- Create indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_user_id ON user_requests(user_id);
-CREATE INDEX IF NOT EXISTS idx_status ON user_requests(status);
-CREATE INDEX IF NOT EXISTS idx_is_authenticated ON user_requests(is_authenticated);
-CREATE INDEX IF NOT EXISTS idx_created_at ON user_requests(created_at);
-CREATE INDEX IF NOT EXISTS idx_route ON user_requests(route);
+CREATE INDEX idx_user_id ON user_requests(user_id);
+CREATE INDEX idx_status ON user_requests(status);
+CREATE INDEX idx_is_authenticated ON user_requests(is_authenticated);
+CREATE INDEX idx_created_at ON user_requests(created_at);
+CREATE INDEX idx_route ON user_requests(route);
 
 -- Set default values for existing records (if any)
 -- This handles the case where the table already exists with partial data

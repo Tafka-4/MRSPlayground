@@ -11,7 +11,7 @@ import {
     generalLimiter,
     sessionConfig
 } from './middleware/security.js';
-import { checkRedisConnection, connectRedis } from './config/redis.js';
+import { checkRedisConnection, connectRedis, disconnectRedis } from './config/redis.js';
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -63,6 +63,14 @@ app.use(express.static(path.join(__dirname, 'public'), {
     }
 }));
 
+app.get('/health', (req: express.Request, res: express.Response) => {
+    res.status(200).json({
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        service: 'user-frontend'
+    });
+});
+
 app.use('/', userRoute);
 app.use('/test', testRoute);
 
@@ -107,15 +115,52 @@ app.use(
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, async () => {
-    await connectRedis();
-    console.log(`🚀 User Frontend Server is running on port ${PORT}`);
-    console.log(`🔒 Redis Connection: ${await checkRedisConnection()}`);
-    console.log(`🔒 Security features enabled:`);
-    console.log(`   - Rate Limiting: ✅`);
-    console.log(`   - Security Headers: ✅`);
-    console.log(`   - Session Management: ✅`);
-    console.log(`   - JWT Authentication: ✅`);
-    console.log(`   - Admin Protection: ✅`);
-    console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-});
+const startServer = async () => {
+    try {
+        await connectRedis();
+        
+        const server = app.listen(PORT, () => {
+            console.log(`🚀 User Frontend Server is running on port ${PORT}`);
+            console.log(`🔒 Security features enabled:`);
+            console.log(`   - Rate Limiting: ✅`);
+            console.log(`   - Security Headers: ✅`);
+            console.log(`   - Session Management: ✅`);
+            console.log(`   - JWT Authentication: ✅`);
+            console.log(`   - Admin Protection: ✅`);
+            console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+        });
+
+        const redisStatus = await checkRedisConnection();
+        console.log(`🔒 Redis Connection: ${redisStatus ? '✅ 연결됨' : '❌ 연결 실패'}`);
+        
+        if (!redisStatus) {
+            console.warn('⚠️  Redis 연결이 실패했지만 서버는 계속 실행됩니다.');
+        }
+
+        const gracefulShutdown = async (signal: string) => {
+            console.log(`\n📡 ${signal} 신호를 받았습니다. 서버를 정상적으로 종료합니다...`);
+            
+            server.close(async () => {
+                console.log('🔒 HTTP 서버가 종료되었습니다.');
+                await disconnectRedis();
+                console.log('✅ 모든 연결이 정상적으로 종료되었습니다.');
+                process.exit(0);
+            });
+            
+            setTimeout(() => {
+                console.error('⚠️  정상 종료 시간 초과. 강제 종료합니다.');
+                process.exit(1);
+            }, 30000);
+        };
+
+        process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+        process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+        return server;
+    } catch (error) {
+        console.error('❌ 서버 시작 실패:', error);
+        process.exit(1);
+    }
+};
+
+startServer();
