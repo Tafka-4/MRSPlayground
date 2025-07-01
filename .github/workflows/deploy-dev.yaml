@@ -20,15 +20,16 @@ jobs:
 
       - name: write ssh key
         run: |
-          echo "${{ secrets.DEV_TEST_SSH_KEY }}" > /tmp/deploy_key
-          chmod 600 /tmp/deploy_key
+          echo "${{ secrets.DEV_TEST_SSH_KEY }}" > /tmp/key
+          chmod 600 /tmp/key
 
       - name: Rsync manually
         run: |
-          rsync -avzr --delete -e "ssh -i /tmp/deploy_key deploy@${{ secrets.DEV_TEST_HOST }}" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
+          rsync -avz --delete -e "ssh -i /tmp/key" \
+      ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
 
       - name: Remove ssh key
-        run: rm /tmp/deploy_key
+        run: rm /tmp/key
 
       - name: Create .env file
         run: echo "${{ secrets.ENV_FILE_DEV }}" > .env
