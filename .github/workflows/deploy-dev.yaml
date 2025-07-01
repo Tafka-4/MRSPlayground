@@ -23,16 +23,16 @@ jobs:
           echo "${{ secrets.DEV_TEST_SSH_KEY }}" > /tmp/key
           chmod 600 /tmp/key
 
+      - name: Create .env file
+        run: echo "${{ secrets.ENV_FILE_DEV }}" > /opt/app/MRSPlayground/.env
+
       - name: Rsync manually
         run: |
           rsync -avz --delete -e "ssh -i /tmp/key" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
 
-      - name: Create .env file
-        run: echo "${{ secrets.ENV_FILE_DEV }}" > .env
-
       - name: Run deploy.sh remotely
         run: |
-          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "sudo /opt/app/MRSPlayground/deploy.sh"
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "cd /opt/app/MRSPlayground && sudo ./deploy.sh"
 
       - name: Remove ssh key
         run: rm /tmp/key
