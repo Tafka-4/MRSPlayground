@@ -2,10 +2,7 @@ services:
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
-    cpuset: "1"
-    ports:
-      - '80:80'
-      - '443:443'
+    cpuset: "0"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/logs:/var/log/nginx
@@ -143,7 +140,7 @@ services:
   # MySQL Database for User Service
   userdb:
     image: mysql:8.0
-    cpuset: "1"
+    cpuset: "3"
     environment:
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
       - MYSQL_DATABASE=${DB_NAME}
@@ -167,7 +164,7 @@ services:
     build:
       context: ./bot
       dockerfile: Dockerfile
-    cpuset: "1"
+    cpuset: "2"
     environment:
       - NODE_ENV=${NODE_ENV}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
@@ -194,6 +191,7 @@ services:
   # MySQL Database for Request Tracking
   requestdb:
     image: mysql:8.0
+    cpuset: "3"
     environment:
       - MYSQL_ROOT_PASSWORD=${REQDB_PASSWORD}
       - MYSQL_DATABASE=${REQDB_NAME}
@@ -215,7 +213,7 @@ services:
   # Redis for Session Management
   redis:
     image: redis:7-alpine
-    cpuset: "0"
+    cpuset: "2"
     expose:
       - '6379'
     environment:
@@ -243,7 +241,7 @@ services:
   # MongoDB for Content Storage
   mongodb:
     image: mongo:4.4
-    cpuset: "1"
+    cpuset: "3"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PW}
@@ -262,19 +260,61 @@ services:
       retries: 3
       start_period: 40s
 
-  # Cloudflare Tunnel
-  cloudflared:
+  # Cloudflare Tunnel0
+  cloudflared0:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
     cpuset: "0"
-    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate --no-chunked-encoding ingress --token ${CF_TUNNEL_TOKEN}
     depends_on:
       nginx:
         condition: service_healthy
     networks:
       - app-network
     profiles:
-      - production
+      - development
+
+  # Cloudflare Tunnel1
+  cloudflared1:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    cpuset: "0"
+    command: tunnel --no-autoupdate --no-chunked-encoding ingress --token ${CF_TUNNEL_TOKEN}
+    depends_on:
+      nginx:
+        condition: service_healthy
+    networks:
+      - app-network
+    profiles:
+      - development
+
+  # Cloudflare Tunnel2
+  cloudflared2:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    cpuset: "0"
+    command: tunnel --no-autoupdate --no-chunked-encoding ingress --token ${CF_TUNNEL_TOKEN}
+    depends_on:
+      nginx:
+        condition: service_healthy
+    networks:
+      - app-network
+    profiles:
+      - development
+
+  # Cloudflare Tunnel3
+  cloudflared3:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    cpuset: "0"
+    command: tunnel --no-autoupdate --no-chunked-encoding ingress --token ${CF_TUNNEL_TOKEN}
+    depends_on:
+      nginx:
+        condition: service_healthy
+    networks:
+      - app-network
+    profiles:
+      - development
 
 volumes:
   userdb_data:
