@@ -117,17 +117,13 @@ export const securityHeaders = (
     res.setHeader(
         'Content-Security-Policy',
         "default-src 'self'; " +
-            "script-src 'self' 'unsafe-eval' 'unsafe-inline' 'unsafe-hashes' " +
-            "'sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==' " +
-            "https://static.cloudflareinsights.com https://*.cloudflare.com; " +
-            "script-src-elem 'self' 'unsafe-inline' " +
-            "'sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==' " +
-            "https://static.cloudflareinsights.com; " +
+            "script-src 'self' 'unsafe-eval' 'unsafe-inline' 'unsafe-hashes' static.cloudflareinsights.com *.cloudflare.com; " +
+            "script-src-elem 'self' 'unsafe-inline' static.cloudflareinsights.com; " +
             "style-src 'self' 'unsafe-inline' fonts.googleapis.com fastly.jsdelivr.net fonts.gstatic.com; " +
             "img-src 'self' data: fonts.googleapis.com fastly.jsdelivr.net fonts.gstatic.com; " +
             "media-src 'self' fonts.googleapis.com fastly.jsdelivr.net fonts.gstatic.com; " +
             "font-src 'self' fonts.googleapis.com fastly.jsdelivr.net fonts.gstatic.com;" +
-            "connect-src 'self' https://static.cloudflareinsights.com https://*.cloudflare.com https://cloudflareinsights.com; " +
+            "connect-src 'self' static.cloudflareinsights.com *.cloudflare.com; " +
             "worker-src 'self' blob:; "
     );
 
