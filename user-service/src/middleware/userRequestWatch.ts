@@ -24,14 +24,15 @@ export const userRequestWatchStart = async (
     res: Response,
     next: NextFunction
 ) => {
-    const requestId = req.headers['x-request-id'] as string;
+    let requestId = req.headers['x-request-id'] as string;
+    if (!requestId) {
+        requestId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        req.headers['x-request-id'] = requestId;
+    }
+    
     const userAgent = req.headers['user-agent'] as string;
     const clientIp = getClientIp(req);
     const isAuthenticated = !!req.user;
-
-    if (!requestId) {
-        return next(new Error('Missing request ID'));
-    }
 
     try {
         const [existingRequests] = (await requestPool.execute(

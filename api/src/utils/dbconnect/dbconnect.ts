@@ -10,8 +10,15 @@ console.log('REDIS_PASSWORD 설정됨:', !!process.env.REDIS_PASSWORD);
 const redisConfig: any = {
     url: process.env.REDIS_URL || 'redis://redis:6379',
     socket: {
-        connectTimeout: 10000
-    }
+        connectTimeout: 10000,
+        lazyConnect: true,
+        keepAlive: true,
+        reconnectDelayOnFailover: 1000,
+        maxRetriesPerRequest: 3
+    },
+    retryDelayOnFailover: 1000,
+    maxRetriesPerRequest: 3,
+    lazyConnect: true
 };
 
 if (process.env.REDIS_PASSWORD) {
@@ -28,12 +35,29 @@ const mongoConfigOptions: mongoose.ConnectOptions = {
 
 const redisClient = redis.createClient(redisConfig);
 
+let isReconnecting = false;
+
 redisClient.on('error', (error) => {
     console.error('Redis 클라이언트 오류:', error);
+    
+    if (!isReconnecting && !redisClient.isOpen) {
+        isReconnecting = true;
+        setTimeout(async () => {
+            try {
+                console.log('Redis 클라이언트 재연결 시도 중...');
+                await redisClient.connect();
+                isReconnecting = false;
+            } catch (reconnectError) {
+                console.error('Redis 재연결 실패:', reconnectError);
+                isReconnecting = false;
+            }
+        }, 5000);
+    }
 });
 
 redisClient.on('connect', () => {
     console.log('Redis 클라이언트 연결됨');
+    isReconnecting = false;
 });
 
 redisClient.on('ready', () => {
@@ -45,7 +69,7 @@ redisClient.on('end', () => {
 });
 
 redisClient.on('reconnecting', () => {
-    console.log('Redis 클라이언트 재연결 시도 중...');
+    console.log('Redis 클라이언트 자동 재연결 시도 중...');
 });
 
 const checkRedisConnection = async (): Promise<boolean> => {

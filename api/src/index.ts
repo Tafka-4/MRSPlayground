@@ -73,7 +73,14 @@ app.use('/emoji/v1', emojiRouter);
 app.get('/health', async (req, res) => {
     try {
         const mongoStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-        const redisStatus = await checkRedisConnection() ? 'connected' : 'disconnected';
+        
+        let redisStatus = 'disconnected';
+        try {
+            redisStatus = await checkRedisConnection() ? 'connected' : 'disconnected';
+        } catch (redisError) {
+            console.warn('Redis health check failed:', redisError);
+            redisStatus = 'error';
+        }
         
         const isHealthy = mongoStatus === 'connected';
         const status = isHealthy ? 'OK' : 'UNHEALTHY';
