@@ -2,6 +2,7 @@ services:
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
+    cpuset: "1"
     ports:
       - '80:80'
       - '443:443'
@@ -32,6 +33,7 @@ services:
       dockerfile: Dockerfile
     expose:
       - '5000'
+    cpuset: "1"
     environment:
       - NODE_ENV=${NODE_ENV}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
@@ -67,6 +69,7 @@ services:
       - '3001'
     volumes:
       - user_uploads:/app/uploads
+    cpuset: "1"
     environment:
       - NODE_ENV=${NODE_ENV}
       - DB_HOST=${DB_HOST}
@@ -118,6 +121,7 @@ services:
       - ./user/package-lock.json:/app/package-lock.json
       - ./user/tsconfig.json:/app/tsconfig.json
       - /app/node_modules
+    cpuset: "1"
     environment:
       - NODE_ENV=${NODE_ENV}
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
@@ -139,6 +143,7 @@ services:
   # MySQL Database for User Service
   userdb:
     image: mysql:8.0
+    cpuset: "1"
     environment:
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
       - MYSQL_DATABASE=${DB_NAME}
@@ -162,6 +167,7 @@ services:
     build:
       context: ./bot
       dockerfile: Dockerfile
+    cpuset: "1"
     environment:
       - NODE_ENV=${NODE_ENV}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
@@ -209,6 +215,7 @@ services:
   # Redis for Session Management
   redis:
     image: redis:7-alpine
+    cpuset: "0"
     expose:
       - '6379'
     environment:
@@ -236,6 +243,7 @@ services:
   # MongoDB for Content Storage
   mongodb:
     image: mongo:4.4
+    cpuset: "1"
     environment:
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_USER}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PW}
@@ -258,6 +266,7 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
+    cpuset: "0"
     command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
     depends_on:
       nginx:
