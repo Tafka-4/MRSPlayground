@@ -116,9 +116,9 @@ export const securityHeaders = (
 
     res.setHeader(
         'Content-Security-Policy',
-        "default-src 'self'; " +
-            "script-src 'self' 'unsafe-eval' 'unsafe-inline' 'unsafe-hashes' static.cloudflareinsights.com *.cloudflare.com; " +
-            "script-src-elem 'self' 'unsafe-inline' static.cloudflareinsights.com; " +
+        "default-src 'self' 'unsafe-eval' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net static.cloudflareinsights.com *.cloudflare.com; " +
+            "script-src 'self' 'unsafe-eval' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net static.cloudflareinsights.com *.cloudflare.com; " +
+            "script-src-elem 'self' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net static.cloudflareinsights.com *.cloudflare.com; " +
             "style-src 'self' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
             "img-src 'self' data: fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
             "media-src 'self' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
