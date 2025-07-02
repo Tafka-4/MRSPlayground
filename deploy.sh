@@ -4,8 +4,11 @@ set -euo pipefail
 echo "[INFO] Pulling new images"
 sudo docker compose pull --quiet
 
-echo "[INFO] Recreating containers"
-sudo docker compose up -d --remove-orphans
+echo "[INFO] Stopping old containers"
+sudo docker compose down --remove-orphans
 
-echo "[INFO] Removing dangling images"
+echo "[INFO] Removing old images"
 sudo docker image prune -f
+
+echo "[INFO] Starting new containers"
+sudo docker compose up --build -d --remove-orphans
