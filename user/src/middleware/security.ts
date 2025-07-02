@@ -113,19 +113,52 @@ export const securityHeaders = (
         );
     }
 
-
     res.setHeader(
         'Content-Security-Policy',
-        "default-src 'self' 'unsafe-eval' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net static.cloudflareinsights.com *.cloudflare.com; " +
-            "script-src 'self' 'unsafe-eval' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net static.cloudflareinsights.com *.cloudflare.com; " +
-            "script-src-elem 'self' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net static.cloudflareinsights.com *.cloudflare.com; " +
-            "style-src 'self' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
-            "img-src 'self' data: fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
-            "media-src 'self' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
-            "font-src 'self' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
-            "frame-src 'self' fonts.googleapis.com fonts.gstatic.com static.cloudflareinsights.com *.cloudflare.com fastly.jsdelivr.net; " +
-            "connect-src 'self' static.cloudflareinsights.com *.cloudflare.com; " +
-            "worker-src 'self' blob:; "
+        "default-src 'self' 'unsafe-eval' 'unsafe-inline' " +
+            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net " +
+            "static.cloudflareinsights.com *.cloudflare.com cdnjs.cloudflare.com; " +
+            
+        "script-src 'self' 'unsafe-eval' 'unsafe-inline' " +
+            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net " +
+            "static.cloudflareinsights.com *.cloudflare.com cdnjs.cloudflare.com " +
+            "unpkg.com cdn.jsdelivr.net; " +
+            
+        "script-src-elem 'self' 'unsafe-inline' " +
+            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net " +
+            "static.cloudflareinsights.com *.cloudflare.com cdnjs.cloudflare.com " +
+            "unpkg.com cdn.jsdelivr.net; " +
+            
+        "style-src 'self' 'unsafe-inline' " +
+            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net " +
+            "cdnjs.cloudflare.com unpkg.com cdn.jsdelivr.net; " +
+            
+        "style-src-elem 'self' 'unsafe-inline' " +
+            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net " +
+            "cdnjs.cloudflare.com unpkg.com cdn.jsdelivr.net; " +
+            
+        "img-src 'self' data: blob: " +
+            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net " +
+            "*.gravatar.com *.wp.com; " +
+            
+        "media-src 'self' data: blob: " +
+            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
+            
+        "font-src 'self' data: " +
+            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net " +
+            "cdnjs.cloudflare.com unpkg.com cdn.jsdelivr.net; " +
+            
+        "frame-src 'self' " +
+            "fonts.googleapis.com fonts.gstatic.com " +
+            "static.cloudflareinsights.com *.cloudflare.com fastly.jsdelivr.net; " +
+            
+        "connect-src 'self' ws: wss: " +
+            "static.cloudflareinsights.com *.cloudflare.com " +
+            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
+            
+        "worker-src 'self' blob:; " +
+        "object-src 'none'; " +
+        "base-uri 'self';"
     );
 
     next();
