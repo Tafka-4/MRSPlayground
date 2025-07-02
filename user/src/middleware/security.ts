@@ -117,12 +117,12 @@ export const securityHeaders = (
     res.setHeader(
         'Content-Security-Policy',
         "default-src 'self'; " +
-            "script-src 'self' 'unsafe-eval' 'unsafe-inline' 'static.cloudflareinsights.com'; " +
+            "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://static.cloudflareinsights.com; " +
             "style-src 'self' 'unsafe-inline' fonts.googleapis.com fastly.jsdelivr.net fonts.gstatic.com; " +
             "img-src 'self' data: fonts.googleapis.com fastly.jsdelivr.net fonts.gstatic.com; " +
             "media-src 'self' fonts.googleapis.com fastly.jsdelivr.net fonts.gstatic.com; " +
             "font-src 'self' fonts.googleapis.com fastly.jsdelivr.net fonts.gstatic.com;" +
-            "connect-src 'self'; "
+            "connect-src 'self' https://static.cloudflareinsights.com https://*.cloudflare.com; "
     );
 
     next();
