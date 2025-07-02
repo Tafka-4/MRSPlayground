@@ -271,8 +271,6 @@ services:
         condition: service_healthy
     networks:
       - app-network
-    profiles:
-      - development
 
   # Cloudflare Tunnel1
   cloudflared1:
@@ -285,8 +283,6 @@ services:
         condition: service_healthy
     networks:
       - app-network
-    profiles:
-      - development
 
   # Cloudflare Tunnel2
   cloudflared2:
@@ -299,8 +295,6 @@ services:
         condition: service_healthy
     networks:
       - app-network
-    profiles:
-      - development
 
   # Cloudflare Tunnel3
   cloudflared3:
@@ -313,8 +307,6 @@ services:
         condition: service_healthy
     networks:
       - app-network
-    profiles:
-      - development
 
 volumes:
   userdb_data:
