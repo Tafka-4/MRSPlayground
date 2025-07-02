@@ -113,12 +113,11 @@ export const securityHeaders = (
         );
     }
 
-    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
     res.setHeader(
         'Content-Security-Policy',
         "default-src 'self'; " +
-            "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
+            "script-src 'self' 'unsafe-eval' 'unsafe-inline' 'static.cloudflareinsights.com'; " +
             "style-src 'self' 'unsafe-inline' fonts.googleapis.com fastly.jsdelivr.net fonts.gstatic.com; " +
             "img-src 'self' data: fonts.googleapis.com fastly.jsdelivr.net fonts.gstatic.com; " +
             "media-src 'self' fonts.googleapis.com fastly.jsdelivr.net fonts.gstatic.com; " +
