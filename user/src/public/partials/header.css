@@ -278,6 +278,27 @@
     background-color: rgba(238, 167, 60, 0.1);
 }
 
+.admin-dropdown-link,
+.admin-dropdown-link .material-symbols-outlined {
+    color: #f59e0b;
+    font-weight: 500;
+}
+
+.admin-dropdown-link:hover,
+.admin-dropdown-link:hover .material-symbols-outlined {
+    color: #d97706;
+}
+
+[data-theme="dark"] .admin-dropdown-link,
+[data-theme="dark"] .admin-dropdown-link .material-symbols-outlined {
+    color: #fbbf24;
+}
+
+[data-theme="dark"] .admin-dropdown-link:hover,
+[data-theme="dark"] .admin-dropdown-link:hover .material-symbols-outlined {
+    color: #f59e0b;
+}
+
 /* Header Actions */
 .header-actions {
     display: flex;
