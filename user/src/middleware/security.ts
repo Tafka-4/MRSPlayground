@@ -119,11 +119,11 @@ export const securityHeaders = (
         "default-src 'self'; " +
             "script-src 'self' 'unsafe-eval' 'unsafe-inline' 'unsafe-hashes' static.cloudflareinsights.com *.cloudflare.com; " +
             "script-src-elem 'self' 'unsafe-inline' static.cloudflareinsights.com; " +
-            "style-src 'self' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com; " +
-            "img-src 'self' data: fonts.googleapis.com fonts.gstatic.com; " +
-            "media-src 'self' fonts.googleapis.com fonts.gstatic.com; " +
-            "font-src 'self' fonts.googleapis.com fonts.gstatic.com; " +
-            "frame-src 'self' fonts.googleapis.com fonts.gstatic.com; " +
+            "style-src 'self' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
+            "img-src 'self' data: fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
+            "media-src 'self' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
+            "font-src 'self' fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
+            "frame-src 'self' fonts.googleapis.com fonts.gstatic.com static.cloudflareinsights.com *.cloudflare.com fastly.jsdelivr.net; " +
             "connect-src 'self' static.cloudflareinsights.com *.cloudflare.com; " +
             "worker-src 'self' blob:; "
     );
