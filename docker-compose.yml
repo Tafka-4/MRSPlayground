@@ -2,7 +2,7 @@ services:
   # Nginx Reverse Proxy
   nginx:
     image: nginx:alpine
-    cpuset: "0"
+    cpuset: "3"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/logs:/var/log/nginx
@@ -260,44 +260,8 @@ services:
       retries: 3
       start_period: 40s
 
-  # Cloudflare Tunnel0
-  cloudflared0:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    cpuset: "0"
-    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
-    depends_on:
-      nginx:
-        condition: service_healthy
-    networks:
-      - app-network
-
-  # Cloudflare Tunnel1
-  cloudflared1:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    cpuset: "0"
-    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
-    depends_on:
-      nginx:
-        condition: service_healthy
-    networks:
-      - app-network
-
-  # Cloudflare Tunnel2
-  cloudflared2:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    cpuset: "0"
-    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
-    depends_on:
-      nginx:
-        condition: service_healthy
-    networks:
-      - app-network
-
-  # Cloudflare Tunnel3
-  cloudflared3:
+  # Cloudflare Tunnel
+  cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
     cpuset: "0"
