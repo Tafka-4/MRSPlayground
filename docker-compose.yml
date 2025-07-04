@@ -14,6 +14,9 @@ services:
       user:
         condition: service_started
     restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
     networks:
       - app-network
     healthcheck:
@@ -259,18 +262,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-
-  # Cloudflare Tunnel
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    cpuset: "0"
-    command: tunnel --no-autoupdate run --token ${CF_TUNNEL_TOKEN}
-    depends_on:
-      nginx:
-        condition: service_healthy
-    networks:
-      - app-network
 
 volumes:
   userdb_data:
