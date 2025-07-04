@@ -35,10 +35,10 @@ jobs:
       - name: nginx ssl set
         run: |
           ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "sudo mkdir -p /opt/app/MRSPlayground/nginx/ssl/ && sudo chown -R deploy:deploy /opt/app/MRSPlayground/nginx/ssl/"
-          echo "${{ secrets.DEV_SSL_CERT }}" | base64 -d > /opt/app/MRSPlayground/nginx/ssl/cert.pem
-          echo "${{ secrets.DEV_SSL_KEY }}" | base64 -d > /opt/app/MRSPlayground/nginx/ssl/key.pem
-          chmod 600 /opt/app/MRSPlayground/nginx/ssl/key.pem
-          chmod 644 /opt/app/MRSPlayground/nginx/ssl/cert.pem
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "echo "${{ secrets.DEV_SSL_CERT }}" | base64 -d > /opt/app/MRSPlayground/nginx/ssl/cert.pem"
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "echo "${{ secrets.DEV_SSL_KEY }}" | base64 -d > /opt/app/MRSPlayground/nginx/ssl/key.pem"
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "chmod 600 /opt/app/MRSPlayground/nginx/ssl/key.pem"
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "chmod 644 /opt/app/MRSPlayground/nginx/ssl/cert.pem"
 
       - name: Rsync manually
         run: |
