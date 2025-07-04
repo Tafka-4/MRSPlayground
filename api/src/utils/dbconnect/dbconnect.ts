@@ -154,13 +154,18 @@ const connectRedis = async () => {
 
 const connectMongo = async () => {
     try {
-        const mongoUri = process.env.MONGO_URI ||
-                        `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PW}@mongodb:27017/mrsplayground?authSource=admin`;
+        let mongoUri = process.env.MONGO_URI;
+        if (!mongoUri) {
+            if (process.env.MONGO_USER && process.env.MONGO_PW) {
+                mongoUri = `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PW}@mongodb:27017/mrsplayground?authSource=admin`;
+            } else {
+                mongoUri = `mongodb://mongodb:27017/mrsplayground?authSource=admin`;
+            }
+        }
         await mongoose.connect(mongoUri, mongoConfigOptions);
-        console.log("MongoDB connected");
     } catch (err) {
         console.error("MongoDB connection error:", err);
-        setTimeout(connectMongo, 5000);
+        throw err;
     }
 };
 

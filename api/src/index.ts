@@ -19,7 +19,6 @@ const initializeConnections = async () => {
     
     try {
         await connectMongo();
-        console.log('✅ MongoDB 연결 완료');
     } catch (error) {
         console.error('❌ MongoDB 연결 실패:', error);
         process.exit(1);
