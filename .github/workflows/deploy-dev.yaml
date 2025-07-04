@@ -18,8 +18,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: write ssh key
+      - name: private key permissions
         run: |
+          mkdir -p /tmp/
           echo "${{ secrets.DEV_TEST_SSH_KEY }}" > /tmp/key
           chmod 600 /tmp/key
 
@@ -32,12 +33,22 @@ jobs:
         run: |
           ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "sudo mkdir -p /opt/app/MRSPlayground/nginx/logs/ && sudo chown -R deploy:deploy /opt/app/MRSPlayground/nginx/logs/"
 
-      - name: nginx ssl set
+      - name: Create or Update SSL Certificates
         run: |
-          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "sudo mkdir -p /opt/app/MRSPlayground/nginx/ssl/ && sudo chown -R deploy:deploy /opt/app/MRSPlayground/nginx/ssl/"
-          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "touch /opt/app/MRSPlayground/nginx/ssl/cert.pem && touch /opt/app/MRSPlayground/nginx/ssl/key.pem"
-          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "echo "${{ secrets.DEV_SSL_CERT }}" | base64 -d > /opt/app/MRSPlayground/nginx/ssl/cert.pem && echo "${{ secrets.DEV_SSL_KEY }}" | base64 -d > /opt/app/MRSPlayground/nginx/ssl/key.pem"
-          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "chmod 600 /opt/app/MRSPlayground/nginx/ssl/key.pem && chmod 644 /opt/app/MRSPlayground/nginx/ssl/cert.pem"
+          ssh -i /tmp/key -o StrictHostKeyChecking=no ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} 'bash -s' <<EOF
+            set -e
+            
+            cd /opt/app/MRSPlayground
+
+            sudo mkdir -p ./nginx/ssl/
+            sudo chown -R ${{ secrets.DEV_TEST_USER }}:${{ secrets.DEV_TEST_USER }} ./nginx/ssl/
+
+            printf "%s" "${{ secrets.DEV_SSL_CERT }}" | base64 -d | sudo tee ./nginx/ssl/cert.pem > /dev/null
+            printf "%s" "${{ secrets.DEV_SSL_KEY }}" | base64 -d | sudo tee ./nginx/ssl/key.pem > /dev/null
+
+            sudo chmod 644 ./nginx/ssl/cert.pem
+            sudo chmod 600 ./nginx/ssl/key.pem
+          EOF
 
       - name: Rsync manually
         run: |
