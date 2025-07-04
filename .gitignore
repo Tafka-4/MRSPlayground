@@ -57,3 +57,5 @@ Thumbs.db
 #etc
 .prettierrc
 line.ps1
+nginx/ssl/*
+nginx/logs/*
