@@ -24,11 +24,6 @@ jobs:
           echo "${{ secrets.DEV_TEST_SSH_KEY }}" > /tmp/key
           chmod 600 /tmp/key
 
-      - name: Create .env file
-        run: 
-          touch .env
-          echo "${{ secrets.ENV_FILE_DEV }}" | base64 -d > .env
-
       - name: nginx permission set
         run: |
           ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "sudo mkdir -p /opt/app/MRSPlayground/nginx/logs/ && sudo chown -R deploy:deploy /opt/app/MRSPlayground/nginx/logs/"
@@ -52,11 +47,15 @@ jobs:
 
       - name: Rsync manually
         run: |
-          rsync -avz --delete --exclude='.git' -e "ssh -i /tmp/key" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
+          rsync -avz --delete --exclude='.git' --exclude='.env' -e "ssh -i /tmp/key" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
+
+      - name: Create .env file on remote
+        run: |
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} 'echo "${{ secrets.ENV_FILE_DEV }}" | base64 -d > /opt/app/MRSPlayground/.env'
 
       - name: Run deploy.sh remotely
         run: |
           ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "chmod +x /opt/app/MRSPlayground/deploy.sh && cd /opt/app/MRSPlayground && sudo ./deploy.sh"
 
       - name: Remove ssh key
-        run: rm /tmp/key && rm .env
+        run: rm /tmp/key
