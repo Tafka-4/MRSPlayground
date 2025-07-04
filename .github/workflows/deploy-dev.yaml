@@ -47,7 +47,7 @@ jobs:
 
       - name: Rsync manually
         run: |
-          rsync -avz --delete --exclude='.git' --exclude='.env' -e "ssh -i /tmp/key" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
+          rsync -avz --delete --exclude='.git' --exclude='.env' --exclude='nginx/ssl' -e "ssh -i /tmp/key" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
 
       - name: Create .env file on remote
         run: |
