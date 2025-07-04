@@ -35,7 +35,7 @@ jobs:
 
       - name: Create or Update SSL Certificates
         run: |
-          ssh -i /tmp/key -o StrictHostKeyChecking=no ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} 'bash -s' <<EOF
+          ssh -T -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} 'bash -s' <<EOF
             set -e
             
             cd /opt/app/MRSPlayground
