@@ -12,3 +12,5 @@ sudo docker image prune -f
 
 echo "[INFO] Starting new containers"
 sudo docker compose up --build -d --remove-orphans
+
+sudo rm /opt/app/MRSPlayground/.env
