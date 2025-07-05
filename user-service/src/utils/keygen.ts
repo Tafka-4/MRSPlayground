@@ -19,7 +19,7 @@ function getSharedNoise(): number {
 export const generateKey = () => {
     const BASE_SECRET = process.env.JWT_SECRET as string;
     const MY_CAT_NAME = process.env.CAT_NAME as string;
-    const CHANGE_TIME = 60; // seconds
+    const CHANGE_TIME = 60 * 5; // 5min
     const NOISE = getSharedNoise();
     const currentTime = new Date().getTime() + NOISE;
 
