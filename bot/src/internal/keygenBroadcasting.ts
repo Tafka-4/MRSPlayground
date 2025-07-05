@@ -116,18 +116,22 @@ export const broadcastKeygen = async (client: Client) => {
                 }
             };
 
-            (async () => {
-                const results = await Promise.all(
-                    Object.keys(serverMappingInfo).map(broadcastToGuild)
-                );
+            setTimeout(() => {
+                (async () => {
+                    const results = await Promise.all(
+                        Object.keys(serverMappingInfo).map(broadcastToGuild)
+                    );
 
-                const successCount = results.filter((r) => r.success).length;
-                const failCount = results.length - successCount;
+                    const successCount = results.filter(
+                        (r) => r.success
+                    ).length;
+                    const failCount = results.length - successCount;
 
-                console.log(
-                    `📊 키 브로드캐스트 완료 - 성공: ${successCount}, 실패: ${failCount}`
-                );
-            })();
+                    console.log(
+                        `📊 키 브로드캐스트 완료 - 성공: ${successCount}, 실패: ${failCount}`
+                    );
+                })();
+            }, 100);
         });
 
         console.log('👂 키젠 메시지 리스너가 등록되었습니다.');
