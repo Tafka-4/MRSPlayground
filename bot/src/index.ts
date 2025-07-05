@@ -74,7 +74,7 @@ const client = new Client({
 
 client.commands = new Collection();
 client.requestClient = new RequestClient();
-client.requestClient.initialize();
+await client.requestClient.initialize();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

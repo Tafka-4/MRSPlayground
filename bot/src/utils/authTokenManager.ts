@@ -1,4 +1,4 @@
-import fs from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 interface BotTokens {
@@ -32,37 +32,38 @@ class AuthTokenManager {
             'data',
             'bot-tokens.json'
         );
-        this.ensureDataDirectory();
-        this.loadTokens();
     }
 
-    private ensureDataDirectory(): void {
+    private async ensureDataDirectory(): Promise<void> {
         const dataDir = path.dirname(this.tokensFilePath);
-        if (!fs.existsSync(dataDir)) {
-            fs.mkdirSync(dataDir, { recursive: true });
+        try {
+            await fs.access(dataDir);
+        } catch {
+            await fs.mkdir(dataDir, { recursive: true });
         }
     }
 
-    private loadTokens(): void {
+    private async loadTokens(): Promise<void> {
         try {
-            if (fs.existsSync(this.tokensFilePath)) {
-                const data = fs.readFileSync(this.tokensFilePath, 'utf8');
-                this.tokens = JSON.parse(data);
-            }
+            await fs.access(this.tokensFilePath);
+            const data = await fs.readFile(this.tokensFilePath, 'utf8');
+            this.tokens = JSON.parse(data);
         } catch (error) {
             this.tokens = null;
         }
     }
 
-    private saveTokens(): void {
+    private async saveTokens(): Promise<void> {
         try {
             if (this.tokens) {
-                fs.writeFileSync(
+                await fs.writeFile(
                     this.tokensFilePath,
                     JSON.stringify(this.tokens, null, 2)
                 );
             }
-        } catch (error) {}
+        } catch (error) {
+            console.error('Failed to save tokens:', error);
+        }
     }
 
     private isTokenExpired(): boolean {
@@ -78,8 +79,8 @@ class AuthTokenManager {
         if (this.tokens) {
             const timeToRefresh = this.tokens.expiresAt - Date.now() - 120000;
             if (timeToRefresh > 0) {
-                this.refreshTimer = setTimeout(() => {
-                    this.refreshToken();
+                this.refreshTimer = setTimeout(async () => {
+                    await this.refreshToken();
                 }, timeToRefresh);
             }
         }
@@ -166,7 +167,7 @@ class AuthTokenManager {
                 };
 
                 this.user = data.user;
-                this.saveTokens();
+                await this.saveTokens();
                 this.setRefreshTimer();
 
                 return true;
@@ -210,7 +211,7 @@ class AuthTokenManager {
                 this.tokens.accessToken = data.accessToken;
                 this.tokens.expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
 
-                this.saveTokens();
+                await this.saveTokens();
                 this.setRefreshTimer();
 
                 this.isRefreshing = false;
@@ -258,44 +259,47 @@ class AuthTokenManager {
     }
 
     async ensureValidToken(): Promise<string | null> {
-        if (!this.tokens) {
-            const success = await this.login();
-            return success && this.tokens
-                ? (this.tokens as BotTokens).accessToken
-                : null;
+        if (this.isRefreshing) {
+            await new Promise((resolve) => {
+                const check = () => {
+                    if (!this.isRefreshing) resolve(null);
+                    else setTimeout(check, 100);
+                };
+                check();
+            });
         }
 
         if (this.isTokenExpired()) {
             const success = await this.refreshToken();
-            return success && this.tokens
-                ? (this.tokens as BotTokens).accessToken
-                : null;
+            if (!success) {
+                this.tokens = null;
+                return null;
+            }
         }
-
-        return this.tokens.accessToken;
+        return this.tokens?.accessToken || null;
     }
 
     async initialize(): Promise<boolean> {
-        try {
-            await this.createBotAccount();
+        await this.ensureDataDirectory();
+        await this.loadTokens();
 
-            if (this.tokens && !this.isTokenExpired()) {
-                const isValid = await this.checkToken();
-                if (isValid) {
-                    this.setRefreshTimer();
-                    return true;
-                }
+        if (this.tokens) {
+            if (!(await this.checkToken())) {
+                this.tokens = null;
             }
+        }
 
-            const success = await this.login();
-            if (success) {
-                return true;
-            } else {
+        if (!this.tokens) {
+            if (!(await this.createBotAccount())) {
                 return false;
             }
-        } catch (error) {
-            return false;
+            if (!(await this.login())) {
+                return false;
+            }
         }
+
+        this.setRefreshTimer();
+        return true;
     }
 
     getAccessToken(): string | null {
@@ -311,32 +315,30 @@ class AuthTokenManager {
     }
 
     async logout(): Promise<void> {
-        try {
-            if (this.tokens?.refreshToken) {
-                await fetch(`${this.userServiceUrl}/api/v1/auth/logout`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        Cookie: `refreshToken=${this.tokens.refreshToken}`,
-                        'X-Request-ID': uuidv4()
-                    }
-                });
-            }
-        } catch (error) {
-            this.tokens = null;
-            this.user = null;
+        if (!this.tokens?.refreshToken) {
+            return;
+        }
 
+        try {
+            await fetch(`${this.userServiceUrl}/api/v1/auth/logout`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Cookie: `refreshToken=${this.tokens.refreshToken}`,
+                    'X-Request-ID': uuidv4()
+                }
+            });
+        } catch (error) {
+            console.error('Logout failed:', error);
+        } finally {
+            this.tokens = null;
             if (this.refreshTimer) {
                 clearTimeout(this.refreshTimer);
-                this.refreshTimer = null;
             }
-
             try {
-                if (fs.existsSync(this.tokensFilePath)) {
-                    fs.unlinkSync(this.tokensFilePath);
-                }
-            } catch (error) {
-                console.error('토큰 파일 삭제 실패:', error);
+                await fs.unlink(this.tokensFilePath);
+            } catch (err) {
+                // ignore if file doesn't exist
             }
         }
     }
