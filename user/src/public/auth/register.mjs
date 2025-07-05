@@ -236,10 +236,10 @@ function checkPassword() {
             password.length > 0 &&
             (!password.match(/[a-zA-Z]/g) ||
                 !password.match(/[0-9]/g) ||
-                !password.match(/[!@#$%^&*()_]/g))
+                !password.match(/[!@#$%^&*()_{}]/g))
         ) {
             messageElement.textContent =
-                '영문, 숫자, 특수문자를 모두 포함해야 합니다.';
+                '영문, 숫자, 특수문자(!@#$%^&*()_{})를 모두 포함해야 합니다.';
             messageElement.style.color = '#f47c7c';
         } else if (password.length > 0) {
             messageElement.textContent = '비밀번호가 일치합니다!!!';
@@ -305,10 +305,10 @@ async function register() {
     if (
         !password.match(/[a-zA-Z]/g) ||
         !password.match(/[0-9]/g) ||
-        !password.match(/[!@#$%^&*()_]/g)
+        !password.match(/[!@#$%^&*()_{}]/g)
     ) {
         let notice = new NoticeBox(
-            '영문, 숫자, 특수문자를 모두 포함해야 합니다.',
+            '영문, 숫자, 특수문자(!@#$%^&*()_{})를 모두 포함해야 합니다.',
             'error'
         );
         notice.show();

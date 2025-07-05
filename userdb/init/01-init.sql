@@ -104,9 +104,9 @@ INSERT IGNORE INTO users (
     'admin-user-id-12345',
     'admin',
     'admin',
-    '$2b$10$rQZ8kHWKQVXqKQvQQQQQQQeQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ',
+    '$2a$10$j3LVOWtUHzUqGwCdw5TVJ.bOjo4myvENtdLH70f2xQjiWhftDxmVm',
     'admin@example.com',
-    TRUE,
-    'admin',
+    0,
+    'user',
     'System Administrator'
 ); 

@@ -45,7 +45,13 @@ export async function deployCommands() {
         const commandsPath = path.join(__dirname, 'commands');
         const commandFiles = fs
             .readdirSync(commandsPath)
-            .filter((file) => (file.endsWith('.js') || file.endsWith('.ts')) && file !== '.js' && file !== '.ts');
+            .filter((file) => {
+                const isDev = process.env.NODE_ENV === 'development';
+                if (isDev) {
+                    return file.endsWith('.ts');
+                }
+                return !file.endsWith('.ts') && (file.endsWith('.js') || file.endsWith('.cjs') || file.endsWith('.mjs'));
+            });
 
         for (const file of commandFiles) {
             const filePath = path.join(commandsPath, file);
