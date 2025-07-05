@@ -301,14 +301,15 @@ class RequestClient {
     }
 
     sendWebSocketMessage(message: any): void {
-        if (!this.wsClient.isConnectedToServer()) {
-            throw new Error('웹소켓이 연결되지 않았습니다');
-        }
         this.wsClient.send(message);
     }
 
     onWebSocketMessage(event: string, callback: (data: any) => void): void {
-        this.wsClient.on(event, callback);
+        this.wsClient.on(event, (data: any) => {
+            setImmediate(() => {
+                callback(data);
+            });
+        });
     }
 
     offWebSocketMessage(event: string, callback: (data: any) => void): void {
