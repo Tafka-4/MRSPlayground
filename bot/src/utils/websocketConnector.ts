@@ -249,13 +249,19 @@ class WebSocketClient {
 
     private emit(event: string, data: any): void {
         if (this.listeners.has(event)) {
-            this.listeners.get(event)!.forEach((callback) => {
-                try {
-                    callback(data);
-                } catch (error) {
-                    console.error('Event listener error:', error);
-                }
-            });
+            const callbacks = this.listeners.get(event)!;
+            for (const callback of callbacks) {
+                setImmediate(() => {
+                    try {
+                        callback(data);
+                    } catch (error) {
+                        console.error(
+                            `Error in WebSocket event listener for '${event}':`,
+                            error
+                        );
+                    }
+                });
+            }
         }
     }
 
