@@ -60,19 +60,17 @@ export const broadcastKeygen = async (client: Client) => {
 
         console.log('✅ 웹소켓 연결이 성공했습니다.');
 
-        requestClient.onWebSocketMessage('new-key', async (data) => {
+        requestClient.onWebSocketMessage('new-key', (data) => {
             console.log('🔑 새로운 키젠 데이터를 받았습니다:', data);
 
-            if (!data.data.key) {
+            if (!data.data || !data.data.key) {
                 console.warn('⚠️ 키젠 데이터에 key가 없습니다:', data);
                 return;
             }
 
             const key = data.data.key;
-            let successCount = 0;
-            let failCount = 0;
 
-            for (const guildId in serverMappingInfo) {
+            const broadcastToGuild = async (guildId: string) => {
                 const serverConfig = serverMappingInfo[guildId];
                 const channelId = serverConfig.keyUpdateChannel;
                 const broadcastMessageId = serverConfig.keyBroadcastMessage;
@@ -82,8 +80,7 @@ export const broadcastKeygen = async (client: Client) => {
                         `⚠️ 서버 ${guildId}의 설정이 불완전합니다:`,
                         serverConfig
                     );
-                    failCount++;
-                    continue;
+                    return { success: false };
                 }
 
                 try {
@@ -92,8 +89,7 @@ export const broadcastKeygen = async (client: Client) => {
                         console.warn(
                             `⚠️ 채널을 찾을 수 없거나 텍스트 채널이 아닙니다: ${channelId}`
                         );
-                        failCount++;
-                        continue;
+                        return { success: false };
                     }
 
                     const broadcastMessage = await channel.messages.fetch(
@@ -103,27 +99,35 @@ export const broadcastKeygen = async (client: Client) => {
                         console.warn(
                             `⚠️ 브로드캐스트 메시지를 찾을 수 없습니다: ${broadcastMessageId}`
                         );
-                        failCount++;
-                        continue;
+                        return { success: false };
                     }
 
                     await broadcastMessage.edit(`🔑 키 업데이트: \`${key}\``);
                     console.log(
                         `✅ 서버 ${guildId}에 키 업데이트를 전송했습니다.`
                     );
-                    successCount++;
+                    return { success: true };
                 } catch (error) {
                     console.error(
                         `❌ 서버 ${guildId}에 키 업데이트 전송 실패:`,
                         error
                     );
-                    failCount++;
+                    return { success: false };
                 }
-            }
+            };
 
-            console.log(
-                `📊 키 브로드캐스트 완료 - 성공: ${successCount}, 실패: ${failCount}`
-            );
+            (async () => {
+                const results = await Promise.all(
+                    Object.keys(serverMappingInfo).map(broadcastToGuild)
+                );
+
+                const successCount = results.filter((r) => r.success).length;
+                const failCount = results.length - successCount;
+
+                console.log(
+                    `📊 키 브로드캐스트 완료 - 성공: ${successCount}, 실패: ${failCount}`
+                );
+            })();
         });
 
         console.log('👂 키젠 메시지 리스너가 등록되었습니다.');
