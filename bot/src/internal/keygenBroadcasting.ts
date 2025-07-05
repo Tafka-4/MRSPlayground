@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { Client, TextChannel } from 'discord.js';
+import { Client, TextChannel, Message } from 'discord.js';
 import { RequestClient } from '../utils/unifiedClient.js';
 
 const serverMappingPath = path.join(process.cwd(), 'src', 'serverMapping.json');
@@ -26,6 +26,52 @@ try {
     console.error(
         '❌ serverMapping.json 파일을 읽는 중 오류가 발생했습니다:',
         error
+    );
+}
+
+let broadcastMessageCache: { [key: string]: Message } = {};
+
+export async function initializeBroadcastCache(client: Client) {
+    console.log('🔍 브로드캐스트 메시지 캐시를 초기화합니다...');
+    if (Object.keys(serverMappingInfo).length === 0) {
+        console.warn('⚠️ 등록된 서버가 없어 캐시를 초기화할 수 없습니다.');
+        return;
+    }
+
+    let successCount = 0;
+    const totalServers = Object.keys(serverMappingInfo).length;
+
+    for (const guildId in serverMappingInfo) {
+        const serverConfig = serverMappingInfo[guildId];
+        const channelId = serverConfig.keyUpdateChannel;
+        const broadcastMessageId = serverConfig.keyBroadcastMessage;
+
+        if (!channelId || !broadcastMessageId) {
+            console.warn(
+                `⚠️ 서버 ${guildId}의 설정이 불완전하여 캐시할 수 없습니다.`
+            );
+            continue;
+        }
+
+        try {
+            const channel = await client.channels.fetch(channelId);
+            if (channel instanceof TextChannel) {
+                const message = await channel.messages.fetch(broadcastMessageId);
+                broadcastMessageCache[guildId] = message;
+                successCount++;
+                console.log(`✅ 서버 ${guildId}의 메시지를 성공적으로 캐시했습니다.`);
+            } else {
+                console.warn(
+                    `⚠️ 채널 ${channelId}을 찾을 수 없거나 텍스트 채널이 아닙니다.`
+                );
+            }
+        } catch (error) {
+            console.error(`❌ 서버 ${guildId}의 메시지 캐싱 실패:`, error);
+        }
+    }
+
+    console.log(
+        `👍 브로드캐스트 캐시 초기화 완료. 성공: ${successCount}/${totalServers}`
     );
 }
 
@@ -71,37 +117,15 @@ export const broadcastKeygen = async (client: Client) => {
             const key = data.data.key;
 
             const broadcastToGuild = async (guildId: string) => {
-                const serverConfig = serverMappingInfo[guildId];
-                const channelId = serverConfig.keyUpdateChannel;
-                const broadcastMessageId = serverConfig.keyBroadcastMessage;
-
-                if (!channelId || !broadcastMessageId) {
+                const broadcastMessage = broadcastMessageCache[guildId];
+                if (!broadcastMessage) {
                     console.warn(
-                        `⚠️ 서버 ${guildId}의 설정이 불완전합니다:`,
-                        serverConfig
+                        `⚠️ 서버 ${guildId}에 대한 캐시된 메시지를 찾을 수 없습니다. 브로드캐스트를 건너뜁니다.`
                     );
                     return { success: false };
                 }
 
                 try {
-                    const channel = await client.channels.fetch(channelId);
-                    if (!channel || !(channel instanceof TextChannel)) {
-                        console.warn(
-                            `⚠️ 채널을 찾을 수 없거나 텍스트 채널이 아닙니다: ${channelId}`
-                        );
-                        return { success: false };
-                    }
-
-                    const broadcastMessage = await channel.messages.fetch(
-                        broadcastMessageId
-                    );
-                    if (!broadcastMessage) {
-                        console.warn(
-                            `⚠️ 브로드캐스트 메시지를 찾을 수 없습니다: ${broadcastMessageId}`
-                        );
-                        return { success: false };
-                    }
-
                     await broadcastMessage.edit(`🔑 키 업데이트: \`${key}\``);
                     console.log(
                         `✅ 서버 ${guildId}에 키 업데이트를 전송했습니다.`

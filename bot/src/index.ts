@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import dotenv from 'dotenv';
 import { deployCommands, redeployCommands } from './deploy.js';
 import { RequestClient } from './utils/unifiedClient.js';
-import { broadcastKeygen } from './internal/keygenBroadcasting.js';
+import { broadcastKeygen, initializeBroadcastCache } from './internal/keygenBroadcasting.js';
 
 dotenv.config();
 
@@ -136,6 +136,7 @@ client.once('ready', async () => {
         await deployCommands();
     }
 
+    await initializeBroadcastCache(client);
     await initializeKeygenBroadcasting(client);
 });
 
