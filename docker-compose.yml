@@ -168,7 +168,7 @@ services:
     build:
       context: ./bot
       dockerfile: Dockerfile
-    cpuset: "2"
+    cpuset: "2,3"
     environment:
       - NODE_ENV=${NODE_ENV}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
@@ -217,7 +217,7 @@ services:
   # Redis for Session Management
   redis:
     image: redis:7-alpine
-    cpuset: "2"
+    cpuset: "2,3"
     expose:
       - '6379'
     environment:
