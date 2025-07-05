@@ -44,7 +44,14 @@ export const broadcastKeygen = async (client: Client) => {
     try {
         const url = 'user-service:3001/ws/keygen';
         console.log(`🔌 user-service 웹소켓 연결을 시도합니다... (${url})`);
-        const connected = await requestClient.connectWebSocket(url);
+        
+        let connected = false;
+        try {
+            connected = await requestClient.connectWebSocket(url);
+        } catch (error) {
+            console.error('❌ connectWebSocket 호출 중 오류 발생:', error);
+            connected = false;
+        }
 
         if (!connected) {
             console.error('❌ 웹소켓 연결에 실패했습니다.');
@@ -120,10 +127,12 @@ export const broadcastKeygen = async (client: Client) => {
         });
 
         console.log('👂 키젠 메시지 리스너가 등록되었습니다.');
+        return true;
     } catch (error) {
         console.error(
             '❌ 키젠 브로드캐스팅 초기화 중 오류가 발생했습니다:',
             error
         );
+        return false;
     }
 };

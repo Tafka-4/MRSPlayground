@@ -105,6 +105,26 @@ for (const file of eventFiles) {
     }
 }
 
+async function initializeKeygenBroadcasting(client: Client, maxRetries = 5, retryInterval = 10000) {
+    console.log('🔑 키젠 브로드캐스팅 시스템을 시작합니다...');
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const success = await broadcastKeygen(client);
+            if (success) {
+                console.log('✅ 키젠 브로드캐스팅 시스템이 성공적으로 초기화되었습니다.');
+                return;
+            }
+            console.log(`⏳ 키젠 브로드캐스팅 연결 시도 ${attempt}/${maxRetries} 실패... ${retryInterval / 1000}초 후 재시도`);
+        } catch (error) {
+            console.error(`❌ 키젠 브로드캐스팅 초기화 중 오류 발생 (시도 ${attempt}/${maxRetries}):`, error);
+        }
+        if (attempt < maxRetries) {
+            await new Promise(resolve => setTimeout(resolve, retryInterval));
+        }
+    }
+    console.error('❌ 키젠 브로드캐스팅 시스템 초기화에 최종 실패했습니다.');
+}
+
 client.once('ready', async () => {
     console.log('🤖 bot is ready: deploy slash commands...');
 
@@ -115,14 +135,9 @@ client.once('ready', async () => {
     } else {
         await deployCommands();
     }
-});
 
-try {
-    console.log('🔑 키젠 브로드캐스팅 시스템을 시작합니다...');
-    await broadcastKeygen(client);
-} catch (error) {
-    console.error('❌ 키젠 브로드캐스팅 시스템 시작 실패:', error);
-}
+    await initializeKeygenBroadcasting(client);
+});
 
 client
     .login(process.env.DISCORD_BOT_TOKEN)
