@@ -15,4 +15,4 @@ Tafka4 & B1ackCat(?)
 
 ## etc.
 
-mysql init에 있는 계정은 해커들을 위한 선물~
+개발 쪽이니까 커밋, deploy를 "배설"할 수 있음. 무책임 커밋 최고~~
