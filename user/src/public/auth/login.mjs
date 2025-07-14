@@ -386,7 +386,7 @@ async function performLogin(id, password, loginButton) {
 
         const response = await apiClient.post('/api/v1/auth/login', loginData);
 
-        if (response && response.users) {
+        if (response && response.user) {
             localStorage.setItem('accessToken', response.accessToken);
             
             NoticeBox.success('로그인이 완료되었습니다.');
