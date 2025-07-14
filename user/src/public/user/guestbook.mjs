@@ -15,6 +15,11 @@ async function initializePage() {
     
     try {
         const response = await apiClient.get('/api/v1/auth/me');
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch user data');
+        }
+        
         const result = await response.json();
         if (result.success) {
             currentUser = result.user;
@@ -86,6 +91,11 @@ function closeProfileNavigation() {
 async function loadGuestbookStats() {
     try {
         const response = await apiClient.get(`/api/v1/guestbook/${currentUser.userid}/statistics`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to load guestbook statistics');
+        }
+        
         const result = await response.json();
         
         if (result.success) {
@@ -104,6 +114,11 @@ async function loadGuestbookData() {
     
     try {
         const response = await apiClient.get(`/api/v1/guestbook/${currentUser.userid}?page=${currentPage}&limit=${itemsPerPage}`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to load guestbook data');
+        }
+        
         const result = await response.json();
         
         if (result.success) {
@@ -332,6 +347,11 @@ async function handleEditGuestbook(entryId) {
     
     try {
         const response = await apiClient.put(`/api/v1/guestbook/entry/${entryId}`, { message });
+        
+        if (!response.ok) {
+            throw new Error('Failed to update guestbook');
+        }
+        
         const result = await response.json();
         
         if (result.success) {
@@ -349,6 +369,11 @@ async function handleEditGuestbook(entryId) {
 async function handleDeleteGuestbook(entryId) {
     try {
         const response = await apiClient.delete(`/api/v1/guestbook/entry/${entryId}`);
+        
+        if (!response.ok) {
+            throw new Error('Failed to delete guestbook');
+        }
+        
         const result = await response.json();
         
         if (result.success) {

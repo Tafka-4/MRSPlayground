@@ -10,6 +10,11 @@ let targetUser = null;
 async function initializePage() {
     try {
         const userResponse = await apiClient.get('/api/v1/auth/me');
+        
+        if (!userResponse.ok) {
+            throw new Error('로그인이 필요합니다.');
+        }
+        
         const userResult = await userResponse.json();
         
         if (!userResult.success) {
@@ -134,6 +139,11 @@ async function handleFormSubmit(event) {
     
     try {
         const response = await apiClient.post(`/api/v1/guestbook/${targetUserId}`, { message });
+        
+        if (!response.ok) {
+            throw new Error('방명록 작성에 실패했습니다.');
+        }
+        
         const result = await response.json();
         
         if (result.success) {
