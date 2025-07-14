@@ -2,6 +2,7 @@ class ApiClient {
     constructor() {
         this.failedQueue = [];
         this.baseUrl = '';
+        this.isRefreshing = false;
     }
 
     generateRequestId() {
@@ -72,6 +73,20 @@ class ApiClient {
                     throw error;
                 }
                 
+                if (!this.isRefreshing) {
+                    this.isRefreshing = true;
+                    try {
+                        const newToken = await this.refreshToken();
+                        if (newToken) {
+                            this.isRefreshing = false;
+                            return this.makeRequest(url, options);
+                        }
+                    } catch (refreshError) {
+                        console.error('Token refresh failed:', refreshError);
+                    }
+                    this.isRefreshing = false;
+                }
+                
                 this.redirectToLogin();
                 return null;
             }
@@ -118,6 +133,7 @@ class ApiClient {
 
     async refreshToken() {
         try {
+            console.log('Attempting to refresh token...');
             const response = await fetch('/api/v1/auth/refresh', {
                 method: 'POST',
                 credentials: 'include',
@@ -128,12 +144,16 @@ class ApiClient {
 
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('accessToken', data.accessToken);
-                return data.accessToken;
-            } else {
-                this.redirectToLogin();
-                return null;
+                if (data.accessToken) {
+                    localStorage.setItem('accessToken', data.accessToken);
+                    console.log('Token refreshed successfully');
+                    return data.accessToken;
+                }
             }
+            
+            console.log('Token refresh failed, redirecting to login');
+            this.redirectToLogin();
+            return null;
         } catch (error) {
             console.error('Failed to refresh token:', error);
             this.redirectToLogin();
