@@ -7,6 +7,29 @@ window.addEventListener('load', async () => {
     console.log('Window loaded, starting initialization...');
     await new Promise(resolve => setTimeout(resolve, 100));
     
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('force_logout') === 'true') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('rememberedUserId');
+        document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        
+        new NoticeBox('보안을 위해 다시 로그인해주세요.', 'warning').show();
+        
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    } else if (urlParams.get('session_expired') === 'true') {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('rememberedUserId');
+        document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        
+        new NoticeBox('세션이 만료되었습니다. 다시 로그인해주세요.', 'warning').show();
+        
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+    }
+    
     const existingForm = document.getElementById('loginForm');
     const existingInputs = document.querySelector('input[name="id"]') && 
                           document.querySelector('input[name="password"]') && 
@@ -254,7 +277,6 @@ function setupEventListeners() {
     
     form.addEventListener('click', (e) => {
         if (e.target.tagName === 'A' || e.target.closest('a')) {
-            console.log('링크 클릭 감지됨, 기본 동작 허용');
             return;
         }
     });
@@ -290,7 +312,6 @@ function setupEventListeners() {
     const findPasswordLink = document.querySelector('a[href="/find-password"]');
     if (findPasswordLink) {
         findPasswordLink.addEventListener('click', (event) => {
-            console.log('비밀번호 찾기 링크 클릭됨');
             event.stopPropagation();
         });
     }
@@ -298,7 +319,6 @@ function setupEventListeners() {
     const registerLink = document.querySelector('a[href="/register"]');
     if (registerLink) {
         registerLink.addEventListener('click', (event) => {
-            console.log('회원가입 링크 클릭됨');
             event.stopPropagation();
         });
     }
@@ -309,7 +329,6 @@ function setupEventListeners() {
 
 function login() {
     if (isLoggingIn) {
-        console.log('로그인이 이미 진행 중입니다.');
         return;
     }
 
@@ -364,8 +383,6 @@ async function performLogin(id, password, loginButton) {
             id: id,
             password: password
         };
-
-        console.log('Attempting login with:', { id });
 
         const response = await apiClient.post('/api/v1/auth/login', loginData);
 

@@ -82,14 +82,6 @@ CREATE TABLE IF NOT EXISTS feedback (
     FOREIGN KEY (admin_userid) REFERENCES users(userid) ON DELETE SET NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_search ON users(userid, nickname, id);
-
-CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(createdAt DESC);
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_active ON refresh_tokens(expires_at, issued_at, userid);
-
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_weekly_active ON refresh_tokens(issued_at, expires_at, userid);
-CREATE INDEX IF NOT EXISTS idx_refresh_tokens_cleanup ON refresh_tokens(expires_at, is_revoked);
-
 -- Create guestbook table
 CREATE TABLE IF NOT EXISTS guestbook (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -103,6 +95,17 @@ CREATE TABLE IF NOT EXISTS guestbook (
     FOREIGN KEY (target_userid) REFERENCES users(userid) ON DELETE CASCADE,
     FOREIGN KEY (sender_userid) REFERENCES users(userid) ON DELETE CASCADE
 );
+
+CREATE INDEX IF NOT EXISTS idx_users_search ON users(userid, nickname, id);
+
+CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(createdAt DESC);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_active ON refresh_tokens(expires_at, issued_at, userid);
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_weekly_active ON refresh_tokens(issued_at, expires_at, userid);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_cleanup ON refresh_tokens(expires_at, is_revoked);
+
+CREATE INDEX IF NOT EXISTS idx_guestbook_target_userid ON guestbook(target_userid);
+CREATE INDEX IF NOT EXISTS idx_guestbook_sender_userid ON guestbook(sender_userid);
 
 -- Insert sample admin user (password: admin123!, gift for h4ckers)
 INSERT IGNORE INTO users (

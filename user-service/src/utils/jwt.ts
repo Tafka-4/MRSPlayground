@@ -13,7 +13,12 @@ export const extractToken = (req: Request): string | null => {
     return req.headers.authorization?.split(' ')[1] || null;
 };
 
-export const verifyToken = (token: string): JwtPayload => {
+export const verifyToken = async (token: string): Promise<JwtPayload> => {
+    const isBlacklisted = await redisClient.get(`blacklist:${token}`);
+    if (isBlacklisted) {
+        throw new jwt.JsonWebTokenError('Token has been revoked');
+    }
+
     return jwt.verify(token, process.env.JWT_SECRET as string, {
         algorithms: ['HS256']
     }) as JwtPayload;

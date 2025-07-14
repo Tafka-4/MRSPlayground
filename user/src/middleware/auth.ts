@@ -33,6 +33,12 @@ export const authMiddleware = async (
         const refreshToken = req.cookies.refreshToken;
         if (!refreshToken) {
             console.warn('리프레시 토큰이 없습니다');
+            
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                return res.redirect('/login?force_logout=true');
+            }
+            
             return res.redirect('/login');
         }
 

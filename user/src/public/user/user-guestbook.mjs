@@ -132,9 +132,9 @@ async function loadGuestbookList() {
     try {
         guestbookList.innerHTML = '<div class="loading">방명록을 불러오는 중...</div>';
         
-        const guestbook = await apiClient.get(`/api/v1/users/${targetUserId}/guestbook`);
+        const guestbook = await apiClient.get(`/api/v1/guestbook/${targetUserId}`);
         
-        if (guestbook.length === 0) {
+        if (guestbook.success && guestbook.data.length === 0) {
             guestbookList.innerHTML = `
                 <div class="empty-state">
                     <span class="material-symbols-outlined">book</span>
@@ -144,15 +144,19 @@ async function loadGuestbookList() {
             return;
         }
         
-        guestbookList.innerHTML = guestbook.map(entry => `
-            <div class="guestbook-item">
-                <div class="guestbook-author">
-                    <strong>${escape(entry.author.nickname)}</strong>
-                    <small>${new Date(entry.createdAt).toLocaleDateString('ko-KR')}</small>
+        if (guestbook.success && guestbook.data) {
+            guestbookList.innerHTML = guestbook.data.map(entry => `
+                <div class="guestbook-item">
+                    <div class="guestbook-author">
+                        <strong>${escape(entry.sender_nickname)}</strong>
+                        <small>${new Date(entry.createdAt).toLocaleDateString('ko-KR')}</small>
+                    </div>
+                    <div class="guestbook-message">${escape(entry.message)}</div>
                 </div>
-                <div class="guestbook-message">${escape(entry.message)}</div>
-            </div>
-        `).join('');
+            `).join('');
+        } else {
+            throw new Error('방명록 데이터를 불러올 수 없습니다.');
+        }
         
     } catch (error) {
         guestbookList.innerHTML = `
@@ -228,21 +232,21 @@ async function handleGuestbookSubmit() {
     }
     
     try {
-        const response = await apiClient.post(`/api/v1/users/${targetUserId}/guestbook`, {
+        const response = await apiClient.post(`/api/v1/guestbook/${targetUserId}`, {
             message: message
         });
         
-        if (!response.ok) {
-            throw new Error('방명록 작성에 실패했습니다.');
+        if (response.success) {
+            messageInput.value = '';
+            updateGuestbookCharCounter();
+            new NoticeBox('방명록이 작성되었습니다.', 'success').show();
+            loadGuestbookList();
+        } else {
+            throw new Error(response.message || '방명록 작성에 실패했습니다.');
         }
         
-        messageInput.value = '';
-        updateGuestbookCharCounter();
-        new NoticeBox('방명록이 작성되었습니다.', 'success').show();
-        loadGuestbookList();
-        
     } catch (error) {
-        new NoticeBox(error.message, 'error').show();
+        new NoticeBox(error.message || '방명록 작성에 실패했습니다.', 'error').show();
     }
 }
 

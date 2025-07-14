@@ -27,7 +27,7 @@ export const loginRequired = asyncWrapper(
             return next(new UserNotLoginError('Unauthorized'));
         }
         try {
-            const decoded = verifyToken(token);
+            const decoded = await verifyToken(token);
             const user = await getUserFromToken(decoded);
             if (!user) {
                 res.clearCookie('refreshToken');

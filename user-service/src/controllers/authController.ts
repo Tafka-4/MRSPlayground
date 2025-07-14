@@ -165,6 +165,24 @@ export const logoutUser: RequestHandler = async (
             throw new UserNotFoundError('사용자를 찾을 수 없습니다');
         }
 
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const accessToken = authHeader.substring(7);
+            try {
+                const decoded = jwt.verify(accessToken, process.env.JWT_SECRET as string, {
+                    algorithms: ['HS256']
+                }) as JwtPayloadWithUserId;
+                
+                const exp = decoded.exp;
+                if (exp) {
+                    const ttl = Math.max(0, exp - Math.floor(Date.now() / 1000));
+                    await redisClient.set(`blacklist:${accessToken}`, 'revoked', { EX: ttl });
+                }
+            } catch (error) {
+                console.warn('Invalid access token during logout:', error);
+            }
+        }
+
         const isLogout = await user.logout();
         if (isLogout === 0) {
             throw new UserNotLoginError('로그인 상태가 아닙니다');
@@ -271,7 +289,34 @@ export const checkToken: RequestHandler = async (
     res: Response
 ) => {
     const refreshToken = req.cookies.refreshToken;
+    
     if (!refreshToken) {
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const accessToken = authHeader.substring(7);
+            try {
+                const isBlacklisted = await redisClient.get(`blacklist:${accessToken}`);
+                if (isBlacklisted) {
+                    throw new UserTokenVerificationFailedError('토큰이 만료되었습니다');
+                }
+                
+                const decoded = jwt.verify(accessToken, process.env.JWT_SECRET as string, {
+                    algorithms: ['HS256']
+                }) as JwtPayloadWithUserId;
+                
+                const user = await User.findOne({ userid: decoded.userid });
+                if (user) {
+                    await user.logout();
+                }
+                
+                throw new UserNotLoginError('리프레시 토큰이 없습니다. 다시 로그인해주세요.');
+            } catch (error) {
+                if (error instanceof jwt.JsonWebTokenError) {
+                    throw new UserTokenVerificationFailedError('유효하지 않은 토큰입니다');
+                }
+                throw error;
+            }
+        }
         throw new UserNotLoginError('리프레시 토큰을 찾을 수 없습니다');
     }
 
@@ -475,10 +520,8 @@ export const changePassword: RequestHandler = async (req, res) => {
         { password: newPassword }
     );
 
-    // Revoke all refresh tokens for security after password change
     await currentUser.revokeAllRefreshTokens();
 
-    // Clear current session cookie
     res.clearCookie('refreshToken', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',

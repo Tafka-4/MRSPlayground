@@ -219,6 +219,22 @@ export const initDatabase = async () => {
             );
         `);
 
+        // Create guestbook table
+        await connection.execute(`
+            CREATE TABLE IF NOT EXISTS guestbook (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                target_userid VARCHAR(36) NOT NULL,
+                sender_userid VARCHAR(36) NOT NULL,
+                message TEXT NOT NULL,
+                createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_target_userid (target_userid),
+                INDEX idx_sender_userid (sender_userid),
+                FOREIGN KEY (target_userid) REFERENCES users(userid) ON DELETE CASCADE,
+                FOREIGN KEY (sender_userid) REFERENCES users(userid) ON DELETE CASCADE
+            );
+        `);
+
         connection.release();
 
         console.log('Database initialized successfully');

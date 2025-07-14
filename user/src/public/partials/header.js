@@ -86,11 +86,12 @@ if (!window.headerEventsSetup) {
                     );
                     const response = await apiClient.post('/api/v1/auth/logout');
                     
+                    localStorage.removeItem('accessToken');
+                    document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                    
                     if (response && response.success) {
                         window.location.href = '/login';
                     } else {
-                        localStorage.removeItem('accessToken');
-                        document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
                         window.location.href = '/login';
                     }
                 } catch (error) {

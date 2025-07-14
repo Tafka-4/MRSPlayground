@@ -196,15 +196,6 @@ router.get(
     }
 );
 
-router.get('/refactor', (req: Request, res: Response) => {
-    const target = req.query.target;
-    if (target === 'login') {
-        res.render('./auth/login-refactored');
-    } else if (target === 'modal-test') {
-        res.render('./auth/modal-test');
-    }
-});
-
 router.get('/help', generalLimiter, (req: Request, res: Response) => {
     res.render('./support/help');
 });

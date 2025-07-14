@@ -1,6 +1,5 @@
 class ApiClient {
     constructor() {
-        this.isRefreshing = false;
         this.failedQueue = [];
     }
 
@@ -52,17 +51,9 @@ class ApiClient {
                     throw error;
                 }
                 
-                if (this.isRefreshing) {
-                    return new Promise((resolve, reject) => {
-                        this.failedQueue.push({
-                            resolve,
-                            reject,
-                            url: fullUrl,
-                            options: requestOptions
-                        });
-                    });
-                }
-                return this.handleTokenRefresh(fullUrl, requestOptions);
+                // 토큰 만료 시 즉시 로그아웃 처리
+                this.redirectToLogin();
+                return null;
             }
 
             if (response.ok) {
@@ -92,39 +83,6 @@ class ApiClient {
         }
     }
 
-    async handleTokenRefresh(originalUrl, originalOptions) {
-        this.isRefreshing = true;
-
-        try {
-            const newAccessToken = await this.refreshToken();
-            if (newAccessToken) {
-                this.processQueue(null, newAccessToken);
-                originalOptions.headers[
-                    'Authorization'
-                ] = `Bearer ${newAccessToken}`;
-                const response = await fetch(originalUrl, originalOptions);
-                if (response.ok) {
-                    return await response.json();
-                } else {
-                    const errorData = await response.json().catch(() => ({}));
-                    const error = new Error(errorData.message || 'Request failed');
-                    error.status = response.status;
-                    throw error;
-                }
-            } else {
-                this.processQueue(new Error('Token refresh failed'), null);
-                this.redirectToLogin();
-                return null;
-            }
-        } catch (error) {
-            this.processQueue(error, null);
-            this.redirectToLogin();
-            return null;
-        } finally {
-            this.isRefreshing = false;
-        }
-    }
-
     async refreshToken() {
         try {
             const response = await fetch('/api/v1/auth/refresh', {
@@ -140,10 +98,12 @@ class ApiClient {
                 localStorage.setItem('accessToken', data.accessToken);
                 return data.accessToken;
             } else {
+                this.redirectToLogin();
                 return null;
             }
         } catch (error) {
             console.error('Failed to refresh token:', error);
+            this.redirectToLogin();
             return null;
         }
     }
@@ -153,17 +113,7 @@ class ApiClient {
             if (error) {
                 prom.reject(error);
             } else {
-                const newOptions = {
-                    ...prom.options,
-                    headers: {
-                        ...prom.options.headers,
-                        Authorization: `Bearer ${token}`
-                    }
-                };
-                fetch(prom.url, newOptions)
-                    .then(response => response.json())
-                    .then(data => prom.resolve(data))
-                    .catch(err => prom.reject(err));
+                this.redirectToLogin();
             }
         });
         this.failedQueue = [];
@@ -171,8 +121,10 @@ class ApiClient {
 
     redirectToLogin() {
         localStorage.removeItem('accessToken');
-        document.cookie =
-            'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        localStorage.removeItem('rememberMe');
+        localStorage.removeItem('rememberedUserId');
+        document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        
         if (window.location.pathname !== '/login') {
             window.location.href = '/login?session_expired=true';
         }
