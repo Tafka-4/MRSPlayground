@@ -3,6 +3,7 @@ class ApiClient {
         this.failedQueue = [];
         this.baseUrl = '';
         this.isRefreshing = false;
+        this.refreshPromise = null;
     }
 
     generateRequestId() {
@@ -54,7 +55,10 @@ class ApiClient {
                 headers: Object.fromEntries(response.headers.entries())
             });
 
-            if (response.status === 401 && !normalizedUrl.includes('/auth/login') && !normalizedUrl.includes('/auth/refresh') && window.location.pathname !== '/login') {
+            if (response.status === 401 && 
+                !normalizedUrl.includes('/auth/login') && 
+                !normalizedUrl.includes('/auth/refresh') && 
+                window.location.pathname !== '/login') {
                 const publicPages = [
                     '/help', 
                     '/contact', 
@@ -73,22 +77,47 @@ class ApiClient {
                     throw error;
                 }
                 
-                if (!this.isRefreshing) {
-                    this.isRefreshing = true;
-                    try {
-                        const newToken = await this.refreshToken();
-                        if (newToken) {
-                            this.isRefreshing = false;
-                            return this.makeRequest(url, options);
-                        }
-                    } catch (refreshError) {
-                        console.error('Token refresh failed:', refreshError);
-                    }
-                    this.isRefreshing = false;
+                if (this.isRefreshing) {
+                    return new Promise((resolve, reject) => {
+                        this.failedQueue.push({ resolve, reject, url, options });
+                    });
                 }
                 
-                this.redirectToLogin();
-                return null;
+                this.isRefreshing = true;
+                this.refreshPromise = this.refreshToken();
+                
+                try {
+                    const newToken = await this.refreshPromise;
+                    if (newToken) {
+                        this.processQueue(null, newToken);
+                        
+                        const newOptions = {
+                            ...options,
+                            headers: {
+                                ...options.headers,
+                                'X-Request-ID': this.generateRequestId(),
+                                Authorization: `Bearer ${newToken}`
+                            }
+                        };
+                        
+                        this.isRefreshing = false;
+                        this.refreshPromise = null;
+                        return this.makeRequest(url, newOptions);
+                    } else {
+                        this.processQueue(new Error('Token refresh failed'), null);
+                        this.isRefreshing = false;
+                        this.refreshPromise = null;
+                        this.redirectToLogin();
+                        return null;
+                    }
+                } catch (refreshError) {
+                    console.error('Token refresh failed:', refreshError);
+                    this.processQueue(refreshError, null);
+                    this.isRefreshing = false;
+                    this.refreshPromise = null;
+                    this.redirectToLogin();
+                    return null;
+                }
             }
 
             if (response.ok) {
@@ -162,11 +191,22 @@ class ApiClient {
     }
 
     processQueue(error, token = null) {
-        this.failedQueue.forEach((prom) => {
+        this.failedQueue.forEach(({ resolve, reject, url, options }) => {
             if (error) {
-                prom.reject(error);
+                reject(error);
             } else {
-                this.redirectToLogin();
+                const newOptions = {
+                    ...options,
+                    headers: {
+                        ...options.headers,
+                        'X-Request-ID': this.generateRequestId(),
+                        Authorization: `Bearer ${token}`
+                    }
+                };
+                
+                this.makeRequest(url, newOptions)
+                    .then(resolve)
+                    .catch(reject);
             }
         });
         this.failedQueue = [];
