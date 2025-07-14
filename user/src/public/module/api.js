@@ -46,10 +46,7 @@ class ApiClient {
         };
 
         try {
-            const response = await fetch(normalizedUrl, requestOptions).catch((error) => {
-                console.error('Network error:', error);
-                throw new Error('네트워크 연결을 확인해주세요.');
-            });
+            const response = await fetch(normalizedUrl, requestOptions)
 
             if (response.status === 401 && 
                 !normalizedUrl.includes('/auth/login') && 
@@ -69,7 +66,7 @@ class ApiClient {
                 const userProfilePattern = /^\/user\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(\/activity|\/guestbook)?$/;
                 const isPublicPage = publicPages.includes(window.location.pathname) || userProfilePattern.test(window.location.pathname);
                 
-                if (isPublicPage) {
+                if (isPublicPage && errorData.needRefresh === false) {
                     const error = new Error(errorData.message || 'Authentication required');
                     error.status = response.status;
                     error.data = errorData;
