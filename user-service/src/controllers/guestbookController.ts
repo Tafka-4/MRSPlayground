@@ -51,14 +51,16 @@ export const getGuestbookEntries: RequestHandler = async (
     const limitValue = Number(limitNumber);
     const offsetValue = Number(offset);
 
+    console.log(userid, limitValue, offsetValue);
+
     const [entries] = await pool.execute(
         `SELECT g.*, u.nickname as sender_nickname, u.profileImage as sender_profileImage
          FROM guestbook g
          JOIN users u ON g.sender_userid = u.userid
          WHERE g.target_userid = ?
          ORDER BY g.createdAt DESC
-         LIMIT ?, ?`,
-        [userid, offsetValue, limitValue]
+         LIMIT ? OFFSET ?`,
+        [userid, limitValue, offsetValue]
     );
 
     const [countResult] = await pool.execute(
