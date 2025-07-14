@@ -7,9 +7,9 @@ import * as guestbookController from '../controllers/guestbookController.js';
 const router = Router();
 
 router.get(
-    '/:userid',
+    '/:userid/statistics',
     userRequestWatchStart,
-    asyncWrapper(guestbookController.getGuestbookEntries)
+    asyncWrapper(guestbookController.getGuestbookStatistics)
 );
 
 router.get(
@@ -19,9 +19,9 @@ router.get(
 );
 
 router.get(
-    '/:userid/statistics',
+    '/:userid',
     userRequestWatchStart,
-    asyncWrapper(guestbookController.getGuestbookStatistics)
+    asyncWrapper(guestbookController.getGuestbookEntries)
 );
 
 router.post(
