@@ -93,13 +93,8 @@ class ContactManager {
                 '/api/v1/contact/submit',
                 contactData
             );
-
-            if (result.success) {
-                this.showMessage('문의가 성공적으로 접수되었습니다. 빠른 시일 내에 답변드리겠습니다.', 'success');
-                e.target.reset();
-            } else {
-                throw new Error(result.message || '문의 접수에 실패했습니다.');
-            }
+            this.showMessage('문의가 성공적으로 접수되었습니다. 빠른 시일 내에 답변드리겠습니다.', 'success');
+            e.target.reset();
         } catch (error) {
             console.error('Contact submission error:', error);
             this.showMessage(`문의 접수 중 오류가 발생했습니다: ${error.message}`, 'error');

@@ -276,13 +276,9 @@ async function initializePage() {
     loadSavedTheme();
     try {
         const result = await apiClient.get('/api/v1/auth/me');
-        if (result.success) {
-            displayUserData(result.user);
-            renderComponents();
-            setupEventListeners();
-        } else {
-            throw new Error(result.message || 'Failed to fetch user data');
-        }
+        displayUserData(result.user);
+        renderComponents();
+        setupEventListeners();
     } catch (error) {
         console.error('사용자 정보 로딩 실패:', error);
         (new NoticeBox(

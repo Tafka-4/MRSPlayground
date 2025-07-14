@@ -84,7 +84,12 @@ class ApiClient {
                     data,
                     timestamp: new Date().toISOString()
                 });
-                return data;
+                
+                if (data && typeof data === 'object') {
+                    return data;
+                } else {
+                    throw new Error('Invalid response format');
+                }
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 console.error('API Error:', { 
@@ -94,7 +99,9 @@ class ApiClient {
                     errorData,
                     timestamp: new Date().toISOString()
                 });
-                const error = new Error(errorData.message || `API request failed: ${response.status} ${response.statusText}`);
+                
+                const errorMessage = errorData.message || errorData.error || `API request failed: ${response.status} ${response.statusText}`;
+                const error = new Error(errorMessage);
                 error.status = response.status;
                 error.data = errorData;
                 throw error;

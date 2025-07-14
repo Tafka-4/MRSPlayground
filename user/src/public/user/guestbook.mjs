@@ -15,15 +15,10 @@ async function initializePage() {
     
     try {
         const result = await apiClient.get('/api/v1/auth/me');
-        
-        if (result.success) {
-            currentUser = result.user;
-            setupEventListeners();
-            loadGuestbookData();
-            loadGuestbookStats();
-        } else {
-            throw new Error(result.message || 'Failed to fetch user data');
-        }
+        currentUser = result.user;
+        setupEventListeners();
+        loadGuestbookData();
+        loadGuestbookStats();
     } catch (error) {
         console.error('사용자 정보 로딩 실패:', error);
         new NoticeBox('사용자 정보를 불러오는 데 실패했습니다. 다시 로그인해주세요.', 'error').show();
@@ -87,12 +82,10 @@ async function loadGuestbookStats() {
     try {
         const result = await apiClient.get(`/api/v1/guestbook/${currentUser.userid}/statistics`);
         
-        if (result.success) {
-            const stats = result.data;
-            document.getElementById('totalMessages').textContent = stats.totalEntries;
-            document.getElementById('uniqueSenders').textContent = stats.uniqueSenders;
-            document.getElementById('recentMessages').textContent = stats.recentEntries;
-        }
+        const stats = result.data;
+        document.getElementById('totalMessages').textContent = stats.totalEntries;
+        document.getElementById('uniqueSenders').textContent = stats.uniqueSenders;
+        document.getElementById('recentMessages').textContent = stats.recentEntries;
     } catch (error) {
         console.error('방명록 통계 로딩 실패:', error);
     }
@@ -104,18 +97,14 @@ async function loadGuestbookData() {
     try {
         const result = await apiClient.get(`/api/v1/guestbook/${currentUser.userid}?page=${currentPage}&limit=${itemsPerPage}`);
         
-        if (result.success) {
-            const { data, pagination } = result;
-            totalPages = pagination.totalPages;
-            
-            if (data.length === 0) {
-                showEmpty();
-            } else {
-                displayGuestbookEntries(data);
-                displayPagination(pagination);
-            }
+        const { data, pagination } = result;
+        totalPages = pagination.totalPages;
+        
+        if (data.length === 0) {
+            showEmpty();
         } else {
-            throw new Error(result.message || 'Failed to load guestbook data');
+            displayGuestbookEntries(data);
+            displayPagination(pagination);
         }
     } catch (error) {
         console.error('방명록 로딩 실패:', error);
@@ -331,12 +320,8 @@ async function handleEditGuestbook(entryId) {
     try {
         const result = await apiClient.put(`/api/v1/guestbook/entry/${entryId}`, { message });
         
-        if (result.success) {
-            new NoticeBox('방명록이 수정되었습니다.', 'success').show();
-            loadGuestbookData();
-        } else {
-            throw new Error(result.message || 'Failed to update guestbook');
-        }
+        new NoticeBox('방명록이 수정되었습니다.', 'success').show();
+        loadGuestbookData();
     } catch (error) {
         console.error('방명록 수정 실패:', error);
         new NoticeBox('방명록 수정에 실패했습니다.', 'error').show();
@@ -347,13 +332,9 @@ async function handleDeleteGuestbook(entryId) {
     try {
         const result = await apiClient.delete(`/api/v1/guestbook/entry/${entryId}`);
         
-        if (result.success) {
-            new NoticeBox('방명록이 삭제되었습니다.', 'success').show();
-            loadGuestbookData();
-            loadGuestbookStats();
-        } else {
-            throw new Error(result.message || 'Failed to delete guestbook');
-        }
+        new NoticeBox('방명록이 삭제되었습니다.', 'success').show();
+        loadGuestbookData();
+        loadGuestbookStats();
     } catch (error) {
         console.error('방명록 삭제 실패:', error);
         new NoticeBox('방명록 삭제에 실패했습니다.', 'error').show();

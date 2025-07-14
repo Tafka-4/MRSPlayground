@@ -202,27 +202,23 @@ class FeedbackManager {
                 feedbackData
             );
 
-            if (result.success) {
-                this.showMessage('피드백이 성공적으로 접수되었습니다. 소중한 의견 감사합니다!', 'success');
-                e.target.reset();
-                
-                this.setBrowserInfo();
-                
-                const additionalFields = document.getElementById('additionalFields');
-                const warningMessage = document.getElementById('typeWarning');
-                const existingWarning = document.getElementById('type-warning');
-                
-                if (additionalFields) {
-                    additionalFields.classList.remove('show');
-                }
-                if (warningMessage) {
-                    warningMessage.style.display = 'none';
-                }
-                if (existingWarning) {
-                    existingWarning.remove();
-                }
-            } else {
-                throw new Error(result.message || '피드백 접수에 실패했습니다.');
+            this.showMessage('피드백이 성공적으로 접수되었습니다. 소중한 의견 감사합니다!', 'success');
+            e.target.reset();
+            
+            this.setBrowserInfo();
+            
+            const additionalFields = document.getElementById('additionalFields');
+            const warningMessage = document.getElementById('typeWarning');
+            const existingWarning = document.getElementById('type-warning');
+            
+            if (additionalFields) {
+                additionalFields.classList.remove('show');
+            }
+            if (warningMessage) {
+                warningMessage.style.display = 'none';
+            }
+            if (existingWarning) {
+                existingWarning.remove();
             }
         } catch (error) {
             console.error('Feedback submission error:', error);
