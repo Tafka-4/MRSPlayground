@@ -4,6 +4,7 @@ import { User } from '../models/User.js';
 import { redisClient } from '../config/redis.js';
 import { sendMail } from '../utils/sendMail.js';
 import { generateKey } from '../utils/keygen.js';
+import { verifyToken } from '../utils/jwt.js';
 import {
     AuthError,
     AuthEmailVerifyFailedError,
@@ -169,9 +170,7 @@ export const logoutUser: RequestHandler = async (
         if (authHeader && authHeader.startsWith('Bearer ')) {
             const accessToken = authHeader.substring(7);
             try {
-                const decoded = jwt.verify(accessToken, process.env.JWT_SECRET as string, {
-                    algorithms: ['HS256']
-                }) as JwtPayloadWithUserId;
+                const decoded = await verifyToken(accessToken);
                 
                 const exp = decoded.exp;
                 if (exp) {
@@ -300,9 +299,7 @@ export const checkToken: RequestHandler = async (
                     throw new UserTokenVerificationFailedError('토큰이 만료되었습니다');
                 }
                 
-                const decoded = jwt.verify(accessToken, process.env.JWT_SECRET as string, {
-                    algorithms: ['HS256']
-                }) as JwtPayloadWithUserId;
+                const decoded = await verifyToken(accessToken);
                 
                 const user = await User.findOne({ userid: decoded.userid });
                 if (user) {

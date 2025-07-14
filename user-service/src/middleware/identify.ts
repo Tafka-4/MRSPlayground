@@ -30,7 +30,7 @@ export const identify = async (
             return next();
         }
 
-        const decoded = verifyToken(token);
+        const decoded = await verifyToken(token);
         const user = await getUserFromToken(decoded);
         if (user) {
             req.user = user;
