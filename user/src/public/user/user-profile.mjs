@@ -1,5 +1,5 @@
-import apiClient from '../module/api.js';
-import NoticeBox from '../module/notice.js';
+import apiClient from '/module/api.js';
+import NoticeBox from '/module/notice.js';
 import { createRoleBadge, createVerificationBadge } from '/component/badges/index.js';
 
 const pathParts = window.location.pathname.split('/');

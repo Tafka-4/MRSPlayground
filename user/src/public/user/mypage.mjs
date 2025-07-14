@@ -1,7 +1,7 @@
 import apiClient from '/module/api.js';
 import NoticeBox from '/module/notice.js';
 import { initializeComponents, loadSavedTheme } from '/component/index.js';
-import { createButton, createDeleteButton } from '/component/buttons/index.js';
+import { createButton } from '/component/buttons/index.js';
 import { createConfirmCancelModal } from '/component/modals/index.js';
 import {
     createRoleBadge,

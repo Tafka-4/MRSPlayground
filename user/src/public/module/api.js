@@ -1,22 +1,36 @@
 class ApiClient {
     constructor() {
         this.failedQueue = [];
+        this.baseUrl = '';
     }
 
     generateRequestId() {
         return crypto.randomUUID();
     }
 
+    normalizeUrl(url) {
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            return url;
+        }
+        
+        if (url.startsWith('/')) {
+            return url;
+        }
+        
+        return '/' + url;
+    }
+
     async makeRequest(url, options = {}) {
         const token = localStorage.getItem('accessToken');
         const requestId = this.generateRequestId();
-        const fullUrl = url;
+        const normalizedUrl = this.normalizeUrl(url);
         
         console.log('API Request:', { 
-            url, 
-            fullUrl, 
+            originalUrl: url, 
+            normalizedUrl, 
             method: options.method || 'GET',
-            hasToken: !!token 
+            hasToken: !!token,
+            timestamp: new Date().toISOString()
         });
         
         const requestOptions = {
@@ -30,9 +44,16 @@ class ApiClient {
         };
 
         try {
-            const response = await fetch(fullUrl, requestOptions);
+            const response = await fetch(normalizedUrl, requestOptions);
 
-            if (response.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/refresh') && window.location.pathname !== '/login') {
+            console.log('API Response Status:', {
+                url: normalizedUrl,
+                status: response.status,
+                statusText: response.statusText,
+                headers: Object.fromEntries(response.headers.entries())
+            });
+
+            if (response.status === 401 && !normalizedUrl.includes('/auth/login') && !normalizedUrl.includes('/auth/refresh') && window.location.pathname !== '/login') {
                 const publicPages = [
                     '/help', 
                     '/contact', 
@@ -51,24 +72,29 @@ class ApiClient {
                     throw error;
                 }
                 
-                // 토큰 만료 시 즉시 로그아웃 처리
                 this.redirectToLogin();
                 return null;
             }
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('API Response:', { url: fullUrl, status: response.status, data });
+                console.log('API Response Success:', { 
+                    url: normalizedUrl, 
+                    status: response.status, 
+                    data,
+                    timestamp: new Date().toISOString()
+                });
                 return data;
             } else {
                 const errorData = await response.json().catch(() => ({}));
                 console.error('API Error:', { 
-                    url: fullUrl, 
+                    url: normalizedUrl, 
                     status: response.status, 
+                    statusText: response.statusText,
                     errorData,
-                    statusText: response.statusText
+                    timestamp: new Date().toISOString()
                 });
-                const error = new Error(errorData.message || 'API request failed');
+                const error = new Error(errorData.message || `API request failed: ${response.status} ${response.statusText}`);
                 error.status = response.status;
                 error.data = errorData;
                 throw error;

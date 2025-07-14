@@ -1,6 +1,6 @@
-import escape from '../module/escape.js';
-import apiClient from '../module/api.js';
-import NoticeBox from '../module/notice.js';
+import escape from '/module/escape.js';
+import apiClient from '/module/api.js';
+import NoticeBox from '/module/notice.js';
 import { initializeComponents, loadSavedTheme } from '/component/index.js';
 import { createButton } from '/component/buttons/index.js';
 import { createRoleBadge, createVerificationBadge } from '/component/badges/index.js';
