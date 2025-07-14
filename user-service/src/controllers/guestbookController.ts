@@ -57,8 +57,8 @@ export const getGuestbookEntries: RequestHandler = async (
          JOIN users u ON g.sender_userid = u.userid
          WHERE g.target_userid = ?
          ORDER BY g.createdAt DESC
-         LIMIT ? OFFSET ?`,
-        [userid, limitValue, offsetValue]
+         LIMIT ?, ?`,
+        [userid, offsetValue, limitValue]
     );
 
     const [countResult] = await pool.execute(
