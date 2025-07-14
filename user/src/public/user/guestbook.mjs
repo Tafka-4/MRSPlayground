@@ -37,6 +37,11 @@ function setupEventListeners() {
         loadGuestbookStats();
     });
 
+    const navDeleteBtn = document.getElementById('navDeleteAccount');
+    if (navDeleteBtn) {
+        navDeleteBtn.addEventListener('click', showAccountDeleteModal);
+    }
+
     setupProfileNavigation();
 }
 
@@ -338,6 +343,31 @@ async function handleDeleteGuestbook(entryId) {
     } catch (error) {
         console.error('방명록 삭제 실패:', error);
         new NoticeBox('방명록 삭제에 실패했습니다.', 'error').show();
+    }
+}
+
+function showAccountDeleteModal() {
+    const modal = createConfirmCancelModal({
+        id: 'account-delete-modal',
+        title: '회원 탈퇴',
+        message:
+            '<p>정말로 계정을 삭제하시겠습니까?</p><p class="warning">이 작업은 되돌릴 수 없으며, 모든 데이터가 영구적으로 삭제됩니다.</p>',
+        confirmText: '탈퇴 확인',
+        cancelText: '취소',
+        variant: 'danger',
+        onConfirm: handleAccountDelete
+    });
+    document.body.appendChild(modal);
+}
+
+async function handleAccountDelete() {
+    try {
+        await apiClient.delete('/api/v1/users/delete');
+        new NoticeBox('회원 탈퇴가 완료되었습니다.', 'success').show();
+        window.location.href = '/login';
+    } catch (error) {
+        console.error('회원 탈퇴 처리 실패:', error);
+        new NoticeBox('회원 탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.', 'error').show();
     }
 }
 
