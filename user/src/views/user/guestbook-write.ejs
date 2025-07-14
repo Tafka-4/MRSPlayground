@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>방명록 작성 - 마법연구회</title>
+        <link rel="stylesheet" href="/user/user-profile.css" />
+        <link rel="stylesheet" href="/user/guestbook-write.css" />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+        />
+    </head>
+    <body>
+        <script>
+            (function() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            })();
+        </script>
+        <div class="container">
+            <div class="user-profile-header">
+                <h1 class="title" id="page-title">방명록 작성</h1>
+                <a href="/" class="back-button">
+                    <span class="material-symbols-outlined">arrow_back</span>
+                    홈으로 돌아가기
+                </a>
+            </div>
+
+            <div id="loading" class="loading">사용자 정보를 불러오는 중...</div>
+
+            <div
+                id="error-container"
+                class="error-container"
+                style="display: none"
+            >
+                <div class="error-message" id="error-message">
+                    사용자를 찾을 수 없습니다.
+                </div>
+            </div>
+
+            <div id="guestbook-write-container" style="display: none">
+                <div class="target-user-info">
+                    <div class="profile-image-container">
+                        <div class="profile-image" id="target-profile-image">
+                            <span class="material-symbols-outlined">person</span>
+                        </div>
+                    </div>
+                    <div class="user-info">
+                        <h2 id="target-username">사용자</h2>
+                        <p id="target-description">소개가 없습니다.</p>
+                    </div>
+                </div>
+
+                <div class="guestbook-form-container">
+                    <h3>방명록 작성</h3>
+                    <form id="guestbook-form" class="guestbook-form">
+                        <div class="form-group">
+                            <label for="message">메시지</label>
+                            <textarea 
+                                id="message" 
+                                name="message" 
+                                rows="6" 
+                                placeholder="방명록에 남길 메시지를 입력하세요..."
+                                maxlength="1000"
+                                required
+                            ></textarea>
+                            <div class="char-counter">
+                                <span id="char-count">0</span>/1000
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary" id="cancelButton">
+                                취소
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="submitButton">
+                                <span class="material-symbols-outlined">send</span>
+                                방명록 남기기
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="guestbook-preview">
+                    <h3>미리보기</h3>
+                    <div class="preview-container">
+                        <div class="preview-message" id="preview-message">
+                            메시지를 입력하면 여기에 미리보기가 표시됩니다.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="notice-container"></div>
+
+        <script type="module" src="/user/guestbook-write.mjs"></script>
+    </body>
+</html> 

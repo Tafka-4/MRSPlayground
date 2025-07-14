@@ -533,4 +533,10 @@ export class User {
     get profileImage() {
         return this.data.profileImage;
     }
+    get createdAt() {
+        return this.data.createdAt;
+    }
+    get updatedAt() {
+        return this.data.updatedAt;
+    }
 }

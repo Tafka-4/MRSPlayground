@@ -57,7 +57,7 @@ function displayUserProfile(user) {
 }
 
 document.getElementById('guestbook-button').addEventListener('click', () => {
-    new NoticeBox('방명록 기능은 준비 중입니다.', 'info').show();
+    window.location.href = `/${targetUserId}/guestbook/write`;
 });
 
 document.getElementById('article-list-button').addEventListener('click', () => {

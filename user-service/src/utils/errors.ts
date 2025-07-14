@@ -95,3 +95,24 @@ export class UserNotVerifiedError extends Error {
         this.name = 'UserNotVerifiedError';
     }
 }
+
+export class GuestbookError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'GuestbookError';
+    }
+}
+
+export class GuestbookNotFoundError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'GuestbookNotFoundError';
+    }
+}
+
+export class GuestbookForbiddenError extends Error {
+    constructor(message: string) {
+        super(message);
+        this.name = 'GuestbookForbiddenError';
+    }
+}
