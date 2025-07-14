@@ -47,6 +47,9 @@ export const getGuestbookEntries: RequestHandler = async (
     }
 
     const offset = (pageNumber - 1) * limitNumber;
+    
+    const limitValue = Number(limitNumber);
+    const offsetValue = Number(offset);
 
     const [entries] = await pool.execute(
         `SELECT g.*, u.nickname as sender_nickname, u.profileImage as sender_profileImage
@@ -55,7 +58,7 @@ export const getGuestbookEntries: RequestHandler = async (
          WHERE g.target_userid = ?
          ORDER BY g.createdAt DESC
          LIMIT ? OFFSET ?`,
-        [userid, limitNumber, offset]
+        [userid, limitValue, offsetValue]
     );
 
     const [countResult] = await pool.execute(
@@ -139,6 +142,11 @@ export const updateGuestbookEntry: RequestHandler = async (
     const { entryId } = req.params;
     const { message } = req.body;
     const currentUser = (req as any).user;
+    
+    const entryIdNum = parseInt(entryId, 10);
+    if (isNaN(entryIdNum) || entryIdNum < 1) {
+        throw new GuestbookError('Invalid entry ID');
+    }
 
     if (!currentUser) {
         throw new UserNotFoundError('User not found');
@@ -154,7 +162,7 @@ export const updateGuestbookEntry: RequestHandler = async (
 
     const [entries] = await pool.execute(
         'SELECT * FROM guestbook WHERE id = ?',
-        [entryId]
+        [entryIdNum]
     );
 
     const entry = (entries as IGuestbookEntry[])[0];
@@ -170,7 +178,7 @@ export const updateGuestbookEntry: RequestHandler = async (
 
     await pool.execute(
         'UPDATE guestbook SET message = ?, updatedAt = CURRENT_TIMESTAMP WHERE id = ?',
-        [escapedMessage, entryId]
+        [escapedMessage, entryIdNum]
     );
 
     const [updatedEntries] = await pool.execute(
@@ -178,7 +186,7 @@ export const updateGuestbookEntry: RequestHandler = async (
          FROM guestbook g
          JOIN users u ON g.sender_userid = u.userid
          WHERE g.id = ?`,
-        [entryId]
+        [entryIdNum]
     );
 
     const updatedEntry = (updatedEntries as IGuestbookEntryWithUser[])[0];
@@ -197,13 +205,18 @@ export const deleteGuestbookEntry: RequestHandler = async (
     const { entryId } = req.params;
     const currentUser = (req as any).user;
 
+    const entryIdNum = parseInt(entryId, 10);
+    if (isNaN(entryIdNum) || entryIdNum < 1) {
+        throw new GuestbookError('Invalid entry ID');
+    }
+
     if (!currentUser) {
         throw new UserNotFoundError('User not found');
     }
 
     const [entries] = await pool.execute(
         'SELECT * FROM guestbook WHERE id = ?',
-        [entryId]
+        [entryIdNum]
     );
 
     const entry = (entries as IGuestbookEntry[])[0];
@@ -215,7 +228,7 @@ export const deleteGuestbookEntry: RequestHandler = async (
         throw new GuestbookForbiddenError('You can only delete your own messages or messages on your guestbook');
     }
 
-    await pool.execute('DELETE FROM guestbook WHERE id = ?', [entryId]);
+    await pool.execute('DELETE FROM guestbook WHERE id = ?', [entryIdNum]);
 
     res.status(200).json({
         success: true,
@@ -229,12 +242,17 @@ export const getGuestbookEntry: RequestHandler = async (
 ) => {
     const { entryId } = req.params;
 
+    const entryIdNum = parseInt(entryId, 10);
+    if (isNaN(entryIdNum) || entryIdNum < 1) {
+        throw new GuestbookError('Invalid entry ID');
+    }
+
     const [entries] = await pool.execute(
         `SELECT g.*, u.nickname as sender_nickname, u.profileImage as sender_profileImage
          FROM guestbook g
          JOIN users u ON g.sender_userid = u.userid
          WHERE g.id = ?`,
-        [entryId]
+        [entryIdNum]
     );
 
     const entry = (entries as IGuestbookEntryWithUser[])[0];
