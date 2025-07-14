@@ -9,13 +9,7 @@ let targetUser = null;
 
 async function initializePage() {
     try {
-        const userResponse = await apiClient.get('/api/v1/auth/me');
-        
-        if (!userResponse.ok) {
-            throw new Error('로그인이 필요합니다.');
-        }
-        
-        const userResult = await userResponse.json();
+        const userResult = await apiClient.get('/api/v1/auth/me');
         
         if (!userResult.success) {
             throw new Error('로그인이 필요합니다.');
@@ -40,13 +34,7 @@ async function initializePage() {
 
 async function loadTargetUserInfo() {
     try {
-        const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
-        
-        if (!response.ok) {
-            throw new Error('사용자를 찾을 수 없습니다.');
-        }
-        
-        targetUser = await response.json();
+        targetUser = await apiClient.get(`/api/v1/users/${targetUserId}`);
         displayTargetUserInfo();
         
     } catch (error) {
@@ -138,13 +126,7 @@ async function handleFormSubmit(event) {
     submitButton.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span>전송 중...';
     
     try {
-        const response = await apiClient.post(`/api/v1/guestbook/${targetUserId}`, { message });
-        
-        if (!response.ok) {
-            throw new Error('방명록 작성에 실패했습니다.');
-        }
-        
-        const result = await response.json();
+        const result = await apiClient.post(`/api/v1/guestbook/${targetUserId}`, { message });
         
         if (result.success) {
             new NoticeBox('방명록이 성공적으로 작성되었습니다!', 'success').show();

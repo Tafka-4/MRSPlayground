@@ -9,8 +9,7 @@ let currentUser = null;
 
 async function isMe() {
     try {
-        const response = await apiClient.get(`/api/v1/auth/me`);
-        const result = await response.json();
+        const result = await apiClient.get(`/api/v1/auth/me`);
         return result.user.userid === targetUserId;
     } catch (error) {
         return false;
@@ -19,13 +18,7 @@ async function isMe() {
 
 async function loadUserProfile() {
     try {
-        const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
-        
-        if (!response.ok) {
-            throw new Error('사용자를 찾을 수 없습니다.');
-        }
-        
-        const user = await response.json();
+        const user = await apiClient.get(`/api/v1/users/${targetUserId}`);
         
         if (await isMe()) {
             location.href = '/mypage';
