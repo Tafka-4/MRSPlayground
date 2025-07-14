@@ -140,7 +140,7 @@ async function handleFormSubmit(event) {
             new NoticeBox('방명록이 성공적으로 작성되었습니다!', 'success').show();
             
             setTimeout(() => {
-                window.location.href = `/${targetUserId}`;
+                window.location.href = `/user/${targetUserId}`;
             }, 1500);
         } else {
             throw new Error(result.message || '방명록 작성에 실패했습니다.');

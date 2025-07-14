@@ -189,6 +189,13 @@ router.get(
     }
 );
 
+router.get(
+    '/user/:userid([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/guestbook/write',
+    (req: Request, res: Response) => {
+        res.render('./user/guestbook-write');
+    }
+);
+
 router.get('/refactor', (req: Request, res: Response) => {
     const target = req.query.target;
     if (target === 'login') {

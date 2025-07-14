@@ -1,8 +1,5 @@
-import escape from '../module/escape.js';
 import apiClient from '../module/api.js';
 import NoticeBox from '../module/notice.js';
-import { initializeComponents, loadSavedTheme } from '/component/index.js';
-import { createButton } from '/component/buttons/index.js';
 import { createRoleBadge, createVerificationBadge } from '/component/badges/index.js';
 
 const pathParts = window.location.pathname.split('/');
@@ -12,8 +9,9 @@ let currentUser = null;
 
 async function isMe() {
     try {
-        const user = await apiClient.get(`/api/v1/auth/me`);
-        return user.user.userid === targetUserId;
+        const response = await apiClient.get(`/api/v1/auth/me`);
+        const result = await response.json();
+        return result.user.userid === targetUserId;
     } catch (error) {
         return false;
     }
@@ -22,11 +20,12 @@ async function isMe() {
 async function loadUserProfile() {
     try {
         const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
-        const user = response.user;
         
-        if (!user) {
-            throw new Error('사용자 정보를 찾을 수 없습니다.');
+        if (!response.ok) {
+            throw new Error('사용자를 찾을 수 없습니다.');
         }
+        
+        const user = await response.json();
         
         if (await isMe()) {
             location.href = '/mypage';
@@ -47,41 +46,28 @@ function displayUserProfile(user) {
     document.getElementById('profile-container').style.display = 'block';
 
     document.getElementById('page-title').textContent = `${user.nickname}님의 프로필`;
-    document.getElementById('mobile-title').textContent = `${user.nickname}님의 프로필`;
     document.title = `${user.nickname}님의 프로필 - 마법연구회`;
 
-    const usernameElement = document.getElementById('username');
     const usernameContainer = document.getElementById('username-container');
 
-    if (usernameElement) {
-        usernameElement.textContent = user.nickname;
-
-        if (user.authority === 'admin') {
-            const adminBadge = createRoleBadge('admin');
-            usernameContainer.appendChild(adminBadge);
-        } else if (user.authority === 'bot') {
-            const botBadge = createRoleBadge('bot');
-            usernameContainer.appendChild(botBadge);
-        }
-
-        if (user.isVerified) {
-            const verifiedBadge = createVerificationBadge(user.isVerified);
-            usernameContainer.appendChild(verifiedBadge);
-        }
+    if (user.authority === 'admin') {
+        const adminBadge = createRoleBadge('admin');
+        usernameContainer.appendChild(adminBadge);
+    } else if (user.authority === 'bot') {
+        const botBadge = createRoleBadge('bot');
+        usernameContainer.appendChild(botBadge);
     }
 
-    if (document.getElementById('userid')) {
-        document.getElementById('userid').textContent = user.userid;
+    if (user.isVerified) {
+        const verifiedBadge = createVerificationBadge(user.isVerified);
+        usernameContainer.appendChild(verifiedBadge);
     }
-    if (document.getElementById('description')) {
-        document.getElementById('description').textContent = user.description || '소개가 없습니다.';
-    }
-    if (document.getElementById('created-at')) {
-        document.getElementById('created-at').textContent = new Date(user.createdAt).toLocaleDateString('ko-KR');
-    }
-    if (document.getElementById('uid')) {
-        document.getElementById('uid').textContent = user.uid;
-    }
+
+    document.getElementById('userid').textContent = user.id;
+    document.getElementById('username').textContent = user.nickname;
+    document.getElementById('description').textContent = user.description || '소개가 없습니다.';
+    document.getElementById('created-at').textContent = new Date(user.createdAt).toLocaleDateString('ko-KR');
+    document.getElementById('uid').textContent = user.userid;
 
     const profileImage = document.getElementById('profile-image');
     if (user.profileImage) {
@@ -90,7 +76,7 @@ function displayUserProfile(user) {
 }
 
 document.getElementById('guestbook-button').addEventListener('click', () => {
-    new NoticeBox('방명록 기능은 준비 중입니다.', 'info').show();
+    window.location.href = `/user/${targetUserId}/guestbook/write`;
 });
 
 document.getElementById('article-list-button').addEventListener('click', () => {
@@ -119,16 +105,12 @@ style.textContent = `
             transform: translateX(0);
             opacity: 1;
         }
-    });
-}
-
-function closeProfileNavigation() {
-    const profileNavigation = document.getElementById('profileNavigation');
-    const profileNavOverlay = document.getElementById('profileNavOverlay');
-    
-    profileNavigation.classList.remove('active');
-    profileNavOverlay.classList.remove('active');
-    document.body.style.overflow = '';
-}
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
 
 loadUserProfile();
