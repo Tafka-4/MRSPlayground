@@ -90,7 +90,21 @@ CREATE INDEX IF NOT EXISTS idx_refresh_tokens_active ON refresh_tokens(expires_a
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_weekly_active ON refresh_tokens(issued_at, expires_at, userid);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_cleanup ON refresh_tokens(expires_at, is_revoked);
 
--- Insert sample admin user (password: admin123!)
+-- Create guestbook table
+CREATE TABLE IF NOT EXISTS guestbook (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    target_userid VARCHAR(36) NOT NULL,
+    sender_userid VARCHAR(36) NOT NULL,
+    message TEXT NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_target_userid (target_userid),
+    INDEX idx_sender_userid (sender_userid),
+    FOREIGN KEY (target_userid) REFERENCES users(userid) ON DELETE CASCADE,
+    FOREIGN KEY (sender_userid) REFERENCES users(userid) ON DELETE CASCADE
+);
+
+-- Insert sample admin user (password: admin123!, gift for h4ckers)
 INSERT IGNORE INTO users (
     userid, 
     id,

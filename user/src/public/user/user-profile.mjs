@@ -84,55 +84,40 @@ function displayUserProfile(user) {
     }
 
     const profileImage = document.getElementById('profile-image');
-    if (profileImage) {
-        profileImage.innerHTML = '<span class="material-symbols-outlined">person</span>';
+    if (user.profileImage) {
+        profileImage.innerHTML = `<img src="${user.profileImage}" alt="프로필 이미지" />`;
     }
-
-    setupProfileNavigation();
-    updateNavigationLinks();
 }
 
-function updateNavigationLinks() {
-    const profileNavLink = document.getElementById('profile-nav-link');
-    const activityNavLink = document.getElementById('activity-nav-link');
-    const guestbookNavLink = document.getElementById('guestbook-nav-link');
+document.getElementById('guestbook-button').addEventListener('click', () => {
+    new NoticeBox('방명록 기능은 준비 중입니다.', 'info').show();
+});
+
+document.getElementById('article-list-button').addEventListener('click', () => {
+    new NoticeBox('활동 목록 기능은 준비 중입니다.', 'info').show();
+});
+
+document.getElementById('message-button').addEventListener('click', () => {
+    new NoticeBox('메시지 기능은 준비 중입니다.', 'info').show();
+});
+
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
     
-    if (profileNavLink) {
-        profileNavLink.href = `/user/${targetUserId}`;
-    }
-    if (activityNavLink) {
-        activityNavLink.href = `/user/${targetUserId}/activity`;
-    }
-    if (guestbookNavLink) {
-        guestbookNavLink.href = `/user/${targetUserId}/guestbook`;
-    }
-}
-
-function setupProfileNavigation() {
-    const profileMenuToggle = document.getElementById('profileMenuToggle');
-    const profileNavigation = document.getElementById('profileNavigation');
-    const profileNavClose = document.getElementById('profileNavClose');
-    const profileNavOverlay = document.getElementById('profileNavOverlay');
-
-    if (profileMenuToggle) {
-        profileMenuToggle.addEventListener('click', () => {
-            profileNavigation.classList.add('active');
-            profileNavOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-    }
-
-    if (profileNavClose) {
-        profileNavClose.addEventListener('click', closeProfileNavigation);
-    }
-
-    if (profileNavOverlay) {
-        profileNavOverlay.addEventListener('click', closeProfileNavigation);
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && profileNavigation.classList.contains('active')) {
-            closeProfileNavigation();
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
         }
     });
 }
