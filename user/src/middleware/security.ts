@@ -154,7 +154,8 @@ export const securityHeaders = (
             
         "connect-src 'self' ws: wss: " +
             "static.cloudflareinsights.com *.cloudflare.com " +
-            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
+            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net " +
+            "*.magicresearches.com; " +
             
         "worker-src 'self' blob:; " +
         "object-src 'none'; " +
