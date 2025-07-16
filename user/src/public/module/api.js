@@ -11,7 +11,12 @@ class ApiClient {
     async makeRequest(url, options = {}) {
         const token = localStorage.getItem('accessToken');
         const requestId = this.generateRequestId();
-        const fullUrl = url;
+        
+        let fullUrl = url;
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            const urlObj = new URL(url);
+            fullUrl = urlObj.pathname + urlObj.search;
+        }
 
         console.log('API Request:', { 
             url, 
@@ -102,7 +107,15 @@ class ApiClient {
                 originalOptions.headers[
                     'Authorization'
                 ] = `Bearer ${newAccessToken}`;
-                const response = await fetch(originalUrl, originalOptions);
+                
+                // URL이 절대 URL인지 확인하고, 상대 URL로 변환
+                let requestUrl = originalUrl;
+                if (originalUrl.startsWith('http://') || originalUrl.startsWith('https://')) {
+                    const urlObj = new URL(originalUrl);
+                    requestUrl = urlObj.pathname + urlObj.search;
+                }
+                
+                const response = await fetch(requestUrl, originalOptions);
                 if (response.ok) {
                     return await response.json();
                 } else {
@@ -160,7 +173,15 @@ class ApiClient {
                         Authorization: `Bearer ${token}`
                     }
                 };
-                fetch(prom.url, newOptions)
+                
+                // URL이 절대 URL인지 확인하고, 상대 URL로 변환
+                let requestUrl = prom.url;
+                if (prom.url.startsWith('http://') || prom.url.startsWith('https://')) {
+                    const urlObj = new URL(prom.url);
+                    requestUrl = urlObj.pathname + urlObj.search;
+                }
+                
+                fetch(requestUrl, newOptions)
                     .then(response => response.json())
                     .then(data => prom.resolve(data))
                     .catch(err => prom.reject(err));
