@@ -290,6 +290,23 @@
     margin: 0 1rem;
 }
 
+@media (max-width: 900px) {
+    .mypage-header {
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .guestbook-stats {
+        margin-top: 1.5rem;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pagination-info {
+        display: none;
+    }
+}
+
 @media (max-width: 768px) {
     .guestbook-stats {
         gap: 1rem;
@@ -301,13 +318,10 @@
     }
     
     .guestbook-header {
-        flex-direction: column;
-        align-items: flex-start;
         gap: 1rem;
     }
     
     .guestbook-actions {
-        width: 100%;
         justify-content: flex-end;
     }
     
