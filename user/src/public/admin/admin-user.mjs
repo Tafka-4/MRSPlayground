@@ -64,19 +64,21 @@ function displayUsers(users) {
             </div>
             <div class="user-info">
                 <div class="user-name">
-                    ${escape(user.nickname)}
-                    ${
-                        user.authority === 'admin'
-                            ? '<span class="admin-badge">관리자</span>'
-                            : user.authority === 'bot'
-                            ? '<span class="bot-badge">오토마타</span>'
-                            : ''
-                    }
-                    ${
-                        user.isVerified
-                            ? '<span class="verified-badge">인증됨</span>'
-                            : '<span class="unverified-badge">미인증</span>'
-                    }
+                    <span class="nickname-text">${escape(user.nickname)}</span>
+                    <div class="user-badges">
+                        ${
+                            user.authority === 'admin'
+                                ? '<span class="admin-badge">관리자</span>'
+                                : user.authority === 'bot'
+                                ? '<span class="bot-badge">오토마타</span>'
+                                : ''
+                        }
+                        ${
+                            user.isVerified
+                                ? '<span class="verified-badge">인증됨</span>'
+                                : '<span class="unverified-badge">미인증</span>'
+                        }
+                    </div>
                 </div>
                 <div class="user-details">
                     <span>ID: ${escape(user.userid)}</span>

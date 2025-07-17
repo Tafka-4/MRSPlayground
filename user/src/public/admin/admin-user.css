@@ -266,10 +266,25 @@ body.has-header {
     font-weight: 500;
     color: var(--text-primary);
     margin-bottom: 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.nickname-text {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 200px;
+    max-width: 150px;
+    flex-shrink: 1;
+}
+
+.user-badges {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: wrap;
+    flex-shrink: 0;
 }
 
 .user-details {
