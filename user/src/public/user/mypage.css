@@ -22,13 +22,28 @@
     background: var(--card-background);
     border-bottom: 1px solid var(--border-color);
     position: fixed;
-    top: 64px;
+    top: 64px; /* 헤더 높이만큼 아래로 이동 */
     left: 0;
     right: 0;
-    z-index: 999;
+    z-index: 999; /* 헤더보다 낮게 설정 */
     width: 100%;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+    transform: translateY(0);
+}
+
+.mobile-profile-header.header-hidden {
+    transform: translateY(-100%);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 1, 1);
+}
+
+.mobile-profile-header.header-shadow {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom-color: rgba(var(--border-color-rgb), 0.5);
 }
 
 .profile-menu-toggle {
@@ -344,28 +359,28 @@
     }
 
     body {
-        padding-top: 120px;
+        padding-top: 140px; /* 더 큰 상단 여백으로 조정 */
         padding-bottom: 60px;
     }
 
     .main-content {
         flex-direction: column;
-        padding: 0;
-        min-height: calc(100vh - 180px);
+        padding: 1rem; /* 상하좌우 패딩 추가 */
+        min-height: calc(100vh - 200px); /* 더 큰 상단 여백 고려 */
         align-items: stretch;
     }
 
     .profile-navigation-container {
         position: fixed;
-        top: 120px;
+        top: 120px; /* mobile-profile-header 아래에서 시작 */
         left: -300px;
         width: 300px;
-        height: calc(100vh - 120px);
-        z-index: 1001;
+        height: calc(100vh - 120px); /* 남은 화면 높이 사용 */
+        z-index: 1001; /* 헤더보다 높게 설정 */
         transition: left 0.3s ease;
         border-radius: 0;
-        overflow-y: auto;
-        padding-top: 1rem;
+        overflow-y: auto; /* 스크롤 가능하게 설정 */
+        padding-top: 1rem; /* 상단 여백 추가 */
     }
 
     .profile-navigation-container.active {
@@ -385,12 +400,13 @@
     }
 
     .container {
-        padding: 1.5rem;
+        padding: 2rem 1.5rem;
         margin: 0;
         border-radius: 0;
         box-shadow: none;
         width: 100%;
         max-width: none;
+        margin-top: 1rem;
     }
 
     .title {

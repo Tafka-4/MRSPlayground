@@ -150,4 +150,78 @@ document.addEventListener('DOMContentLoaded', () => {
             profileNavOverlay.classList.remove('active');
         });
     }
+
+    setupMobileHeaderScroll();
 });
+
+function setupMobileHeaderScroll() {
+    const mobileHeader = document.querySelector('.mobile-profile-header');
+    if (!mobileHeader) return;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    function updateMobileHeader() {
+        const scrollY = window.scrollY;
+        const scrollDirection = scrollY > lastScrollY ? 'down' : 'up';
+        const scrollDelta = Math.abs(scrollY - lastScrollY);
+
+        if (scrollY === 0) {
+            mobileHeader.classList.remove('header-hidden');
+        } else if (
+            scrollY > 50 &&
+            scrollDirection === 'up' &&
+            scrollDelta > 2
+        ) {
+            mobileHeader.classList.add('header-hidden');
+        } else if (scrollDirection === 'down' && scrollDelta > 1) {
+            mobileHeader.classList.remove('header-hidden');
+        }
+
+        if (scrollY > 50) {
+            mobileHeader.classList.add('header-shadow');
+        } else {
+            mobileHeader.classList.remove('header-shadow');
+        }
+
+        lastScrollY = scrollY;
+        ticking = false;
+    }
+
+    function requestTick() {
+        if (!ticking) {
+            requestAnimationFrame(updateMobileHeader);
+            ticking = true;
+        }
+    }
+
+    window.addEventListener('scroll', requestTick, { passive: true });
+
+    let touchStartY = 0;
+    let touchEndY = 0;
+
+    window.addEventListener(
+        'touchstart',
+        (e) => {
+            touchStartY = e.changedTouches[0].screenY;
+        },
+        { passive: true }
+    );
+
+    window.addEventListener(
+        'touchend',
+        (e) => {
+            touchEndY = e.changedTouches[0].screenY;
+            const touchDelta = touchStartY - touchEndY;
+
+            if (Math.abs(touchDelta) > 50) {
+                if (touchDelta < 0) {
+                    mobileHeader.classList.add('header-hidden');
+                } else {
+                    mobileHeader.classList.remove('header-hidden');
+                }
+            }
+        },
+        { passive: true }
+    );
+}

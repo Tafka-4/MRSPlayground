@@ -83,11 +83,9 @@ function updatePaginationDisplay() {
     paginationContainer.innerHTML = paginationHTML;
 }
 
-// 페이지네이션 클릭 처리 함수 - mypage와 동일한 단순한 로직 적용
 async function handlePaginationClick(page) {
     if (page === currentPage) return;
     
-    // 스크롤 조작 없이 단순히 페이지만 변경
     loadGuestbookList(page);
 }
 
@@ -209,6 +207,80 @@ function setupProfileNavigation() {
             closeProfileNavigation();
         }
     });
+    
+    setupMobileHeaderScroll();
+}
+
+function setupMobileHeaderScroll() {
+    const mobileHeader = document.querySelector('.mobile-profile-header');
+    if (!mobileHeader) return;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    function updateMobileHeader() {
+        const scrollY = window.scrollY;
+        const scrollDirection = scrollY > lastScrollY ? 'down' : 'up';
+        const scrollDelta = Math.abs(scrollY - lastScrollY);
+
+        if (scrollY === 0) {
+            mobileHeader.classList.remove('header-hidden');
+        } else if (
+            scrollY > 50 &&
+            scrollDirection === 'up' &&
+            scrollDelta > 2
+        ) {
+            mobileHeader.classList.add('header-hidden');
+        } else if (scrollDirection === 'down' && scrollDelta > 1) {
+            mobileHeader.classList.remove('header-hidden');
+        }
+
+        if (scrollY > 50) {
+            mobileHeader.classList.add('header-shadow');
+        } else {
+            mobileHeader.classList.remove('header-shadow');
+        }
+
+        lastScrollY = scrollY;
+        ticking = false;
+    }
+
+    function requestTick() {
+        if (!ticking) {
+            requestAnimationFrame(updateMobileHeader);
+            ticking = true;
+        }
+    }
+
+    window.addEventListener('scroll', requestTick, { passive: true });
+
+    let touchStartY = 0;
+    let touchEndY = 0;
+
+    window.addEventListener(
+        'touchstart',
+        (e) => {
+            touchStartY = e.changedTouches[0].screenY;
+        },
+        { passive: true }
+    );
+
+    window.addEventListener(
+        'touchend',
+        (e) => {
+            touchEndY = e.changedTouches[0].screenY;
+            const touchDelta = touchStartY - touchEndY;
+
+            if (Math.abs(touchDelta) > 50) {
+                if (touchDelta < 0) {
+                    mobileHeader.classList.add('header-hidden');
+                } else {
+                    mobileHeader.classList.remove('header-hidden');
+                }
+            }
+        },
+        { passive: true }
+    );
 }
 
 function closeProfileNavigation() {
@@ -649,6 +721,21 @@ style.textContent = `
         align-items: center;
         padding: 1rem;
         width: 100%;
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
+            box-shadow 0.3s ease, backdrop-filter 0.3s ease;
+        transform: translateY(0);
+    }
+
+    .mobile-profile-header.header-hidden {
+        transform: translateY(-100%);
+        transition: transform 0.2s cubic-bezier(0.4, 0, 1, 1);
+    }
+
+    .mobile-profile-header.header-shadow {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom-color: rgba(var(--border-color-rgb), 0.5);
     }
 
     .guestbook-content {
@@ -748,7 +835,7 @@ style.textContent = `
         }
 
         .main-content {
-            padding-top: 8rem !important;
+            padding-top: 10rem !important;
         }
     }
 
@@ -769,7 +856,6 @@ style.textContent = `
     }
 
     @media (max-width: 1200px) {
-        /* Tablet and smaller desktop: stack navigation on top */
         .main-content {
             flex-direction: column;
             align-items: center;
@@ -791,7 +877,6 @@ style.textContent = `
     }
 
     @media (min-width: 769px) {
-        /* Desktop and tablet: hide mobile elements */
         .profile-nav-close {
             display: none;
         }
