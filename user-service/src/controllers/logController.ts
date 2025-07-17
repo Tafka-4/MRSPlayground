@@ -394,6 +394,14 @@ export const getLogStatistics = async (req: Request, res: Response) => {
 
 export const getRouteErrors = async (req: Request, res: Response) => {
     try {
+        console.log('getRouteErrors - Full request details:', {
+            url: req.url,
+            originalUrl: req.originalUrl,
+            query: req.query,
+            params: req.params,
+            headers: req.headers
+        });
+
         const { route, page = 1, limit = 20 } = req.query;
 
         console.log('getRouteErrors called with route:', route, 'type:', typeof route);
