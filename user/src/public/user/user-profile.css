@@ -535,7 +535,6 @@
 
     .profile-navigation-container {
         position: fixed;
-        top: 120px;
         left: -300px;
         width: 300px;
         height: calc(100vh - 120px);

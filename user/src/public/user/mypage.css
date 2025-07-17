@@ -359,28 +359,27 @@
     }
 
     body {
-        padding-top: 140px; /* 더 큰 상단 여백으로 조정 */
+        padding-top: 140px;
         padding-bottom: 60px;
     }
 
     .main-content {
         flex-direction: column;
-        padding: 1rem; /* 상하좌우 패딩 추가 */
-        min-height: calc(100vh - 200px); /* 더 큰 상단 여백 고려 */
+        padding: 1rem;
+        min-height: calc(100vh - 200px);
         align-items: stretch;
     }
 
     .profile-navigation-container {
         position: fixed;
-        top: 120px; /* mobile-profile-header 아래에서 시작 */
         left: -300px;
         width: 300px;
-        height: calc(100vh - 120px); /* 남은 화면 높이 사용 */
-        z-index: 1001; /* 헤더보다 높게 설정 */
+        height: calc(100vh - 120px);
+        z-index: 1001;
         transition: left 0.3s ease;
         border-radius: 0;
-        overflow-y: auto; /* 스크롤 가능하게 설정 */
-        padding-top: 1rem; /* 상단 여백 추가 */
+        overflow-y: auto;
+        padding-top: 1rem;
     }
 
     .profile-navigation-container.active {

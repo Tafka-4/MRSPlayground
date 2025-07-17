@@ -799,7 +799,6 @@ style.textContent = `
 
         .profile-navigation-container {
             position: fixed !important;
-            top: 120px;
             left: -100%;
             width: 300px;
             height: calc(100vh - 120px);
