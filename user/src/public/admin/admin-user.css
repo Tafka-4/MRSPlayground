@@ -263,12 +263,13 @@ body.has-header {
 }
 
 .user-name {
-    font-weight: 500;
-    color: var(--text-primary);
-    margin-bottom: 0.2rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-weight: 500 !important;
+    color: var(--text-primary) !important;
+    margin-bottom: 0.2rem !important;
+    margin-right: 1rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
     max-width: 50% !important;
     flex-shrink: 1;
 }
