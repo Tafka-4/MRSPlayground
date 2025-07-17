@@ -394,8 +394,7 @@ export const getLogStatistics = async (req: Request, res: Response) => {
 
 export const getRouteErrors = async (req: Request, res: Response) => {
     try {
-        const { route } = req.query;
-        const { page = 1, limit = 20 } = req.query;
+        const { route, page = 1, limit = 20 } = req.query;
 
         if (!route || typeof route !== 'string') {
             return res.status(400).json({
@@ -420,7 +419,7 @@ export const getRouteErrors = async (req: Request, res: Response) => {
         );
         const offset = (safePage - 1) * safeLimit;
 
-        const [logs] = await requestPool.execute(
+        const [logs] = await requestPool.query(
             `
             SELECT 
                 ur.request_id, ur.user_id, ur.route, ur.status, ur.created_at, ur.updated_at,
@@ -435,7 +434,7 @@ export const getRouteErrors = async (req: Request, res: Response) => {
 
         const enrichedLogs = await enrichLogsWithUserInfo(logs as any[]);
 
-        const [errorStats] = await requestPool.execute(
+        const [errorStats] = await requestPool.query(
             `
             SELECT 
                 error_code, error_message, COUNT(*) as count,
@@ -448,7 +447,7 @@ export const getRouteErrors = async (req: Request, res: Response) => {
             [sanitizedRoute]
         );
 
-        const [timeStats] = await requestPool.execute(
+        const [timeStats] = await requestPool.query(
             `
             SELECT 
                 DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00') as hour_period,
@@ -462,7 +461,7 @@ export const getRouteErrors = async (req: Request, res: Response) => {
             [sanitizedRoute]
         );
 
-        const [countResult] = await requestPool.execute(
+        const [countResult] = await requestPool.query(
             'SELECT COUNT(*) as total FROM user_requests WHERE route = ? AND status = "failed"',
             [sanitizedRoute]
         );
@@ -553,7 +552,7 @@ export const deleteLogs = async (req: Request, res: Response) => {
             params.push(status);
         }
 
-        const [result] = await requestPool.execute(query, params);
+        const [result] = await requestPool.query(query, params);
 
         res.status(200).json({
             success: true,
