@@ -31,7 +31,7 @@ export const getUserList: RequestHandler = async (
     req: Request,
     res: Response
 ) => {
-    const { query, limit, page = 1 } = req.query;
+    const { query, limit, page } = req.query;
 
     console.log('getUserList called with query:', query, 'limit:', limit, 'page:', page);
 
@@ -74,6 +74,8 @@ export const getUserList: RequestHandler = async (
     }
 
     console.log('Final searchQuery:', searchQuery);
+    console.log('limitNumber:', limitNumber);
+    console.log('pageNumber:', pageNumber);
 
     const users = await User.find(searchQuery, limitNumber, pageNumber);
     res.status(200).json({

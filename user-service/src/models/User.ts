@@ -139,6 +139,9 @@ export class User {
             }
         }
 
+        console.log('sql:', sql);
+        console.log('values:', values);
+
         const [rows] = await pool.execute(sql, values);
         const users = rows as IUser[];
 

@@ -38,6 +38,16 @@ class ApiClient {
             fullUrl = baseUrl + fullUrl;
         }
 
+        console.log('API Request Debug:', { 
+            originalUrl: url, 
+            fullUrl, 
+            method: options.method || 'GET',
+            hasToken: !!token,
+            query: options.query,
+            protocol: window.location.protocol,
+            origin: window.location.origin
+        });
+
         const requestOptions = {
             ...options,
             credentials: 'include',
