@@ -275,10 +275,8 @@ body.has-header {
 
 .user-badges-container {
     display: flex;
-    margin-left: 1rem;
     flex-direction: column;
-    gap: 0.3rem;
-    flex-wrap: wrap;
+    gap: 0.5rem;
     flex-shrink: 0;
 }
 
