@@ -262,7 +262,10 @@ body.has-header {
     min-width: 0;
 }
 
-.content-user-name {
+.user-name {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
     font-weight: 500;
     color: var(--text-primary);
     margin-bottom: 0.2rem;

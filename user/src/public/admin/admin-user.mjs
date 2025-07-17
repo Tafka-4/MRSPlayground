@@ -64,7 +64,9 @@ function displayUsers(users) {
             </div>
             <div class="user-info">
                 <div class="content-user-name">
-                    ${escape(user.nickname)}
+                    <div class="user-name">
+                        ${escape(user.nickname)}
+                    </div>
                     <div class="user-badges-container">
                     ${
                         user.authority === 'admin'
