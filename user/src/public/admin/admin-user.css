@@ -269,7 +269,7 @@ body.has-header {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 200px;
+    max-width: 50% !important;
     flex-shrink: 1;
 }
 
