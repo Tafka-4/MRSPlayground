@@ -126,6 +126,12 @@
     margin: 0;
 }
 
+@media (max-width: 1000px) {
+    .mypage-header {
+        display: inline !important;
+    }
+}
+
 @media (max-width: 768px) {
     .guestbook-form {
         padding: 1rem;
