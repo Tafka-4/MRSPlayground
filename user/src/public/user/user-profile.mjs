@@ -60,7 +60,7 @@ function displayUserProfile(user) {
         usernameContainer.appendChild(verifiedBadge);
     }
 
-    document.getElementById('userid').textContent = user.userid || user.id;
+    document.getElementById('userid').textContent = user.id;
     document.getElementById('username').textContent = user.nickname;
     document.getElementById('description').textContent = user.description || '소개가 없습니다.';
     document.getElementById('created-at').textContent = new Date(user.createdAt).toLocaleDateString('ko-KR');

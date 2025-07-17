@@ -22,11 +22,13 @@
     background: var(--card-background);
     border-bottom: 1px solid var(--border-color);
     position: fixed;
-    top: 0;
+    top: 64px;
     left: 0;
     right: 0;
-    z-index: 100;
+    z-index: 999;
     width: 100%;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
 .profile-menu-toggle {
@@ -342,27 +344,28 @@
     }
 
     body {
-        padding-top: 60px;
+        padding-top: 120px;
         padding-bottom: 60px;
     }
 
     .main-content {
         flex-direction: column;
         padding: 0;
-        min-height: calc(100vh - 120px);
+        min-height: calc(100vh - 180px);
         align-items: stretch;
     }
 
     .profile-navigation-container {
         position: fixed;
-        top: 0;
+        top: 120px;
         left: -300px;
         width: 300px;
-        height: 100vh;
-        z-index: 200;
+        height: calc(100vh - 120px);
+        z-index: 1001;
         transition: left 0.3s ease;
         border-radius: 0;
         overflow-y: auto;
+        padding-top: 1rem;
     }
 
     .profile-navigation-container.active {
@@ -371,6 +374,10 @@
 
     .profile-nav-close {
         display: block;
+    }
+
+    .profile-nav-overlay {
+        z-index: 1000;
     }
 
     .profile-nav-overlay.active {

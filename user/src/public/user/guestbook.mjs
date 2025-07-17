@@ -225,12 +225,7 @@ function displayPagination(pagination) {
     prevBtn.className = 'pagination-btn';
     prevBtn.textContent = '이전';
     prevBtn.disabled = pagination.currentPage <= 1;
-    prevBtn.addEventListener('click', () => {
-        if (pagination.currentPage > 1) {
-            currentPage = pagination.currentPage - 1;
-            loadGuestbookData();
-        }
-    });
+    prevBtn.addEventListener('click', () => handlePaginationClick(pagination.currentPage - 1));
     container.appendChild(prevBtn);
     
     const startPage = Math.max(1, pagination.currentPage - 2);
@@ -240,10 +235,7 @@ function displayPagination(pagination) {
         const pageBtn = document.createElement('button');
         pageBtn.className = `pagination-btn ${i === pagination.currentPage ? 'active' : ''}`;
         pageBtn.textContent = i;
-        pageBtn.addEventListener('click', () => {
-            currentPage = i;
-            loadGuestbookData();
-        });
+        pageBtn.addEventListener('click', () => handlePaginationClick(i));
         container.appendChild(pageBtn);
     }
     
@@ -251,12 +243,7 @@ function displayPagination(pagination) {
     nextBtn.className = 'pagination-btn';
     nextBtn.textContent = '다음';
     nextBtn.disabled = pagination.currentPage >= pagination.totalPages;
-    nextBtn.addEventListener('click', () => {
-        if (pagination.currentPage < pagination.totalPages) {
-            currentPage = pagination.currentPage + 1;
-            loadGuestbookData();
-        }
-    });
+    nextBtn.addEventListener('click', () => handlePaginationClick(pagination.currentPage + 1));
     container.appendChild(nextBtn);
     
     const infoSpan = document.createElement('span');
@@ -265,6 +252,13 @@ function displayPagination(pagination) {
     container.appendChild(infoSpan);
     
     container.style.display = 'flex';
+}
+
+function handlePaginationClick(page) {
+    if (page === currentPage || page < 1 || page > totalPages) return;
+    
+    currentPage = page;
+    loadGuestbookData();
 }
 
 function showEditModal(entry) {
