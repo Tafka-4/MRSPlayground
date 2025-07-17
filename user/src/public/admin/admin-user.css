@@ -258,9 +258,8 @@ body.has-header {
 }
 
 .user-info {
-    display: flex;
-    flex-direction: column;
-    row-gap: 1rem;
+    flex: 1;
+    min-width: 0;
 }
 
 .content-user-name {
@@ -271,14 +270,16 @@ body.has-header {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 50%;
-    flex-shrink: 0;
+    flex-shrink: 1;
 }
 
 .user-badges-container {
     display: flex;
+    margin-left: 1rem;
+    flex-direction: column;
     gap: 0.3rem;
     flex-wrap: wrap;
-    flex-shrink: 1;
+    flex-shrink: 0;
 }
 
 .user-details {
