@@ -266,6 +266,10 @@ body.has-header {
     font-weight: 500;
     color: var(--text-primary);
     margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
 }
 
 .user-details {
