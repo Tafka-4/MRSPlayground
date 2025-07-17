@@ -111,11 +111,9 @@ class LogQueryBuilder {
 
         if (!isExport) {
             const offset = (page - 1) * limit;
-            query += ` LIMIT ? OFFSET ?`;
-            params.push(Number(limit), Number(offset));
+            query += ` LIMIT ${limit} OFFSET ${offset}`;
         } else {
-            query += ' LIMIT ?';
-            params.push(Number(10000));
+            query += ' LIMIT 10000';
         }
 
         return { query, params };
@@ -392,9 +390,9 @@ export const getRouteErrors = async (req: Request, res: Response) => {
             FROM user_requests ur
             WHERE ur.route = ? AND ur.status = 'failed'
             ORDER BY ur.created_at DESC 
-            LIMIT ? OFFSET ?
+            LIMIT ${safeLimit} OFFSET ${offset}
         `,
-            [route, Number(safeLimit), Number(offset)]
+            [route]
         );
 
         const enrichedLogs = await enrichLogsWithUserInfo(logs as any[]);
