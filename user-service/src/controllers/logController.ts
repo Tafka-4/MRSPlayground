@@ -402,7 +402,23 @@ export const getRouteErrors = async (req: Request, res: Response) => {
             headers: req.headers
         });
 
-        const { route, page = 1, limit = 20 } = req.query;
+        let routeParam: any = req.query.route;
+        let pageParam: any = req.query.page || 1;
+        let limitParam: any = req.query.limit || 20;
+
+        if (!routeParam && req.originalUrl) {
+            try {
+                const url = new URL(req.originalUrl, `https://${req.headers.host}`);
+                routeParam = url.searchParams.get('route');
+                pageParam = url.searchParams.get('page') || 1;
+                limitParam = url.searchParams.get('limit') || 20;
+                console.log('Parsed from originalUrl:', { routeParam, pageParam, limitParam });
+            } catch (error) {
+                console.log('originalUrl parsing failed:', error);
+            }
+        }
+
+        const { route, page = 1, limit = 20 } = { route: routeParam, page: pageParam, limit: limitParam };
 
         console.log('getRouteErrors called with route:', route, 'type:', typeof route);
 
