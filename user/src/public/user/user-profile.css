@@ -170,7 +170,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 120px);
+    min-height: 100vh;
     padding: 2rem 1rem;
     position: relative;
 }
@@ -511,7 +511,12 @@
     font-size: 1.1rem;
 }
 
-/* Responsive Design */
+@media (max-width: 1000px) {
+    .mypage-header {
+        display: inline !important;
+    }
+}
+
 @media (max-width: 768px) {
     .main-header {
         display: none;
