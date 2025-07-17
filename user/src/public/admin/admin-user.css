@@ -99,7 +99,7 @@ body.has-header {
     margin: 0;
 }
 
-.admin-header {
+.user-admin-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -276,8 +276,9 @@ body.has-header {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 150px;
+    max-width: 50%;
     flex-shrink: 1;
+    min-width: 0;
 }
 
 .user-badges {
@@ -541,7 +542,7 @@ body.has-header {
         font-size: 2rem;
     }
 
-    .admin-header {
+    .user-admin-header {
         flex-direction: column;
         gap: 1rem;
         text-align: center;
