@@ -32,6 +32,8 @@ export function validatePaginationParams(page: any, limit: any) {
 }
 
 export function sanitizeString(input: any, maxLength: number = 255): string {
+    console.log('sanitizeString called with:', { input, type: typeof input, maxLength });
+    
     if (typeof input !== 'string') {
         throw new SQLSecurityError('Input must be a string');
     }
@@ -40,17 +42,32 @@ export function sanitizeString(input: any, maxLength: number = 255): string {
         throw new SQLSecurityError(`String length exceeds maximum ${maxLength}`);
     }
     
-    const dangerousPatterns = [
+    const sqlKeywordPatterns = [
         /\bUNION\b/i, /\bSELECT\b/i, /\bINSERT\b/i, /\bUPDATE\b/i,
         /\bDELETE\b/i, /\bDROP\b/i, /\bCREATE\b/i, /\bALTER\b/i,
-        /\bEXEC\b/i, /\bSCRIPT\b/i, /--/, /\/\*/, /\*\//
+        /\bEXEC\b/i, /\bSCRIPT\b/i
     ];
     
-    for (const pattern of dangerousPatterns) {
+    const commentPatterns = [
+        /--\s/,
+        /\/\*/,
+        /\*\//
+    ];  
+    for (const pattern of sqlKeywordPatterns) {
         if (pattern.test(input)) {
+            console.log('SQL keyword detected:', pattern.source);
             throw new SQLSecurityError(`Input contains dangerous SQL pattern`);
         }
     }
     
-    return input.trim();
+    for (const pattern of commentPatterns) {
+        if (pattern.test(input)) {
+            console.log('SQL comment pattern detected:', pattern.source);
+            throw new SQLSecurityError(`Input contains dangerous SQL pattern`);
+        }
+    }
+    
+    const result = input.trim();
+    console.log('sanitizeString completed successfully:', result);
+    return result;
 }

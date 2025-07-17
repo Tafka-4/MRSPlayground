@@ -396,7 +396,10 @@ export const getRouteErrors = async (req: Request, res: Response) => {
     try {
         const { route, page = 1, limit = 20 } = req.query;
 
+        console.log('getRouteErrors called with route:', route, 'type:', typeof route);
+
         if (!route || typeof route !== 'string') {
+            console.log('Route validation failed:', { route, type: typeof route });
             return res.status(400).json({
                 success: false,
                 error: 'Route parameter is required'
@@ -406,10 +409,13 @@ export const getRouteErrors = async (req: Request, res: Response) => {
         let sanitizedRoute: string;
         try {
             sanitizedRoute = sanitizeString(route, 255);
+            console.log('Route sanitized successfully:', sanitizedRoute);
         } catch (error) {
+            console.error('Route sanitization failed:', error);
             return res.status(400).json({
                 success: false,
-                error: 'Invalid route parameter'
+                error: 'Invalid route parameter',
+                details: error instanceof Error ? error.message : 'Unknown error'
             });
         }
 
