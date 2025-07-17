@@ -65,6 +65,7 @@ function displayUsers(users) {
             <div class="user-info">
                 <div class="content-user-name">
                     ${escape(user.nickname)}
+                    <div class="user-badges-container">
                     ${
                         user.authority === 'admin'
                             ? '<span class="admin-badge">관리자</span>'
@@ -77,6 +78,7 @@ function displayUsers(users) {
                             ? '<span class="verified-badge">인증됨</span>'
                             : '<span class="unverified-badge">미인증</span>'
                     }
+                    </div>
                 </div>
                 <div class="user-details">
                     <span>ID: ${escape(user.userid)}</span>

@@ -274,7 +274,7 @@ body.has-header {
     flex-shrink: 1;
 }
 
-.user-badges {
+.user-badges-container {
     display: flex;
     gap: 0.3rem;
     flex-wrap: wrap;
