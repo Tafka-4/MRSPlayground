@@ -83,28 +83,12 @@ function updatePaginationDisplay() {
     paginationContainer.innerHTML = paginationHTML;
 }
 
+// 페이지네이션 클릭 처리 함수 - mypage와 동일한 단순한 로직 적용
 async function handlePaginationClick(page) {
     if (page === currentPage) return;
     
-    const guestbookContent = document.querySelector('.guestbook-content');
-    const isMobile = window.innerWidth <= 768;
-    
-    if (guestbookContent) {
-        const contentTop = guestbookContent.offsetTop;
-        const headerHeight = isMobile ? 160 : 120;
-        const targetScrollY = Math.max(0, contentTop - headerHeight);
-        
-        window.scrollTo({
-            top: targetScrollY,
-            behavior: 'smooth'
-        });
-        
-        setTimeout(() => {
-            loadGuestbookList(page);
-        }, 300);
-    } else {
-        loadGuestbookList(page);
-    }
+    // 스크롤 조작 없이 단순히 페이지만 변경
+    loadGuestbookList(page);
 }
 
 function createPaginationContainer() {
@@ -236,11 +220,9 @@ function closeProfileNavigation() {
     document.body.style.overflow = '';
 }
 
-async function loadGuestbookList(page = 1, maintainScroll = false) {
+async function loadGuestbookList(page = 1) {
     const guestbookList = document.getElementById('guestbook-list');
     if (!guestbookList) return;
-
-    const currentScrollY = maintainScroll ? window.scrollY : 0;
 
     try {
         guestbookList.innerHTML = '<div class="loading">방명록을 불러오는 중...</div>';
@@ -299,12 +281,6 @@ async function loadGuestbookList(page = 1, maintainScroll = false) {
                 </div>
             </div>
         `).join('');
-        
-        if (maintainScroll) {
-            setTimeout(() => {
-                window.scrollTo(0, currentScrollY);
-            }, 50);
-        }
         
     } catch (error) {
         console.error('방명록 로딩 실패:', error);
@@ -390,7 +366,7 @@ async function handleGuestbookSubmit() {
             messageInput.value = '';
             updateGuestbookCharCounter();
             new NoticeBox(response.message || '방명록이 작성되었습니다.', 'success').show();
-            loadGuestbookList(currentPage, true);
+            loadGuestbookList(currentPage);
         } else {
             throw new Error(response.message || '방명록 작성에 실패했습니다.');
         }
@@ -436,7 +412,7 @@ async function saveEdit(entryId) {
         
         if (response.success) {
             new NoticeBox('방명록이 수정되었습니다.', 'success').show();
-            loadGuestbookList(currentPage, true);
+            loadGuestbookList(currentPage);
             editingEntryId = null;
         } else {
             throw new Error(response.message || '방명록 수정에 실패했습니다.');
@@ -469,9 +445,9 @@ async function deleteEntry(entryId) {
     const guestbookItems = document.querySelectorAll('.guestbook-item');
 
     if (guestbookItems.length === 1 && currentPage > 1) {
-        loadGuestbookList(currentPage - 1, true);
+        loadGuestbookList(currentPage - 1);
     } else {
-        loadGuestbookList(currentPage, true);
+        loadGuestbookList(currentPage);
     }
 }
 
