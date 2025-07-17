@@ -1,9 +1,9 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server } from 'http';
 import { IncomingMessage } from 'http';
-import { requestPool, pool } from '../config/database.js';
-import jwt from 'jsonwebtoken';
+import { requestPool } from '../config/database.js';
 import { User } from '../models/User.js';
+import jwt from 'jsonwebtoken';
 import { redisClient } from '../config/redis.js';
 
 export interface LogMessage {
@@ -208,22 +208,20 @@ class LogWebSocketServer {
 
             let usersData: any = {};
             if (userIds.length > 0) {
-                const placeholders = userIds.map(() => '?').join(',');
-                const [users] = (await pool.execute(
-                    `SELECT userid, id, nickname, email FROM users WHERE userid IN (${placeholders})`,
-                    userIds
-                )) as any[];
-
-                usersData = users.reduce((acc: any, user: any) => {
-                    if (user.userid) {
-                        acc[user.userid] = {
-                            username: user.nickname || null,
-                            email: user.email || null,
-                            login_id: user.id || null
-                        };
+                for (const userId of userIds) {
+                    try {
+                        const user = await User.findOne({ userid: userId as string });
+                        if (user) {
+                            usersData[userId as string] = {
+                                username: user.nickname || null,
+                                email: user.email || null,
+                                login_id: user.id || null
+                            };
+                        }
+                    } catch (error) {
+                        console.warn(`Failed to fetch user info for ${userId}:`, error);
                     }
-                    return acc;
-                }, {});
+                }
             }
 
             const enrichedLogs = logs.map((log: any) => ({
@@ -284,22 +282,20 @@ class LogWebSocketServer {
 
             let usersData: any = {};
             if (userIds.length > 0) {
-                const placeholders = userIds.map(() => '?').join(',');
-                const [users] = (await pool.execute(
-                    `SELECT userid, id, nickname, email FROM users WHERE userid IN (${placeholders})`,
-                    userIds
-                )) as any[];
-
-                usersData = users.reduce((acc: any, user: any) => {
-                    if (user.userid) {
-                        acc[user.userid] = {
-                            username: user.nickname || null,
-                            email: user.email || null,
-                            login_id: user.id || null
-                        };
+                for (const userId of userIds) {
+                    try {
+                        const user = await User.findOne({ userid: userId as string });
+                        if (user) {
+                            usersData[userId as string] = {
+                                username: user.nickname || null,
+                                email: user.email || null,
+                                login_id: user.id || null
+                            };
+                        }
+                    } catch (error) {
+                        console.warn(`Failed to fetch user info for ${userId}:`, error);
                     }
-                    return acc;
-                }, {});
+                }
             }
 
             const enrichedLogs = logs.map((log: any) => ({

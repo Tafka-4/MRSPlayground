@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
-import { requestPool, pool } from '../config/database.js';
-import { IUser } from '../models/User.js';
+import { requestPool } from '../config/database.js';
+import { User } from '../models/User.js';
 import { validatePaginationParams, sanitizeString } from '../utils/sqlSecurity.js';
 
 const safeNumber = (value: any, defaultValue: number = 0): number => {
@@ -14,7 +14,6 @@ const validatePagination = (page: any, limit: any) => {
 
 const checkDatabaseConnection = async (): Promise<boolean> => {
     try {
-        await pool.execute('SELECT 1');
         await requestPool.execute('SELECT 1');
         return true;
     } catch (error) {
@@ -48,12 +47,8 @@ class LogQueryBuilder {
             ur.user_agent,
             ur.error_code,
             ur.error_message,
-            ur.retry_count,
-            u.nickname as username,
-            u.email,
-            u.id as login_id
+            ur.retry_count
         FROM user_requests ur
-        LEFT JOIN users u ON ur.user_id = u.userid
     `;
     private countQuery = 'SELECT COUNT(*) as total FROM user_requests ur';
     private conditions: string[] = [];
@@ -138,6 +133,47 @@ class LogQueryBuilder {
     }
 }
 
+// 사용자 정보를 조회하는 헬퍼 함수
+const enrichLogsWithUserInfo = async (logs: any[]): Promise<any[]> => {
+    const userIds = [...new Set(logs.map(log => log.user_id).filter(id => id))];
+    
+    if (userIds.length === 0) {
+        return logs.map(log => ({
+            ...log,
+            username: null,
+            email: null,
+            login_id: null
+        }));
+    }
+
+    const usersMap = new Map();
+    
+    for (const userId of userIds) {
+        try {
+            const user = await User.findOne({ userid: userId });
+            if (user) {
+                usersMap.set(userId, {
+                    username: user.nickname,
+                    email: user.email,
+                    login_id: user.id
+                });
+            }
+        } catch (error) {
+            console.warn(`Failed to fetch user info for ${userId}:`, error);
+        }
+    }
+
+    return logs.map(log => {
+        const userInfo = usersMap.get(log.user_id);
+        return {
+            ...log,
+            username: userInfo?.username || null,
+            email: userInfo?.email || null,
+            login_id: userInfo?.login_id || null
+        };
+    });
+};
+
 export const getLogs = async (req: Request, res: Response) => {
     try {
         const isConnected = await checkDatabaseConnection();
@@ -210,9 +246,11 @@ export const getLogs = async (req: Request, res: Response) => {
         );
         const [logs] = await requestPool.execute(logsQuery, params);
 
+        const enrichedLogs = await enrichLogsWithUserInfo(logs as any[]);
+
         const response: any = {
             success: true,
-            logs: logs
+            logs: enrichedLogs
         };
 
         if (isExport !== 'true') {
@@ -344,16 +382,16 @@ export const getRouteErrors = async (req: Request, res: Response) => {
             `
             SELECT 
                 ur.request_id, ur.user_id, ur.route, ur.status, ur.created_at, ur.updated_at,
-                ur.client_ip, ur.user_agent, ur.error_code, ur.error_message, ur.retry_count,
-                u.nickname as username, u.email, u.id as login_id
+                ur.client_ip, ur.user_agent, ur.error_code, ur.error_message, ur.retry_count
             FROM user_requests ur
-            LEFT JOIN users u ON ur.user_id = u.userid
             WHERE ur.route = ? AND ur.status = 'failed'
             ORDER BY ur.created_at DESC 
             LIMIT ? OFFSET ?
         `,
             [route, safeLimit, offset]
         );
+
+        const enrichedLogs = await enrichLogsWithUserInfo(logs as any[]);
 
         const [errorStats] = await requestPool.execute(
             `
@@ -392,7 +430,7 @@ export const getRouteErrors = async (req: Request, res: Response) => {
         res.status(200).json({
             success: true,
             route,
-            error_logs: logs,
+            error_logs: enrichedLogs,
             error_statistics: (errorStats as any[]).map((stat) => ({
                 error_code: stat.error_code || 'unknown',
                 error_message: stat.error_message || 'No message',
