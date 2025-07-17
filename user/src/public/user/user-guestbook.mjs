@@ -54,7 +54,7 @@ function updatePaginationDisplay() {
     
     if (currentPage > 1) {
         paginationHTML += `
-            <button class="pagination-btn" onclick="loadGuestbookList(${currentPage - 1})">
+            <button class="pagination-btn" onclick="handlePaginationClick(${currentPage - 1})">
                 <span class="material-symbols-outlined">chevron_left</span>
             </button>
         `;
@@ -66,7 +66,7 @@ function updatePaginationDisplay() {
     for (let i = startPage; i <= endPage; i++) {
         const isActive = i === currentPage ? 'active' : '';
         paginationHTML += `
-            <button class="pagination-btn ${isActive}" onclick="loadGuestbookList(${i})">
+            <button class="pagination-btn ${isActive}" onclick="handlePaginationClick(${i})">
                 ${i}
             </button>
         `;
@@ -74,13 +74,37 @@ function updatePaginationDisplay() {
     
     if (currentPage < totalPages) {
         paginationHTML += `
-            <button class="pagination-btn" onclick="loadGuestbookList(${currentPage + 1})">
+            <button class="pagination-btn" onclick="handlePaginationClick(${currentPage + 1})">
                 <span class="material-symbols-outlined">chevron_right</span>
             </button>
         `;
     }
     
     paginationContainer.innerHTML = paginationHTML;
+}
+
+async function handlePaginationClick(page) {
+    if (page === currentPage) return;
+    
+    const guestbookContent = document.querySelector('.guestbook-content');
+    const isMobile = window.innerWidth <= 768;
+    
+    if (guestbookContent) {
+        const contentTop = guestbookContent.offsetTop;
+        const headerHeight = isMobile ? 160 : 120;
+        const targetScrollY = Math.max(0, contentTop - headerHeight);
+        
+        window.scrollTo({
+            top: targetScrollY,
+            behavior: 'smooth'
+        });
+        
+        setTimeout(() => {
+            loadGuestbookList(page);
+        }, 300);
+    } else {
+        loadGuestbookList(page);
+    }
 }
 
 function createPaginationContainer() {
@@ -212,9 +236,11 @@ function closeProfileNavigation() {
     document.body.style.overflow = '';
 }
 
-async function loadGuestbookList(page = 1) {
+async function loadGuestbookList(page = 1, maintainScroll = false) {
     const guestbookList = document.getElementById('guestbook-list');
     if (!guestbookList) return;
+
+    const currentScrollY = maintainScroll ? window.scrollY : 0;
 
     try {
         guestbookList.innerHTML = '<div class="loading">방명록을 불러오는 중...</div>';
@@ -273,6 +299,12 @@ async function loadGuestbookList(page = 1) {
                 </div>
             </div>
         `).join('');
+        
+        if (maintainScroll) {
+            setTimeout(() => {
+                window.scrollTo(0, currentScrollY);
+            }, 50);
+        }
         
     } catch (error) {
         console.error('방명록 로딩 실패:', error);
@@ -358,7 +390,7 @@ async function handleGuestbookSubmit() {
             messageInput.value = '';
             updateGuestbookCharCounter();
             new NoticeBox(response.message || '방명록이 작성되었습니다.', 'success').show();
-            loadGuestbookList(currentPage);
+            loadGuestbookList(currentPage, true);
         } else {
             throw new Error(response.message || '방명록 작성에 실패했습니다.');
         }
@@ -404,7 +436,7 @@ async function saveEdit(entryId) {
         
         if (response.success) {
             new NoticeBox('방명록이 수정되었습니다.', 'success').show();
-            loadGuestbookList(currentPage);
+            loadGuestbookList(currentPage, true);
             editingEntryId = null;
         } else {
             throw new Error(response.message || '방명록 수정에 실패했습니다.');
@@ -435,8 +467,12 @@ async function deleteEntry(entryId) {
 
     new NoticeBox('방명록이 삭제되었습니다.', 'success').show();
     const guestbookItems = document.querySelectorAll('.guestbook-item');
-    guestbookItems.length === 1 && currentPage > 1 ? loadGuestbookList(currentPage - 1) : loadGuestbookList(currentPage);
-    loadGuestbookList(currentPage);
+
+    if (guestbookItems.length === 1 && currentPage > 1) {
+        loadGuestbookList(currentPage - 1, true);
+    } else {
+        loadGuestbookList(currentPage, true);
+    }
 }
 
 const style = document.createElement('style');
@@ -794,8 +830,6 @@ style.textContent = `
         .profile-navigation-container {
             position: fixed;
             left: 2rem;
-            top: 2rem;
-            bottom: 2rem;
             width: 280px;
             overflow-y: auto;
             z-index: 100;
@@ -839,6 +873,7 @@ window.saveEdit = saveEdit;
 window.cancelEdit = cancelEdit;
 window.deleteEntry = deleteEntry;
 window.loadGuestbookList = loadGuestbookList;
+window.handlePaginationClick = handlePaginationClick;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUserProfile();
