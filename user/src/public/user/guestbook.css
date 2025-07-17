@@ -292,6 +292,7 @@
 
 @media (max-width: 900px) {
     .mypage-header {
+        display: none !important;
         align-items: center;
         margin-bottom: 2rem;
     }
