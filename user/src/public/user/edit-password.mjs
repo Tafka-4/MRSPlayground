@@ -183,6 +183,7 @@ class EditPasswordPage {
         }
         
         this.setupProfileNavigation();
+        this.setupMobileHeaderScroll();
     }
 
     toggleSideNav() {
@@ -237,6 +238,61 @@ class EditPasswordPage {
                 this.closeProfileNavigation();
             }
         });
+    }
+
+    setupMobileHeaderScroll() {
+        const mobileHeader = document.querySelector('.mobile-profile-header');
+        if (!mobileHeader) return;
+
+        let lastScrollY = window.scrollY;
+        let ticking = false;
+
+        function updateMobileHeader() {
+            const scrollY = window.scrollY;
+            const scrollDirection = scrollY > lastScrollY ? 'down' : 'up';
+            const scrollDelta = Math.abs(scrollY - lastScrollY);
+
+            if (scrollY === 0) {
+                mobileHeader.classList.remove('header-hidden');
+            } else if (
+                scrollY > 50 &&
+                scrollDirection === 'up' &&
+                scrollDelta > 2
+            ) {
+                mobileHeader.classList.add('header-hidden');
+            } else if (scrollDirection === 'down' && scrollDelta > 1) {
+                mobileHeader.classList.remove('header-hidden');
+            }
+
+            if (scrollY > 50) {
+                mobileHeader.classList.add('header-shadow');
+            } else {
+                mobileHeader.classList.remove('header-shadow');
+            }
+
+            lastScrollY = scrollY;
+            ticking = false;
+        }
+
+        function requestTick() {
+            if (!ticking) {
+                requestAnimationFrame(updateMobileHeader);
+                ticking = true;
+            }
+        }
+
+        window.addEventListener('scroll', requestTick, { passive: true });
+
+        let startY = 0;
+
+        mobileHeader.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+
+        mobileHeader.addEventListener('touchmove', (e) => {
+            deltaY = e.touches[0].clientY - startY;
+            requestTick();
+        }, { passive: true });
     }
 
     closeProfileNavigation() {
