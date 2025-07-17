@@ -263,11 +263,11 @@ body.has-header {
 }
 
 .user-front-info-container {
-    display: flex;
-    flex-direction: column;
+    display: inline-flex;
     gap: 0.3rem;
     margin-bottom: 0.2rem;
     flex-shrink: 1;
+    max-width: 50%;
 }
 
 .user-nickname {
@@ -277,14 +277,13 @@ body.has-header {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 50%;
 }
 
 .user-badges-container {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-    flex-shrink: 0;
+    display: inline-flex;
+    flex-direction: row;
+    margin-left: 0.8rem;
+    column-gap: 0.3rem;
 }
 
 .user-details {
