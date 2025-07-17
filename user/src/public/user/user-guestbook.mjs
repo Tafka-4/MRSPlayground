@@ -12,8 +12,8 @@ let currentUser = null;
 
 async function isMe() {
     try {
-        const user = await apiClient.get(`/api/v1/auth/me`);
-        return user.user.userid === targetUserId;
+        const result = await apiClient.get(`/api/v1/auth/me`);
+        return result.success && result.user && result.user.userid === targetUserId;
     } catch (error) {
         return false;
     }
@@ -21,9 +21,9 @@ async function isMe() {
 
 async function loadUserProfile() {
     try {
-        const user = await apiClient.get(`/api/v1/users/${targetUserId}`);
+        const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
         
-        if (!user) {
+        if (!response.success || !response.user) {
             throw new Error('사용자 정보를 찾을 수 없습니다.');
         }
         
@@ -31,7 +31,7 @@ async function loadUserProfile() {
             location.href = '/mypage';
             return;
         }
-        displayUserProfile(user);
+        displayUserProfile(response.user);
     } catch (error) {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('error-container').style.display = 'block';
@@ -151,9 +151,9 @@ async function loadGuestbookList() {
     try {
         guestbookList.innerHTML = '<div class="loading">방명록을 불러오는 중...</div>';
         
-        const guestbookData = await apiClient.get(`/api/v1/guestbook/${targetUserId}`);
+        const response = await apiClient.get(`/api/v1/guestbook/${targetUserId}`);
         
-        if (!guestbookData || guestbookData.length === 0) {
+        if (!response.success || !response.data || response.data.length === 0) {
             guestbookList.innerHTML = `
                 <div class="empty-state">
                     <span class="material-symbols-outlined">book</span>
@@ -163,10 +163,10 @@ async function loadGuestbookList() {
             return;
         }
         
-        guestbookList.innerHTML = guestbookData.map(entry => `
+        guestbookList.innerHTML = response.data.map(entry => `
             <div class="guestbook-item">
                 <div class="guestbook-author">
-                    <strong>${escape(entry.sender_nickname || entry.senderNickname || '익명')}</strong>
+                    <strong>${escape(entry.sender_nickname || '익명')}</strong>
                     <small>${new Date(entry.createdAt).toLocaleDateString('ko-KR')}</small>
                 </div>
                 <div class="guestbook-message">${escape(entry.message)}</div>
@@ -255,7 +255,7 @@ async function handleGuestbookSubmit() {
         if (response.success) {
             messageInput.value = '';
             updateGuestbookCharCounter();
-            new NoticeBox('방명록이 작성되었습니다.', 'success').show();
+            new NoticeBox(response.message || '방명록이 작성되었습니다.', 'success').show();
             loadGuestbookList();
         } else {
             throw new Error(response.message || '방명록 작성에 실패했습니다.');

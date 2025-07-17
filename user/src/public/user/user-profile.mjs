@@ -10,7 +10,7 @@ let currentUser = null;
 async function isMe() {
     try {
         const result = await apiClient.get(`/api/v1/auth/me`);
-        return result.user.userid === targetUserId;
+        return result.success && result.user && result.user.userid === targetUserId;
     } catch (error) {
         return false;
     }
@@ -18,13 +18,17 @@ async function isMe() {
 
 async function loadUserProfile() {
     try {
-        const user = await apiClient.get(`/api/v1/users/${targetUserId}`);
+        const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
+        
+        if (!response.success || !response.user) {
+            throw new Error('사용자 정보를 찾을 수 없습니다.');
+        }
         
         if (await isMe()) {
             location.href = '/mypage';
             return;
         }
-        displayUserProfile(user);
+        displayUserProfile(response.user);
     } catch (error) {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('error-container').style.display = 'block';

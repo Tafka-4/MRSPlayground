@@ -8,8 +8,8 @@ let currentUser = null;
 
 async function isMe() {
     try {
-        const user = await apiClient.get(`/api/v1/auth/me`);
-        return user.user.userid === targetUserId;
+        const result = await apiClient.get(`/api/v1/auth/me`);
+        return result.success && result.user && result.user.userid === targetUserId;
     } catch (error) {
         return false;
     }
@@ -17,9 +17,9 @@ async function isMe() {
 
 async function loadUserProfile() {
     try {
-        const user = await apiClient.get(`/api/v1/users/${targetUserId}`);
+        const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
         
-        if (!user) {
+        if (!response.success || !response.user) {
             throw new Error('사용자 정보를 찾을 수 없습니다.');
         }
         
@@ -27,7 +27,7 @@ async function loadUserProfile() {
             location.href = '/mypage';
             return;
         }
-        displayUserProfile(user);
+        displayUserProfile(response.user);
     } catch (error) {
         document.getElementById('loading').style.display = 'none';
         document.getElementById('error-container').style.display = 'block';
@@ -131,9 +131,21 @@ async function loadActivityList(filter = 'all') {
     try {
         activityList.innerHTML = '<div class="loading">활동 내역을 불러오는 중...</div>';
         
-        const activities = await apiClient.get(`/api/v1/users/${targetUserId}/activity?filter=${filter}`);
+        // 활동 내역 API가 아직 구현되지 않음
+        // 임시로 준비 중 메시지 표시
+        activityList.innerHTML = `
+            <div class="empty-state">
+                <span class="material-symbols-outlined">construction</span>
+                <p>활동 내역 기능은 준비 중입니다.</p>
+                <small>게시글, 댓글 등의 활동 내역을 확인할 수 있는 기능을 개발 중입니다.</small>
+            </div>
+        `;
         
-        if (!activities || activities.length === 0) {
+        // TODO: 실제 API가 구현되면 아래 코드 사용
+        /*
+        const response = await apiClient.get(`/api/v1/users/${targetUserId}/activity?filter=${filter}`);
+        
+        if (!response.success || !response.data || response.data.length === 0) {
             activityList.innerHTML = `
                 <div class="empty-state">
                     <span class="material-symbols-outlined">history</span>
@@ -143,7 +155,7 @@ async function loadActivityList(filter = 'all') {
             return;
         }
         
-        activityList.innerHTML = activities.map(activity => `
+        activityList.innerHTML = response.data.map(activity => `
             <div class="activity-item">
                 <div class="activity-icon">
                     <span class="material-symbols-outlined">${getActivityIcon(activity.type)}</span>
@@ -155,13 +167,14 @@ async function loadActivityList(filter = 'all') {
                 </div>
             </div>
         `).join('');
+        */
         
     } catch (error) {
         console.error('활동 내역 로딩 실패:', error);
         activityList.innerHTML = `
             <div class="empty-state">
-                <span class="material-symbols-outlined">error</span>
-                <p>활동 내역을 불러올 수 없습니다.</p>
+                <span class="material-symbols-outlined">construction</span>
+                <p>활동 내역 기능은 준비 중입니다.</p>
             </div>
         `;
     }

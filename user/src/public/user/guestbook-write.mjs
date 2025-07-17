@@ -10,6 +10,11 @@ let targetUser = null;
 async function initializePage() {
     try {
         const userResult = await apiClient.get('/api/v1/auth/me');
+        
+        if (!userResult.success || !userResult.user) {
+            throw new Error('로그인이 필요합니다.');
+        }
+        
         currentUser = userResult.user;
         
         if (currentUser.userid === targetUserId) {
@@ -29,7 +34,13 @@ async function initializePage() {
 
 async function loadTargetUserInfo() {
     try {
-        targetUser = await apiClient.get(`/api/v1/users/${targetUserId}`);
+        const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
+        
+        if (!response.success || !response.user) {
+            throw new Error('사용자 정보를 찾을 수 없습니다.');
+        }
+        
+        targetUser = response.user;
         displayTargetUserInfo();
         
     } catch (error) {
@@ -123,11 +134,15 @@ async function handleFormSubmit(event) {
     try {
         const result = await apiClient.post(`/api/v1/guestbook/${targetUserId}`, { message });
         
-        new NoticeBox('방명록이 성공적으로 작성되었습니다!', 'success').show();
-        
-        setTimeout(() => {
-            window.location.href = `/user/${targetUserId}/guestbook`;
-        }, 1500);
+        if (result.success) {
+            new NoticeBox(result.message || '방명록이 성공적으로 작성되었습니다!', 'success').show();
+            
+            setTimeout(() => {
+                window.location.href = `/user/${targetUserId}/guestbook`;
+            }, 1500);
+        } else {
+            throw new Error(result.message || '방명록 작성에 실패했습니다.');
+        }
         
     } catch (error) {
         console.error('방명록 작성 실패:', error);
