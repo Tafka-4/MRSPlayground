@@ -63,8 +63,8 @@ function displayUsers(users) {
                 }
             </div>
             <div class="user-info">
-                <div class="content-user-name">
-                    <div class="user-name">
+                <div class="user-front-info-container">
+                    <div class="user-nickname">
                         ${escape(user.nickname)}
                     </div>
                     <div class="user-badges-container">
