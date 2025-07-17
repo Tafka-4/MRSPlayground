@@ -9,6 +9,10 @@ const pathParts = window.location.pathname.split('/');
 const targetUserId = pathParts[2];
 
 let currentUser = null;
+let currentPage = 1;
+const itemsPerPage = 5;
+let totalPages = 1;
+let editingEntryId = null;
 
 async function isMe() {
     try {
@@ -16,6 +20,86 @@ async function isMe() {
         return result.success && result.user && result.user.userid === targetUserId;
     } catch (error) {
         return false;
+    }
+}
+
+async function getCurrentUserInfo() {
+    try {
+        const result = await apiClient.get(`/api/v1/auth/me`);
+        if (result.success && result.user) {
+            currentUser = result.user;
+        }
+    } catch (error) {
+        console.error('Current user info fetch failed:', error);
+        currentUser = null;
+    }
+}
+
+function canEditEntry(entry) {
+    return currentUser && currentUser.userid === entry.sender_userid;
+}
+
+function updatePaginationDisplay() {
+    const paginationContainer = document.getElementById('pagination-container');
+    if (!paginationContainer) {
+        createPaginationContainer();
+        return updatePaginationDisplay();
+    }
+
+    if (totalPages <= 1) {
+        paginationContainer.style.display = 'none';
+        return;
+    }
+
+    paginationContainer.style.display = 'flex';
+    
+    let paginationHTML = '';
+    
+    if (currentPage > 1) {
+        paginationHTML += `
+            <button class="pagination-btn" onclick="loadGuestbookList(${currentPage - 1})">
+                <span class="material-symbols-outlined">chevron_left</span>
+            </button>
+        `;
+    }
+    
+    const startPage = Math.max(1, currentPage - 2);
+    const endPage = Math.min(totalPages, currentPage + 2);
+    
+    for (let i = startPage; i <= endPage; i++) {
+        const isActive = i === currentPage ? 'active' : '';
+        paginationHTML += `
+            <button class="pagination-btn ${isActive}" onclick="loadGuestbookList(${i})">
+                ${i}
+            </button>
+        `;
+    }
+    
+    if (currentPage < totalPages) {
+        paginationHTML += `
+            <button class="pagination-btn" onclick="loadGuestbookList(${currentPage + 1})">
+                <span class="material-symbols-outlined">chevron_right</span>
+            </button>
+        `;
+    }
+    
+    paginationContainer.innerHTML = paginationHTML;
+}
+
+function createPaginationContainer() {
+    const guestbookContent = document.querySelector('.guestbook-content');
+    if (guestbookContent && !document.getElementById('pagination-container')) {
+        const paginationContainer = document.createElement('div');
+        paginationContainer.id = 'pagination-container';
+        paginationContainer.className = 'pagination-container';
+        guestbookContent.appendChild(paginationContainer);
+    }
+}
+
+function hidePagination() {
+    const paginationContainer = document.getElementById('pagination-container');
+    if (paginationContainer) {
+        paginationContainer.style.display = 'none';
     }
 }
 
@@ -144,14 +228,14 @@ function closeProfileNavigation() {
     document.body.style.overflow = '';
 }
 
-async function loadGuestbookList() {
+async function loadGuestbookList(page = 1) {
     const guestbookList = document.getElementById('guestbook-list');
     if (!guestbookList) return;
 
     try {
         guestbookList.innerHTML = '<div class="loading">방명록을 불러오는 중...</div>';
         
-        const response = await apiClient.get(`/api/v1/guestbook/${targetUserId}`);
+        const response = await apiClient.get(`/api/v1/guestbook/${targetUserId}?page=${page}&limit=${itemsPerPage}`);
         
         if (!response.success || !response.data || response.data.length === 0) {
             guestbookList.innerHTML = `
@@ -160,16 +244,49 @@ async function loadGuestbookList() {
                     <p>아직 방명록이 없습니다.</p>
                 </div>
             `;
+            hidePagination();
             return;
         }
         
+        currentPage = page;
+        if (response.pagination) {
+            totalPages = response.pagination.totalPages;
+            updatePaginationDisplay();
+        }
+        
+        await getCurrentUserInfo();
+        
         guestbookList.innerHTML = response.data.map(entry => `
-            <div class="guestbook-item">
-                <div class="guestbook-author">
-                    <strong>${escape(entry.sender_nickname || '익명')}</strong>
-                    <small>${new Date(entry.createdAt).toLocaleDateString('ko-KR')}</small>
+            <div class="guestbook-item" data-entry-id="${entry.id}">
+                <div class="guestbook-header">
+                    <div class="guestbook-author">
+                        <strong>${escape(entry.sender_nickname || '익명')}</strong>
+                        <small>${new Date(entry.createdAt).toLocaleDateString('ko-KR')}</small>
+                        ${entry.updatedAt && entry.updatedAt !== entry.createdAt ? 
+                            `<small class="edited-indicator">(edited)</small>` : ''
+                        }
+                    </div>
+                    <div class="guestbook-actions">
+                        ${canEditEntry(entry) ? `
+                            <button class="action-btn edit-btn" onclick="startEditEntry(${entry.id})">
+                                <span class="material-symbols-outlined">edit</span>
+                            </button>
+                            <button class="action-btn delete-btn" onclick="deleteEntry(${entry.id})">
+                                <span class="material-symbols-outlined">delete</span>
+                            </button>
+                        ` : ''}
+                    </div>
                 </div>
-                <div class="guestbook-message">${escape(entry.message)}</div>
+                <div class="guestbook-message" id="message-${entry.id}">
+                    ${escape(entry.message)}
+                </div>
+                <div class="edit-form" id="edit-form-${entry.id}" style="display: none;">
+                    <textarea class="edit-textarea" maxlength="1000">${escape(entry.message)}</textarea>
+                    <div class="edit-actions">
+                        <button class="btn btn-sm btn-primary" onclick="saveEdit(${entry.id})">저장</button>
+                        <button class="btn btn-sm btn-secondary" onclick="cancelEdit(${entry.id})">취소</button>
+                    </div>
+                </div>
             </div>
         `).join('');
         
@@ -181,6 +298,7 @@ async function loadGuestbookList() {
                 <p>방명록을 불러올 수 없습니다.</p>
             </div>
         `;
+        hidePagination();
     }
 }
 
@@ -256,13 +374,92 @@ async function handleGuestbookSubmit() {
             messageInput.value = '';
             updateGuestbookCharCounter();
             new NoticeBox(response.message || '방명록이 작성되었습니다.', 'success').show();
-            loadGuestbookList();
+            loadGuestbookList(currentPage);
         } else {
             throw new Error(response.message || '방명록 작성에 실패했습니다.');
         }
         
     } catch (error) {
         new NoticeBox(error.message || '방명록 작성에 실패했습니다.', 'error').show();
+    }
+}
+
+async function startEditEntry(entryId) {
+    if (editingEntryId && editingEntryId !== entryId) {
+        cancelEdit(editingEntryId);
+    }
+    
+    editingEntryId = entryId;
+    document.getElementById(`message-${entryId}`).style.display = 'none';
+    document.getElementById(`edit-form-${entryId}`).style.display = 'block';
+    
+    const textarea = document.querySelector(`#edit-form-${entryId} .edit-textarea`);
+    if (textarea) {
+        textarea.focus();
+    }
+}
+
+async function saveEdit(entryId) {
+    const textarea = document.querySelector(`#edit-form-${entryId} .edit-textarea`);
+    const newMessage = textarea.value.trim();
+    
+    if (!newMessage) {
+        new NoticeBox('메시지를 입력해주세요.', 'warning').show();
+        return;
+    }
+    
+    if (newMessage.length > 1000) {
+        new NoticeBox('메시지는 1000자를 초과할 수 없습니다.', 'warning').show();
+        return;
+    }
+    
+    try {
+        const response = await apiClient.put(`/api/v1/guestbook/entry/${entryId}`, {
+            message: newMessage
+        });
+        
+        if (response.success) {
+            new NoticeBox('방명록이 수정되었습니다.', 'success').show();
+            loadGuestbookList(currentPage);
+            editingEntryId = null;
+        } else {
+            throw new Error(response.message || '방명록 수정에 실패했습니다.');
+        }
+        
+    } catch (error) {
+        new NoticeBox(error.message || '방명록 수정에 실패했습니다.', 'error').show();
+    }
+}
+
+function cancelEdit(entryId) {
+    document.getElementById(`message-${entryId}`).style.display = 'block';
+    document.getElementById(`edit-form-${entryId}`).style.display = 'none';
+    editingEntryId = null;
+}
+
+async function deleteEntry(entryId) {
+    if (!confirm('정말로 이 방명록을 삭제하시겠습니까?')) {
+        return;
+    }
+    
+    try {
+        const response = await apiClient.delete(`/api/v1/guestbook/entry/${entryId}`);
+        
+        if (response.success) {
+            new NoticeBox('방명록이 삭제되었습니다.', 'success').show();
+            
+            const guestbookItems = document.querySelectorAll('.guestbook-item');
+            if (guestbookItems.length === 1 && currentPage > 1) {
+                loadGuestbookList(currentPage - 1);
+            } else {
+                loadGuestbookList(currentPage);
+            }
+        } else {
+            throw new Error(response.message || '방명록 삭제에 실패했습니다.');
+        }
+        
+    } catch (error) {
+        new NoticeBox(error.message || '방명록 삭제에 실패했습니다.', 'error').show();
     }
 }
 
@@ -305,8 +502,184 @@ style.textContent = `
         align-items: center;
         gap: 0.5rem;
     }
+
+    .guestbook-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+
+    .guestbook-actions {
+        display: flex;
+        gap: 0.25rem;
+    }
+
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.2s ease;
+    }
+
+    .action-btn:hover {
+        background-color: var(--lighter-background);
+    }
+
+    .action-btn .material-symbols-outlined {
+        font-size: 16px;
+        color: var(--text-secondary);
+    }
+
+    .edit-btn:hover .material-symbols-outlined {
+        color: var(--info-color);
+    }
+
+    .delete-btn:hover .material-symbols-outlined {
+        color: var(--error-color);
+    }
+
+    .edited-indicator {
+        color: var(--text-muted);
+        font-style: italic;
+        margin-left: 0.5rem;
+    }
+
+    .edit-form {
+        margin-top: 0.5rem;
+    }
+
+    .edit-textarea {
+        width: 100%;
+        min-height: 80px;
+        padding: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: 0.25rem;
+        font-family: inherit;
+        font-size: 0.9rem;
+        resize: vertical;
+        background-color: var(--card-background);
+        color: var(--text-primary);
+    }
+
+    .edit-textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+
+    .edit-actions {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8rem;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        color: var(--card-background);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-hover);
+    }
+
+    .btn-secondary {
+        background-color: var(--secondary-color);
+        color: var(--card-background);
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--text-secondary);
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1.5rem;
+        padding: 1rem 0;
+    }
+
+    .pagination-btn {
+        background-color: var(--card-background);
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        padding: 0.5rem 0.75rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 2.5rem;
+        font-size: 0.875rem;
+    }
+
+    .pagination-btn:hover {
+        background-color: var(--lighter-background);
+        color: var(--text-primary);
+    }
+
+    .pagination-btn.active {
+        background-color: var(--primary-color);
+        color: var(--card-background);
+        border-color: var(--primary-color);
+    }
+
+    .pagination-btn .material-symbols-outlined {
+        font-size: 18px;
+    }
+
+    @media (max-width: 768px) {
+        .guestbook-header {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .guestbook-actions {
+            align-self: flex-end;
+        }
+        
+        .edit-actions {
+            flex-direction: column;
+        }
+        
+        .pagination-container {
+            flex-wrap: wrap;
+        }
+    }
 `;
 document.head.appendChild(style);
+
+window.startEditEntry = startEditEntry;
+window.saveEdit = saveEdit;
+window.cancelEdit = cancelEdit;
+window.deleteEntry = deleteEntry;
+window.loadGuestbookList = loadGuestbookList;
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUserProfile();

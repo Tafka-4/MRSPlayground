@@ -176,6 +176,14 @@ function setupProfileNavigation() {
         profileNavOverlay.addEventListener('click', closeProfileNavigation);
     }
 
+    const activityTab = document.querySelector('a[href="#activity"]');
+    if (activityTab) {
+        activityTab.addEventListener('click', (e) => {
+            e.preventDefault();
+            showActivityUnderConstruction();
+        });
+    }
+
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && profileNavigation.classList.contains('active')) {
             closeProfileNavigation();
@@ -190,6 +198,14 @@ function closeProfileNavigation() {
     profileNavigation.classList.remove('active');
     profileNavOverlay.classList.remove('active');
     document.body.style.overflow = '';
+}
+
+function showActivityUnderConstruction() {
+    closeProfileNavigation();
+    (new NoticeBox(
+        '활동 추적 기능은 현재 개발 중입니다. 게시글, 댓글 등 사용자 활동을 포함할 예정입니다.',
+        'info'
+    )).show();
 }
 
 async function handleImageUpload(event) {
