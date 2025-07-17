@@ -99,16 +99,11 @@ class LogApiClient {
     async getRouteErrors(route, options = {}) {
         const { page = 1, limit = 20 } = options;
         
-        const encodedRoute = encodeURIComponent(route);
         const params = new URLSearchParams({
-            route: encodedRoute,
+            route: route,
             page: page.toString(),
             limit: limit.toString()
         });
-
-        console.log('getRouteErrors - Original route:', route);
-        console.log('getRouteErrors - Encoded route:', encodedRoute);
-        console.log('getRouteErrors - Full URL:', `${this.baseUrl}/logs/route-errors?${params}`);
 
         return await apiClient.get(
             `${this.baseUrl}/logs/route-errors?${params}`
