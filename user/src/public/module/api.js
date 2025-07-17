@@ -13,23 +13,30 @@ class ApiClient {
         const requestId = this.generateRequestId();
         
         let fullUrl = url;
+        
+        if (options.query) {
+            const queryParams = new URLSearchParams();
+            Object.entries(options.query).forEach(([key, value]) => {
+                if (value !== undefined && value !== null) {
+                    queryParams.append(key, value);
+                }
+            });
+            const queryString = queryParams.toString();
+            if (queryString) {
+                fullUrl += (fullUrl.includes('?') ? '&' : '?') + queryString;
+            }
+        }
+        
         if (url.startsWith('http://') || url.startsWith('https://')) {
-            const urlObj = new URL(url);
+            const urlObj = new URL(fullUrl);
             if (window.location.protocol === 'https:' && urlObj.protocol === 'http:') {
                 urlObj.protocol = 'https:';
             }
             fullUrl = urlObj.pathname + urlObj.search;
         } else {
             const baseUrl = window.location.origin;
-            fullUrl = baseUrl + url;
+            fullUrl = baseUrl + fullUrl;
         }
-
-        console.log('API Request:', { 
-            url, 
-            fullUrl, 
-            method: options.method || 'GET',
-            hasToken: !!token 
-        });
 
         const requestOptions = {
             ...options,
