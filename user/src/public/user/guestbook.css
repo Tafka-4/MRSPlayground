@@ -291,9 +291,9 @@
     margin: 0 1rem;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 1000px) {
     .mypage-header {
-        display: none !important;
+        display: inline !important;
         align-items: center;
         margin-bottom: 2rem;
     }
