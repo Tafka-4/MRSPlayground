@@ -240,12 +240,16 @@ export const getLogs = async (req: Request, res: Response) => {
         };
 
         const queryBuilder = new LogQueryBuilder(filters, currentUserId);
+        console.log(queryBuilder.getParams());
+        console.log(filters);
 
         const { query: logsQuery, params: logsParams } = queryBuilder.buildQuery(
             safePage,
             safeLimit,
             isExport === 'true'
         );
+        console.log(logsQuery);
+        console.log(logsParams);
         const [logs] = await requestPool.execute(logsQuery, logsParams);
 
         const enrichedLogs = await enrichLogsWithUserInfo(logs as any[]);
