@@ -522,7 +522,7 @@ export const changePassword: RequestHandler = async (req, res) => {
         { password: newPassword }
     );
 
-    await user.revokeAllRefreshTokens();
+    await currentUser.revokeAllRefreshTokens();
 
     res.clearCookie('refreshToken', {
         httpOnly: true,

@@ -259,10 +259,17 @@ class EditPasswordPage {
             return;
         }
 
+        console.log('Password change request:', {
+            currentPassword: typeof currentPassword === 'string' ? currentPassword : 'NOT A STRING',
+            newPassword: typeof newPassword === 'string' ? newPassword : 'NOT A STRING',
+            currentPasswordLength: currentPassword?.length,
+            newPasswordLength: newPassword?.length
+        });
+
         try {
             const result = await apiClient.put('/api/v1/auth/change-password', {
-                currentPassword,
-                newPassword
+                currentPassword: String(currentPassword),
+                newPassword: String(newPassword)
             });
 
             if (result) {
