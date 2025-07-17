@@ -143,7 +143,7 @@ services:
 
   # MySQL Database for User Service
   userdb:
-    image: mysql:8.0
+    image: mysql:latest
     cpuset: "3"
     environment:
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
@@ -196,7 +196,7 @@ services:
 
   # MySQL Database for Request Tracking
   requestdb:
-    image: mysql:8.0
+    image: mysql:latest
     cpuset: "3"
     environment:
       - MYSQL_ROOT_PASSWORD=${REQDB_PASSWORD}
