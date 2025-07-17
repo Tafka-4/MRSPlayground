@@ -99,8 +99,9 @@ class LogQueryBuilder {
         this.params.push(param);
     }
 
-    buildQuery(page: number, limit: number, isExport: boolean = false): string {
+    buildQuery(page: number, limit: number, isExport: boolean = false): { query: string; params: any[] } {
         let query = this.baseQuery;
+        const params = [...this.params];
 
         if (this.conditions.length > 0) {
             query += ' WHERE ' + this.conditions.join(' AND ');
@@ -111,21 +112,24 @@ class LogQueryBuilder {
         if (!isExport) {
             const offset = (page - 1) * limit;
             query += ` LIMIT ? OFFSET ?`;
-            this.params.push(limit, offset);
+            params.push(limit, offset);
         } else {
             query += ' LIMIT ?';
-            this.params.push(10000);
+            params.push(10000);
         }
 
-        return query;
+        return { query, params };
     }
 
-    buildCountQuery(): string {
+    buildCountQuery(): { query: string; params: any[] } {
         let query = this.countQuery;
+        const params = [...this.params];
+        
         if (this.conditions.length > 0) {
             query += ' WHERE ' + this.conditions.join(' AND ');
         }
-        return query;
+        
+        return { query, params };
     }
 
     getParams(): any[] {
@@ -133,7 +137,6 @@ class LogQueryBuilder {
     }
 }
 
-// 사용자 정보를 조회하는 헬퍼 함수
 const enrichLogsWithUserInfo = async (logs: any[]): Promise<any[]> => {
     const userIds = [...new Set(logs.map(log => log.user_id).filter(id => id))];
     
@@ -237,14 +240,13 @@ export const getLogs = async (req: Request, res: Response) => {
         };
 
         const queryBuilder = new LogQueryBuilder(filters, currentUserId);
-        const params = queryBuilder.getParams();
 
-        const logsQuery = queryBuilder.buildQuery(
+        const { query: logsQuery, params: logsParams } = queryBuilder.buildQuery(
             safePage,
             safeLimit,
             isExport === 'true'
         );
-        const [logs] = await requestPool.execute(logsQuery, params);
+        const [logs] = await requestPool.execute(logsQuery, logsParams);
 
         const enrichedLogs = await enrichLogsWithUserInfo(logs as any[]);
 
@@ -254,8 +256,8 @@ export const getLogs = async (req: Request, res: Response) => {
         };
 
         if (isExport !== 'true') {
-            const countQuery = queryBuilder.buildCountQuery();
-            const [countResult] = await requestPool.execute(countQuery, params);
+            const { query: countQuery, params: countParams } = queryBuilder.buildCountQuery();
+            const [countResult] = await requestPool.execute(countQuery, countParams);
             const total = safeNumber((countResult as any[])[0]?.total, 0);
 
             response.pagination = {
