@@ -62,7 +62,6 @@
 .guestbook-list {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
 }
 
 .guestbook-item {
@@ -101,7 +100,6 @@
 .guestbook-message {
     color: var(--text-secondary);
     line-height: 1.6;
-    white-space: pre-wrap;
 }
 
 .loading {
@@ -128,7 +126,6 @@
     margin: 0;
 }
 
-/* 반응형 디자인 */
 @media (max-width: 768px) {
     .guestbook-form {
         padding: 1rem;
@@ -152,7 +149,6 @@
     }
 }
 
-/* 다크 모드 지원 */
 [data-theme="dark"] .guestbook-form,
 [data-theme="dark"] .guestbook-item {
     background: var(--card-background);

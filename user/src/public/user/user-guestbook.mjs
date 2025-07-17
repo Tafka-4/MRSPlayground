@@ -281,7 +281,7 @@ async function loadGuestbookList(page = 1) {
                     ${escape(entry.message)}
                 </div>
                 <div class="edit-form" id="edit-form-${entry.id}" style="display: none;">
-                    <textarea class="edit-textarea" maxlength="1000">${escape(entry.message)}</textarea>
+                    <textarea class="edit-textarea" maxlength="150">${escape(entry.message)}</textarea>
                     <div class="edit-actions">
                         <button class="btn btn-sm btn-primary" onclick="saveEdit(${entry.id})">저장</button>
                         <button class="btn btn-sm btn-secondary" onclick="cancelEdit(${entry.id})">취소</button>
@@ -408,8 +408,8 @@ async function saveEdit(entryId) {
         return;
     }
     
-    if (newMessage.length > 1000) {
-        new NoticeBox('메시지는 1000자를 초과할 수 없습니다.', 'warning').show();
+    if (newMessage.length > 150) {
+        new NoticeBox('메시지는 150자를 초과할 수 없습니다.', 'warning').show();
         return;
     }
     
@@ -466,8 +466,8 @@ async function deleteEntry(entryId) {
 const style = document.createElement('style');
 style.textContent = `
     .guestbook-item {
-        padding: 1rem;
-        margin-bottom: 1rem;
+        padding: 0.75rem;
+        margin-bottom: 0.75rem;
         background: var(--background-color);
         border-radius: 0.5rem;
         box-shadow: var(--shadow);
@@ -477,7 +477,7 @@ style.textContent = `
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.375rem;
         color: var(--text-primary);
     }
 
@@ -487,7 +487,9 @@ style.textContent = `
 
     .guestbook-message {
         color: var(--text-secondary);
-        line-height: 1.5;
+        line-height: 1.4;
+        margin: 0;
+        word-wrap: break-word;
     }
 
     .loading {
@@ -497,17 +499,19 @@ style.textContent = `
     }
 
     .write-guestbook-btn {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: 0.5rem;
     }
 
     .guestbook-header {
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.25rem;
     }
 
     .guestbook-actions {
@@ -551,12 +555,12 @@ style.textContent = `
     }
 
     .edit-form {
-        margin-top: 0.5rem;
+        margin-top: 0.25rem;
     }
 
     .edit-textarea {
         width: 100%;
-        min-height: 80px;
+        min-height: 60px;
         padding: 0.5rem;
         border: 1px solid var(--border-color);
         border-radius: 0.25rem;
@@ -575,7 +579,7 @@ style.textContent = `
     .edit-actions {
         display: flex;
         gap: 0.5rem;
-        margin-top: 0.5rem;
+        margin-top: 0.375rem;
         justify-content: flex-end;
     }
 
@@ -654,6 +658,68 @@ style.textContent = `
         font-size: 18px;
     }
 
+    .mobile-profile-header {
+        position: sticky;
+        top: 64px;
+        background: var(--card-background);
+        z-index: 100;
+        border-bottom: 1px solid var(--border-color);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .guestbook-content {
+        position: relative;
+    }
+
+    .write-guestbook-btn {
+        position: sticky;
+        top: 120px; /* Below mobile header */
+        z-index: 90;
+        background: var(--primary-color) !important;
+        color: var(--card-background) !important;
+        border: none !important;
+        margin-bottom: 1rem;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+
+    .write-guestbook-btn:hover {
+        background: var(--primary-hover) !important;
+        transform: translateY(-1px);
+    }
+
+    /* Compact form styling for mobile */
+    .guestbook-form {
+        background: var(--lighter-background);
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border-color);
+    }
+
+    .guestbook-form textarea {
+        margin-bottom: 0.5rem;
+    }
+
+    .guestbook-form-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .char-counter {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+
+    .char-counter.warning {
+        color: var(--warning-color);
+        font-weight: 500;
+    }
+
     @media (max-width: 768px) {
         .guestbook-header {
             flex-direction: column;
@@ -670,6 +736,23 @@ style.textContent = `
         
         .pagination-container {
             flex-wrap: wrap;
+        }
+
+        .write-guestbook-btn {
+            top: 100px; /* Adjust for mobile header */
+        }
+
+        .mobile-profile-header {
+            top: 60px; /* Adjust for mobile main header */
+        }
+    }
+
+    @media (min-width: 769px) {
+        /* Desktop sticky navigation */
+        .profile-navigation-container {
+            position: sticky;
+            top: 80px;
+            z-index: 100;
         }
     }
 `;
