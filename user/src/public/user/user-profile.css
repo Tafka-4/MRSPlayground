@@ -522,14 +522,14 @@
     }
 
     body {
-        padding-top: 140px;
+        padding-top: 120px;
         padding-bottom: 60px;
     }
 
     .main-content {
         flex-direction: column;
         padding: 1rem;
-        min-height: calc(100vh - 200px);
+        min-height: 100vh;
         align-items: stretch;
     }
 
@@ -537,7 +537,7 @@
         position: fixed;
         left: -300px;
         width: 300px;
-        height: calc(100vh - 120px);
+        height: 100vh;
         z-index: 1001;
         transition: left 0.3s ease;
         border-radius: 0;
