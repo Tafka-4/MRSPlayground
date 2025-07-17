@@ -15,6 +15,9 @@ class ApiClient {
         let fullUrl = url;
         if (url.startsWith('http://') || url.startsWith('https://')) {
             const urlObj = new URL(url);
+            if (window.location.protocol === 'https:' && urlObj.protocol === 'http:') {
+                urlObj.protocol = 'https:';
+            }
             fullUrl = urlObj.pathname + urlObj.search;
         }
 
@@ -108,10 +111,12 @@ class ApiClient {
                     'Authorization'
                 ] = `Bearer ${newAccessToken}`;
                 
-                // URL이 절대 URL인지 확인하고, 상대 URL로 변환
                 let requestUrl = originalUrl;
                 if (originalUrl.startsWith('http://') || originalUrl.startsWith('https://')) {
                     const urlObj = new URL(originalUrl);
+                    if (window.location.protocol === 'https:' && urlObj.protocol === 'http:') {
+                        urlObj.protocol = 'https:';
+                    }
                     requestUrl = urlObj.pathname + urlObj.search;
                 }
                 
@@ -174,10 +179,12 @@ class ApiClient {
                     }
                 };
                 
-                // URL이 절대 URL인지 확인하고, 상대 URL로 변환
                 let requestUrl = prom.url;
                 if (prom.url.startsWith('http://') || prom.url.startsWith('https://')) {
                     const urlObj = new URL(prom.url);
+                    if (window.location.protocol === 'https:' && urlObj.protocol === 'http:') {
+                        urlObj.protocol = 'https:';
+                    }
                     requestUrl = urlObj.pathname + urlObj.search;
                 }
                 
