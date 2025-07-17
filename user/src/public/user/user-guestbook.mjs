@@ -1,9 +1,6 @@
 import escape from '/module/escape.js';
 import apiClient from '/module/api.js';
 import NoticeBox from '/module/notice.js';
-import { initializeComponents, loadSavedTheme } from '/component/index.js';
-import { createButton } from '/component/buttons/index.js';
-import { createRoleBadge, createVerificationBadge } from '/component/badges/index.js';
 
 const pathParts = window.location.pathname.split('/');
 const targetUserId = pathParts[2];
@@ -175,19 +172,6 @@ function setupEventListeners() {
         guestbookMessage.addEventListener('input', handleGuestbookInput);
         updateGuestbookCharCounter();
     }
-
-    const guestbookContent = document.querySelector('.guestbook-content');
-    if (guestbookContent && !document.getElementById('write-guestbook-btn')) {
-        const writeButton = document.createElement('button');
-        writeButton.id = 'write-guestbook-btn';
-        writeButton.className = 'btn btn-primary write-guestbook-btn';
-        writeButton.innerHTML = '<span class="material-symbols-outlined">edit</span>방명록 작성하기';
-        writeButton.addEventListener('click', () => {
-            window.location.href = `/user/${targetUserId}/guestbook/write`;
-        });
-        
-        guestbookContent.insertBefore(writeButton, guestbookContent.firstChild);
-    }
 }
 
 function setupProfileNavigation() {
@@ -263,7 +247,7 @@ async function loadGuestbookList(page = 1) {
                         <strong>${escape(entry.sender_nickname || '익명')}</strong>
                         <small>${new Date(entry.createdAt).toLocaleDateString('ko-KR')}</small>
                         ${entry.updatedAt && entry.updatedAt !== entry.createdAt ? 
-                            `<small class="edited-indicator">(edited)</small>` : ''
+                            `<small class="edited-indicator">(수정됨)</small>` : ''
                         }
                     </div>
                     <div class="guestbook-actions">
@@ -442,25 +426,17 @@ async function deleteEntry(entryId) {
         return;
     }
     
-    try {
-        const response = await apiClient.delete(`/api/v1/guestbook/entry/${entryId}`);
+    const response = await apiClient.delete(`/api/v1/guestbook/entry/${entryId}`);
         
-        if (response.success) {
-            new NoticeBox('방명록이 삭제되었습니다.', 'success').show();
-            
-            const guestbookItems = document.querySelectorAll('.guestbook-item');
-            if (guestbookItems.length === 1 && currentPage > 1) {
-                loadGuestbookList(currentPage - 1);
-            } else {
-                loadGuestbookList(currentPage);
-            }
-        } else {
-            throw new Error(response.message || '방명록 삭제에 실패했습니다.');
-        }
-        
-    } catch (error) {
-        new NoticeBox(error.message || '방명록 삭제에 실패했습니다.', 'error').show();
+    if (!response.success) {
+        new NoticeBox(response.message || '방명록 삭제에 실패했습니다.', 'error').show();
+        return;
     }
+
+    new NoticeBox('방명록이 삭제되었습니다.', 'success').show();
+    const guestbookItems = document.querySelectorAll('.guestbook-item');
+    guestbookItems.length === 1 && currentPage > 1 ? loadGuestbookList(currentPage - 1) : loadGuestbookList(currentPage);
+    loadGuestbookList(currentPage);
 }
 
 const style = document.createElement('style');
@@ -496,15 +472,6 @@ style.textContent = `
         text-align: center;
         color: var(--text-secondary);
         padding: 2rem;
-    }
-
-    .write-guestbook-btn {
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        border-radius: 0.5rem;
     }
 
     .guestbook-header {
@@ -659,6 +626,7 @@ style.textContent = `
     }
 
     .mobile-profile-header {
+        display: none;
         position: sticky;
         top: 64px;
         background: var(--card-background);
@@ -666,31 +634,15 @@ style.textContent = `
         border-bottom: 1px solid var(--border-color);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
+        align-items: center;
+        padding: 1rem;
+        width: 100%;
     }
 
     .guestbook-content {
         position: relative;
     }
 
-    .write-guestbook-btn {
-        position: sticky;
-        top: 120px; /* Below mobile header */
-        z-index: 90;
-        background: var(--primary-color) !important;
-        color: var(--card-background) !important;
-        border: none !important;
-        margin-bottom: 1rem;
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-    }
-
-    .write-guestbook-btn:hover {
-        background: var(--primary-hover) !important;
-        transform: translateY(-1px);
-    }
-
-    /* Compact form styling for mobile */
     .guestbook-form {
         background: var(--lighter-background);
         border-radius: 0.5rem;
@@ -738,21 +690,145 @@ style.textContent = `
             flex-wrap: wrap;
         }
 
-        .write-guestbook-btn {
-            top: 100px; /* Adjust for mobile header */
+        .mobile-profile-header {
+            top: 60px;
+            display: flex;
         }
 
-        .mobile-profile-header {
-            top: 60px; /* Adjust for mobile main header */
+        .profile-navigation-container {
+            position: fixed !important;
+            top: 0;
+            left: -100%;
+            width: 300px;
+            height: 100vh;
+            margin: 0;
+            border-radius: 0;
+            transition: left 0.3s ease;
+            z-index: 200;
+            padding-top: 2rem;
+        }
+
+        .profile-navigation-container.active {
+            left: 0;
+        }
+
+        .profile-nav-close {
+            display: block;
+        }
+
+        .profile-nav-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 150;
+        }
+
+        .profile-nav-overlay.active {
+            display: block;
+        }
+
+        .main-content {
+            padding-top: 6rem !important;
+        }
+    }
+
+    .main-content {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: calc(100vh - 120px);
+        padding: 2rem 1rem;
+        position: relative;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 720px;
+        margin-left: 0;
+        transition: margin-left 0.3s ease, max-width 0.3s ease;
+    }
+
+    @media (max-width: 1200px) {
+        /* Tablet and smaller desktop: stack navigation on top */
+        .main-content {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .profile-navigation-container {
+            position: static;
+            width: 100%;
+            max-width: 720px;
+            margin: 0 0 2rem 0;
+            position: sticky;
+            top: 2rem;
+            z-index: 100;
+        }
+        
+        .container {
+            margin-left: 0;
         }
     }
 
     @media (min-width: 769px) {
-        /* Desktop sticky navigation */
+        /* Desktop and tablet: hide mobile elements */
+        .profile-nav-close {
+            display: none;
+        }
+
+        .mobile-profile-header {
+            display: none !important;
+        }
+    }
+
+    @media (min-width: 1201px) {
+        .main-content {
+            justify-content: flex-start;
+            padding-left: calc(280px + 4rem);
+        }
+        
+        .profile-navigation-container {
+            position: fixed;
+            left: 2rem;
+            top: 2rem;
+            bottom: 2rem;
+            width: 280px;
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .container {
+            margin-left: 2rem;
+        }
+
+        .profile-nav-close {
+            display: none;
+        }
+
+        .mobile-profile-header {
+            display: none !important;
+        }
+    }
+
+    @media (min-width: 769px) and (max-width: 1200px) {
         .profile-navigation-container {
             position: sticky;
-            top: 80px;
+            top: 2rem;
+            left: 2rem;
+            margin-right: 2rem;
             z-index: 100;
+        }
+
+        .profile-nav-close {
+            display: none;
+        }
+
+        .mobile-profile-header {
+            display: none !important;
         }
     }
 `;
