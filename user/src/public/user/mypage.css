@@ -22,10 +22,10 @@
     background: var(--card-background);
     border-bottom: 1px solid var(--border-color);
     position: fixed;
-    top: 64px; /* 헤더 높이만큼 아래로 이동 */
+    top: 0px;
     left: 0;
     right: 0;
-    z-index: 999; /* 헤더보다 낮게 설정 */
+    z-index: 999;
     width: 100%;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -64,7 +64,7 @@
 .mobile-page-title {
     flex: 1;
     text-align: center;
-    margin: 0;
+    margin-right: 40px;
     font-size: 1.2rem;
     font-weight: 500;
     color: var(--text-primary);
@@ -183,7 +183,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: calc(100vh - 120px);
+    min-height: 100vh;
     padding: 2rem 1rem;
     position: relative;
 }
@@ -366,7 +366,7 @@
     .main-content {
         flex-direction: column;
         padding: 1rem;
-        min-height: calc(100vh - 200px);
+        min-height: 100vh;
         align-items: stretch;
     }
 
@@ -374,7 +374,7 @@
         position: fixed;
         left: -300px;
         width: 300px;
-        height: calc(100vh - 120px);
+        height: 100vh;
         z-index: 1001;
         transition: left 0.3s ease;
         border-radius: 0;
@@ -425,6 +425,8 @@
 
     .profile-image-actions {
         flex-direction: row;
+        max-width: none;
+        justify-content: center;
     }
 
     .mypage-header {
