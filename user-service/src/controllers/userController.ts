@@ -73,10 +73,6 @@ export const getUserList: RequestHandler = async (
         searchQuery = { nickname: { $regex: sanitizedQuery } };
     }
 
-    console.log('Final searchQuery:', searchQuery);
-    console.log('limitNumber:', limitNumber);
-    console.log('pageNumber:', pageNumber);
-
     const users = await User.find(searchQuery, limitNumber, pageNumber);
     res.status(200).json({
         success: true,

@@ -270,17 +270,13 @@ export const getLogs = async (req: Request, res: Response) => {
         };
 
         const queryBuilder = new LogQueryBuilder(filters, currentUserId);
-        console.log(queryBuilder.getParams());
-        console.log(filters);
 
         const { query: logsQuery, params: logsParams } = queryBuilder.buildQuery(
             safePage,
             safeLimit,
             isExport === 'true'
         );
-        console.log(logsQuery);
-        console.log(logsParams);
-        const [logs] = await requestPool.execute(logsQuery, logsParams);
+        const [logs] = await requestPool.query(logsQuery, logsParams);
 
         const enrichedLogs = await enrichLogsWithUserInfo(logs as any[]);
 
@@ -291,7 +287,7 @@ export const getLogs = async (req: Request, res: Response) => {
 
         if (isExport !== 'true') {
             const { query: countQuery, params: countParams } = queryBuilder.buildCountQuery();
-            const [countResult] = await requestPool.execute(countQuery, countParams);
+            const [countResult] = await requestPool.query(countQuery, countParams);
             const total = safeNumber((countResult as any[])[0]?.total, 0);
 
             response.pagination = {
