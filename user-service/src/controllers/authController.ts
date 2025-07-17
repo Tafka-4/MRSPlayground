@@ -502,7 +502,12 @@ export const changePassword: RequestHandler = async (req, res) => {
         throw new UserError('새 비밀번호는 숫자를 포함해야 합니다');
     }
 
-    if (!(await currentUser.comparePassword(currentPassword))) {
+    const user = await User.findOne({ userid: currentUser.userid });
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+
+    if (!(await user.comparePassword(currentPassword))) {
         throw new UserNotValidPasswordError(
             '현재 비밀번호가 올바르지 않습니다'
         );
@@ -517,7 +522,7 @@ export const changePassword: RequestHandler = async (req, res) => {
         { password: newPassword }
     );
 
-    await currentUser.revokeAllRefreshTokens();
+    await user.revokeAllRefreshTokens();
 
     res.clearCookie('refreshToken', {
         httpOnly: true,
