@@ -75,22 +75,52 @@ class LogQueryBuilder {
         }
 
         if (filters.userId && !filters.onlyMine) {
-            this.addCondition('user_id = ?', filters.userId);
+            try {
+                const sanitizedUserId = sanitizeString(filters.userId, 64);
+                this.addCondition('user_id = ?', sanitizedUserId);
+            } catch (error) {
+                console.warn('Invalid userId format:', error);
+                return;
+            }
         }
 
         if (filters.route) {
-            this.addCondition('route LIKE ?', `%${filters.route}%`);
+            try {
+                const sanitizedRoute = sanitizeString(filters.route, 255);
+                this.addCondition('route LIKE ?', `%${sanitizedRoute}%`);
+            } catch (error) {
+                console.warn('Invalid route format:', error);
+                return;
+            }
         }
 
         if (filters.ip) {
-            this.addCondition('client_ip LIKE ?', `%${filters.ip}%`);
+            try {
+                const sanitizedIp = sanitizeString(filters.ip, 45);
+                this.addCondition('client_ip LIKE ?', `%${sanitizedIp}%`);
+            } catch (error) {
+                console.warn('Invalid IP format:', error);
+                return;
+            }
         }
 
         if (filters.dateFrom) {
-            this.addCondition('created_at >= ?', filters.dateFrom);
+            try {
+                const sanitizedDateFrom = sanitizeString(filters.dateFrom, 50);
+                this.addCondition('created_at >= ?', sanitizedDateFrom);
+            } catch (error) {
+                console.warn('Invalid dateFrom format:', error);
+                return;
+            }
         }
         if (filters.dateTo) {
-            this.addCondition('created_at <= ?', filters.dateTo);
+            try {
+                const sanitizedDateTo = sanitizeString(filters.dateTo, 50);
+                this.addCondition('created_at <= ?', sanitizedDateTo);
+            } catch (error) {
+                console.warn('Invalid dateTo format:', error);
+                return;
+            }
         }
     }
 
@@ -111,9 +141,11 @@ class LogQueryBuilder {
 
         if (!isExport) {
             const offset = (page - 1) * limit;
-            query += ` LIMIT ${limit} OFFSET ${offset}`;
+            query += ' LIMIT ? OFFSET ?';
+            params.push(limit, offset);
         } else {
-            query += ' LIMIT 10000';
+            query += ' LIMIT ?';
+            params.push(10000);
         }
 
         return { query, params };
@@ -376,6 +408,16 @@ export const getRouteErrors = async (req: Request, res: Response) => {
             });
         }
 
+        let sanitizedRoute: string;
+        try {
+            sanitizedRoute = sanitizeString(route, 255);
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid route parameter'
+            });
+        }
+
         const { page: safePage, limit: safeLimit } = validatePagination(
             page,
             limit
@@ -390,9 +432,9 @@ export const getRouteErrors = async (req: Request, res: Response) => {
             FROM user_requests ur
             WHERE ur.route = ? AND ur.status = 'failed'
             ORDER BY ur.created_at DESC 
-            LIMIT ${safeLimit} OFFSET ${offset}
+            LIMIT ? OFFSET ?
         `,
-            [route]
+            [sanitizedRoute, safeLimit, offset]
         );
 
         const enrichedLogs = await enrichLogsWithUserInfo(logs as any[]);
@@ -407,7 +449,7 @@ export const getRouteErrors = async (req: Request, res: Response) => {
             GROUP BY error_code, error_message
             ORDER BY count DESC
         `,
-            [route]
+            [sanitizedRoute]
         );
 
         const [timeStats] = await requestPool.execute(
@@ -421,19 +463,19 @@ export const getRouteErrors = async (req: Request, res: Response) => {
             GROUP BY hour_period
             ORDER BY hour_period DESC
         `,
-            [route]
+            [sanitizedRoute]
         );
 
         const [countResult] = await requestPool.execute(
             'SELECT COUNT(*) as total FROM user_requests WHERE route = ? AND status = "failed"',
-            [route]
+            [sanitizedRoute]
         );
 
         const total = safeNumber((countResult as any[])[0]?.total, 0);
 
         res.status(200).json({
             success: true,
-            route,
+            route: sanitizedRoute,
             error_logs: enrichedLogs,
             error_statistics: (errorStats as any[]).map((stat) => ({
                 error_code: stat.error_code || 'unknown',
@@ -476,7 +518,17 @@ export const deleteLogs = async (req: Request, res: Response) => {
             });
         }
 
-        const date = new Date(beforeDate as string);
+        let sanitizedBeforeDate: string;
+        try {
+            sanitizedBeforeDate = sanitizeString(beforeDate as string, 50);
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                error: 'Invalid beforeDate parameter'
+            });
+        }
+
+        const date = new Date(sanitizedBeforeDate);
         if (isNaN(date.getTime())) {
             return res.status(400).json({
                 success: false,
@@ -495,7 +547,7 @@ export const deleteLogs = async (req: Request, res: Response) => {
         }
 
         let query = 'DELETE FROM user_requests WHERE created_at < ?';
-        const params: any[] = [beforeDate];
+        const params: any[] = [sanitizedBeforeDate];
 
         if (
             status &&
@@ -511,7 +563,7 @@ export const deleteLogs = async (req: Request, res: Response) => {
             success: true,
             message: 'Logs deleted successfully',
             deletedCount: safeNumber((result as any).affectedRows, 0),
-            deletedBefore: beforeDate,
+            deletedBefore: sanitizedBeforeDate,
             statusFilter: status || 'all'
         });
     } catch (error) {
