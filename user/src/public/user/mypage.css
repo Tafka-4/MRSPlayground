@@ -349,11 +349,13 @@
     opacity: 1;
 }
 
-@media (max-width: 768px) {
-    .main-header {
-        display: none;
+@media (max-width: 900px) {
+    .mypage-header {
+        display: inline;
     }
+}
 
+@media (max-width: 768px) {
     .mobile-profile-header {
         display: flex;
     }
