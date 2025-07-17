@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS user_requests (
     user_id VARCHAR(64),
     is_authenticated BOOLEAN DEFAULT FALSE,
     route VARCHAR(255),
+    method VARCHAR(10),
     status ENUM('pending','success','failed'),
     created_at DATETIME,
     updated_at DATETIME,
