@@ -21,8 +21,7 @@ async function isMe() {
 
 async function loadUserProfile() {
     try {
-        const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
-        const user = response.user;
+        const user = await apiClient.get(`/api/v1/users/${targetUserId}`);
         
         if (!user) {
             throw new Error('사용자 정보를 찾을 수 없습니다.');
@@ -62,18 +61,25 @@ function updateNavigationLinks() {
     const guestbookNavLink = document.getElementById('guestbook-nav-link');
     
     if (profileNavLink) {
-        profileNavLink.href = `/user/${targetUserId}`;
+        profileNavLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = `/user/${targetUserId}`;
+        });
     }
     if (activityNavLink) {
-        activityNavLink.href = `/user/${targetUserId}/activity`;
+        activityNavLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = `/user/${targetUserId}/activity`;
+        });
     }
     if (guestbookNavLink) {
-        guestbookNavLink.href = `/user/${targetUserId}/guestbook`;
+        guestbookNavLink.addEventListener('click', (e) => {
+            e.preventDefault();
+        });
     }
 }
 
 function setupEventListeners() {
-    // Guestbook form
     const submitGuestbook = document.getElementById('submit-guestbook');
     const guestbookMessage = document.getElementById('guestbook-message');
     
@@ -84,6 +90,19 @@ function setupEventListeners() {
     if (guestbookMessage) {
         guestbookMessage.addEventListener('input', handleGuestbookInput);
         updateGuestbookCharCounter();
+    }
+
+    const guestbookContent = document.querySelector('.guestbook-content');
+    if (guestbookContent && !document.getElementById('write-guestbook-btn')) {
+        const writeButton = document.createElement('button');
+        writeButton.id = 'write-guestbook-btn';
+        writeButton.className = 'btn btn-primary write-guestbook-btn';
+        writeButton.innerHTML = '<span class="material-symbols-outlined">edit</span>방명록 작성하기';
+        writeButton.addEventListener('click', () => {
+            window.location.href = `/user/${targetUserId}/guestbook/write`;
+        });
+        
+        guestbookContent.insertBefore(writeButton, guestbookContent.firstChild);
     }
 }
 
@@ -132,9 +151,9 @@ async function loadGuestbookList() {
     try {
         guestbookList.innerHTML = '<div class="loading">방명록을 불러오는 중...</div>';
         
-        const guestbook = await apiClient.get(`/api/v1/guestbook/${targetUserId}`);
+        const guestbookData = await apiClient.get(`/api/v1/guestbook/${targetUserId}`);
         
-        if (guestbook.success && guestbook.data.length === 0) {
+        if (!guestbookData || guestbookData.length === 0) {
             guestbookList.innerHTML = `
                 <div class="empty-state">
                     <span class="material-symbols-outlined">book</span>
@@ -144,21 +163,18 @@ async function loadGuestbookList() {
             return;
         }
         
-        if (guestbook.success && guestbook.data) {
-            guestbookList.innerHTML = guestbook.data.map(entry => `
-                <div class="guestbook-item">
-                    <div class="guestbook-author">
-                        <strong>${escape(entry.sender_nickname)}</strong>
-                        <small>${new Date(entry.createdAt).toLocaleDateString('ko-KR')}</small>
-                    </div>
-                    <div class="guestbook-message">${escape(entry.message)}</div>
+        guestbookList.innerHTML = guestbookData.map(entry => `
+            <div class="guestbook-item">
+                <div class="guestbook-author">
+                    <strong>${escape(entry.sender_nickname || entry.senderNickname || '익명')}</strong>
+                    <small>${new Date(entry.createdAt).toLocaleDateString('ko-KR')}</small>
                 </div>
-            `).join('');
-        } else {
-            throw new Error('방명록 데이터를 불러올 수 없습니다.');
-        }
+                <div class="guestbook-message">${escape(entry.message)}</div>
+            </div>
+        `).join('');
         
     } catch (error) {
+        console.error('방명록 로딩 실패:', error);
         guestbookList.innerHTML = `
             <div class="empty-state">
                 <span class="material-symbols-outlined">error</span>
@@ -250,7 +266,6 @@ async function handleGuestbookSubmit() {
     }
 }
 
-// Add dynamic styles
 const style = document.createElement('style');
 style.textContent = `
     .guestbook-item {
@@ -283,8 +298,16 @@ style.textContent = `
         color: var(--text-secondary);
         padding: 2rem;
     }
+
+    .write-guestbook-btn {
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
 `;
 document.head.appendChild(style);
 
-// Initialize the page
-loadUserProfile(); 
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserProfile();
+}); 

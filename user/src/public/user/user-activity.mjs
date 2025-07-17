@@ -1,4 +1,5 @@
 import apiClient from '/module/api.js';
+import escape from '/module/escape.js';
 
 const pathParts = window.location.pathname.split('/');
 const targetUserId = pathParts[2];
@@ -16,8 +17,7 @@ async function isMe() {
 
 async function loadUserProfile() {
     try {
-        const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
-        const user = response.user;
+        const user = await apiClient.get(`/api/v1/users/${targetUserId}`);
         
         if (!user) {
             throw new Error('사용자 정보를 찾을 수 없습니다.');
@@ -57,18 +57,25 @@ function updateNavigationLinks() {
     const guestbookNavLink = document.getElementById('guestbook-nav-link');
     
     if (profileNavLink) {
-        profileNavLink.href = `/user/${targetUserId}`;
+        profileNavLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = `/user/${targetUserId}`;
+        });
     }
     if (activityNavLink) {
-        activityNavLink.href = `/user/${targetUserId}/activity`;
+        activityNavLink.addEventListener('click', (e) => {
+            e.preventDefault();
+        });
     }
     if (guestbookNavLink) {
-        guestbookNavLink.href = `/user/${targetUserId}/guestbook`;
+        guestbookNavLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = `/user/${targetUserId}/guestbook`;
+        });
     }
 }
 
 function setupEventListeners() {
-    // Activity filters
     const filterBtns = document.querySelectorAll('.filter-btn');
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
@@ -126,7 +133,7 @@ async function loadActivityList(filter = 'all') {
         
         const activities = await apiClient.get(`/api/v1/users/${targetUserId}/activity?filter=${filter}`);
         
-        if (activities.length === 0) {
+        if (!activities || activities.length === 0) {
             activityList.innerHTML = `
                 <div class="empty-state">
                     <span class="material-symbols-outlined">history</span>
@@ -142,14 +149,15 @@ async function loadActivityList(filter = 'all') {
                     <span class="material-symbols-outlined">${getActivityIcon(activity.type)}</span>
                 </div>
                 <div class="activity-content">
-                    <h4>${activity.title}</h4>
-                    <p>${activity.description}</p>
+                    <h4>${escape(activity.title || '제목 없음')}</h4>
+                    <p>${escape(activity.description || '설명 없음')}</p>
                     <small>${new Date(activity.createdAt).toLocaleDateString('ko-KR')}</small>
                 </div>
             </div>
         `).join('');
         
     } catch (error) {
+        console.error('활동 내역 로딩 실패:', error);
         activityList.innerHTML = `
             <div class="empty-state">
                 <span class="material-symbols-outlined">error</span>
@@ -172,7 +180,6 @@ function getActivityIcon(type) {
     }
 }
 
-// Add dynamic styles for animations
 const style = document.createElement('style');
 style.textContent = `
     .activity-item {
@@ -218,5 +225,6 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Initialize the page
-loadUserProfile(); 
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserProfile();
+}); 

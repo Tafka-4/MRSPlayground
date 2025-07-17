@@ -190,6 +190,20 @@ router.get(
 );
 
 router.get(
+    '/user/:userid([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/activity',
+    (req: Request, res: Response) => {
+        res.render('./user/user-activity');
+    }
+);
+
+router.get(
+    '/user/:userid([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/guestbook',
+    (req: Request, res: Response) => {
+        res.render('./user/user-guestbook');
+    }
+);
+
+router.get(
     '/user/:userid([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/guestbook/write',
     (req: Request, res: Response) => {
         res.render('./user/guestbook-write');

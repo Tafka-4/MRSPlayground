@@ -2,7 +2,7 @@ import apiClient from '/module/api.js';
 import NoticeBox from '/module/notice.js';
 
 const pathParts = window.location.pathname.split('/');
-const targetUserId = pathParts[pathParts.length - 1];
+const targetUserId = pathParts[2];
 
 let currentUser = null;
 let targetUser = null;
@@ -126,7 +126,7 @@ async function handleFormSubmit(event) {
         new NoticeBox('방명록이 성공적으로 작성되었습니다!', 'success').show();
         
         setTimeout(() => {
-            window.location.href = `/user/${targetUserId}`;
+            window.location.href = `/user/${targetUserId}/guestbook`;
         }, 1500);
         
     } catch (error) {

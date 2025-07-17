@@ -56,7 +56,7 @@ function displayUserProfile(user) {
         usernameContainer.appendChild(verifiedBadge);
     }
 
-    document.getElementById('userid').textContent = user.id;
+    document.getElementById('userid').textContent = user.userid || user.id;
     document.getElementById('username').textContent = user.nickname;
     document.getElementById('description').textContent = user.description || '소개가 없습니다.';
     document.getElementById('created-at').textContent = new Date(user.createdAt).toLocaleDateString('ko-KR');
@@ -67,18 +67,6 @@ function displayUserProfile(user) {
         profileImage.innerHTML = `<img src="${user.profileImage}" alt="프로필 이미지" />`;
     }
 }
-
-document.getElementById('guestbook-button').addEventListener('click', () => {
-    window.location.href = `/user/${targetUserId}/guestbook/write`;
-});
-
-document.getElementById('article-list-button').addEventListener('click', () => {
-    new NoticeBox('활동 목록 기능은 준비 중입니다.', 'info').show();
-});
-
-document.getElementById('message-button').addEventListener('click', () => {
-    new NoticeBox('메시지 기능은 준비 중입니다.', 'info').show();
-});
 
 const style = document.createElement('style');
 style.textContent = `
@@ -106,4 +94,56 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-loadUserProfile();
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserProfile();
+    
+    const profileNavLink = document.getElementById('profile-nav-link');
+    const activityNavLink = document.getElementById('activity-nav-link');
+    const guestbookNavLink = document.getElementById('guestbook-nav-link');
+
+    if (profileNavLink) {
+        profileNavLink.addEventListener('click', (e) => {
+            e.preventDefault();
+        });
+    }
+
+    if (activityNavLink) {
+        activityNavLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = `/user/${targetUserId}/activity`;
+        });
+    }
+
+    if (guestbookNavLink) {
+        guestbookNavLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.href = `/user/${targetUserId}/guestbook`;
+        });
+    }
+
+    const profileMenuToggle = document.getElementById('profileMenuToggle');
+    const profileNavigation = document.getElementById('profileNavigation');
+    const profileNavClose = document.getElementById('profileNavClose');
+    const profileNavOverlay = document.getElementById('profileNavOverlay');
+
+    if (profileMenuToggle && profileNavigation) {
+        profileMenuToggle.addEventListener('click', () => {
+            profileNavigation.classList.add('active');
+            profileNavOverlay.classList.add('active');
+        });
+    }
+
+    if (profileNavClose && profileNavigation) {
+        profileNavClose.addEventListener('click', () => {
+            profileNavigation.classList.remove('active');
+            profileNavOverlay.classList.remove('active');
+        });
+    }
+
+    if (profileNavOverlay && profileNavigation) {
+        profileNavOverlay.addEventListener('click', () => {
+            profileNavigation.classList.remove('active');
+            profileNavOverlay.classList.remove('active');
+        });
+    }
+});
