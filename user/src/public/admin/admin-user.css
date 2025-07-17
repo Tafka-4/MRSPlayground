@@ -99,7 +99,7 @@ body.has-header {
     margin: 0;
 }
 
-.user-admin-header {
+.admin-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -542,7 +542,7 @@ body.has-header {
         font-size: 2rem;
     }
 
-    .user-admin-header {
+    .admin-header {
         flex-direction: column;
         gap: 1rem;
         text-align: center;

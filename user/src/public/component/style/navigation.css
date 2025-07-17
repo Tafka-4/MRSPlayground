@@ -4,7 +4,7 @@
 }
 
 .mypage-header,
-.admin-header {
+.nav-admin-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -343,7 +343,7 @@
 
 /* Responsive Navigation */
 @media (max-width: 768px) {
-    .admin-header {
+    .nav-admin-header {
         flex-direction: column;
         align-items: stretch;
         gap: 1rem;
