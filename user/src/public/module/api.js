@@ -19,6 +19,9 @@ class ApiClient {
                 urlObj.protocol = 'https:';
             }
             fullUrl = urlObj.pathname + urlObj.search;
+        } else {
+            const baseUrl = window.location.origin;
+            fullUrl = baseUrl + url;
         }
 
         console.log('API Request:', { 
@@ -118,6 +121,9 @@ class ApiClient {
                         urlObj.protocol = 'https:';
                     }
                     requestUrl = urlObj.pathname + urlObj.search;
+                } else {
+                    const baseUrl = window.location.origin;
+                    requestUrl = baseUrl + originalUrl;
                 }
                 
                 const response = await fetch(requestUrl, originalOptions);
@@ -186,6 +192,9 @@ class ApiClient {
                         urlObj.protocol = 'https:';
                     }
                     requestUrl = urlObj.pathname + urlObj.search;
+                } else {
+                    const baseUrl = window.location.origin;
+                    requestUrl = baseUrl + prom.url;
                 }
                 
                 fetch(requestUrl, newOptions)
