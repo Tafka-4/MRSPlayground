@@ -1,21 +1,19 @@
-import { Request, Response, RequestHandler } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { randomBytes } from 'crypto';
 import { User } from '../models/User.js';
 import { redisClient } from '../config/redis.js';
 import { sendMail } from '../utils/sendMail.js';
 import { generateKey } from '../utils/keygen.js';
-import { verifyToken } from '../utils/jwt.js';
 import {
     AuthError,
-    AuthEmailVerifyFailedError,
-    AuthUserAlreadyAdminError,
     UserNotFoundError,
     UserNotValidPasswordError,
     UserError,
     UserNotLoginError,
     UserTokenVerificationFailedError,
-    UserNotAdminError,
     UserAlreadyVerifiedError,
+    AuthUserAlreadyAdminError,
+    UserNotAdminError,
     UserNotVerifiedError
 } from '../utils/errors.js';
 import jwt from 'jsonwebtoken';
@@ -24,10 +22,7 @@ interface JwtPayloadWithUserId extends jwt.JwtPayload {
     userid: string;
 }
 
-export const registerUser: RequestHandler = async (
-    req: Request,
-    res: Response
-) => {
+export const registerUser = async (req: Request, res: Response) => {
     const { id, password, email, nickname } = req.body;
     if (!id || !password || !email) {
         throw new UserError('아이디, 비밀번호, 이메일은 필수 입력 항목입니다');
@@ -39,19 +34,19 @@ export const registerUser: RequestHandler = async (
         password === process.env.BOT_PW;
 
     if (isBot) {
-        const existingBotById = await User.findOne({ id: process.env.BOT_ID });
-        const existingBotByEmail = await User.findOne({
-            email: process.env.BOT_EMAIL
-        });
-        if (existingBotById || existingBotByEmail) {
+        const existingBot = await User.findOne({ id: process.env.BOT_ID });
+        if (existingBot) {
             throw new UserError('봇 계정이 이미 존재합니다');
         }
-    }
-
-    const existingUserById = await User.findOne({ id });
-    const existingUserByEmail = await User.findOne({ email });
-    if (existingUserById || existingUserByEmail) {
-        throw new UserError('이미 존재하는 아이디 또는 이메일입니다');
+    } else {
+        const existingUserById = await User.findOne({ id });
+        if (existingUserById) {
+            throw new UserError('이미 존재하는 아이디입니다');
+        }
+        const existingUserByEmail = await User.findOne({ email });
+        if (existingUserByEmail) {
+            throw new UserError('이미 존재하는 이메일입니다');
+        }
     }
 
     if (!/^[a-zA-Z0-9!@#$%^&*()_]+$/.test(id)) {
@@ -80,23 +75,19 @@ export const registerUser: RequestHandler = async (
         throw new UserError('올바르지 않은 이메일 형식입니다');
     }
 
-    if (!isBot) {
-        const isVerified = await redisClient.get(`${email}:isVerified`);
-        if (!isVerified) {
-            throw new AuthError('이메일 인증이 완료되지 않았습니다');
-        }
+    const isVerified = await redisClient.get(`${email}:isVerified`);
+    if (!isBot && !isVerified) {
+        throw new AuthError('이메일 인증이 완료되지 않았습니다');
     }
 
-    const userData = {
-        id: id,
-        password: password,
-        email: email,
-        nickname: nickname ? nickname : id,
-        authority: (isBot ? 'bot' : 'user') as 'bot' | 'user',
-        description: '',
-        profileImage: ''
-    };
-    const user = await User.create(userData);
+    const user = await User.create({
+        id,
+        password,
+        email,
+        nickname: nickname || id,
+        authority: isBot ? 'bot' : 'user',
+    });
+
     res.status(201).json({
         success: true,
         message: '회원가입이 성공적으로 완료되었습니다',
@@ -104,29 +95,18 @@ export const registerUser: RequestHandler = async (
     });
 };
 
-export const loginUser: RequestHandler = async (
-    req: Request,
-    res: Response
-) => {
+export const loginUser = async (req: Request, res: Response) => {
+    const { id, password } = req.body;
+
     if (req.user) {
         throw new UserError('이미 로그인 상태입니다');
     }
-    const { id, password } = req.body;
-
     if (!id || !password) {
         throw new UserError('아이디와 비밀번호를 입력해주세요');
     }
     const user = await User.findOne({ id });
-    if (!user) {
-        throw new UserNotValidPasswordError(
-            '아이디 또는 비밀번호가 올바르지 않습니다'
-        );
-    }
-    const isPasswordValid = await user.comparePassword(password);
-    if (!isPasswordValid) {
-        throw new UserNotValidPasswordError(
-            '아이디 또는 비밀번호가 올바르지 않습니다'
-        );
+    if (!user || !(await user.comparePassword(password))) {
+        throw new UserNotValidPasswordError('아이디 또는 비밀번호가 올바르지 않습니다');
     }
 
     const tokens = await user.generateTokens();
@@ -136,11 +116,9 @@ export const loginUser: RequestHandler = async (
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         path: '/'
     });
-
-    await redisClient.del(`${user.email}:isVerified`);
+    
     await redisClient.del(`user:${user.userid}`);
 
     res.status(200).json({
@@ -151,88 +129,62 @@ export const loginUser: RequestHandler = async (
     });
 };
 
-export const logoutUser: RequestHandler = async (
-    req: Request,
-    res: Response
-) => {
-    try {
-        const userData = (req as any).user;
-        if (!userData || !userData.userid) {
-            throw new UserNotFoundError('사용자를 찾을 수 없습니다');
-        }
-
-        const user = await User.findOne({ userid: userData.userid });
-        if (!user) {
-            throw new UserNotFoundError('사용자를 찾을 수 없습니다');
-        }
-
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith('Bearer ')) {
-            const accessToken = authHeader.substring(7);
-            try {
-                const decoded = await verifyToken(accessToken);
-                
-                const exp = decoded.exp;
-                if (exp) {
-                    const ttl = Math.max(0, exp - Math.floor(Date.now() / 1000));
-                    await redisClient.set(`blacklist:${accessToken}`, 'revoked', { EX: ttl });
-                }
-            } catch (error) {
-                console.warn('Invalid access token during logout:', error);
-            }
-        }
-
-        const isLogout = await user.logout();
-        if (isLogout === 0) {
-            throw new UserNotLoginError('로그인 상태가 아닙니다');
-        }
-
-        res.clearCookie('refreshToken', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            path: '/'
-        });
-
-        res.status(200).json({
-            success: true,
-            message: '로그아웃이 성공적으로 완료되었습니다'
-        });
-    } catch (error) {
-        console.error('Logout error:', error);
-
-        res.clearCookie('refreshToken', {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            path: '/'
-        });
-
-        if (
-            error instanceof UserNotFoundError ||
-            error instanceof UserNotLoginError
-        ) {
-            res.status(400).json({
-                success: false,
-                error: error.message
-            });
-        } else {
-            res.status(500).json({
-                success: false,
-                error: '로그아웃 중 서버 에러가 발생했습니다',
-                details:
-                    process.env.NODE_ENV === 'development'
-                        ? String(error)
-                        : 'Internal server error'
-            });
-        }
+export const deleteCurrentUser = async (req: Request, res: Response) => {
+    const userData = req.user;
+    if (!userData || !userData.userid) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다.');
     }
+
+    const user = await User.findOne({ userid: userData.userid });
+    if (!user) {
+        throw new UserNotFoundError('데이터베이스에서 사용자를 찾을 수 없습니다.');
+    }
+
+    await User.deleteOne({ userid: userData.userid });
+
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        path: '/'
+    });
+    
+    res.status(200).json({
+        success: true,
+        message: '계정이 성공적으로 삭제되었습니다.'
+    });
 };
 
-export const refreshToken: RequestHandler = async (
-    req: Request,
-    res: Response
-) => {
+export const logoutUser = async (req: Request, res: Response) => {
+    const user = await User.findOne({ userid: req.user?.userid });
+    if (!user) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    }
+
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+        const accessToken = authHeader.substring(7);
+        try {
+            const decoded = jwt.verify(accessToken, process.env.JWT_SECRET as string) as JwtPayloadWithUserId;
+            const ttl = Math.max(0, (decoded.exp ?? 0) - Math.floor(Date.now() / 1000));
+            if (ttl > 0) {
+                await redisClient.set(`blacklist:${accessToken}`, 'revoked', { EX: ttl });
+            }
+        } catch (error) {
+            console.warn('Invalid access token during logout:', error);
+        }
+    }
+
+    const affectedRows = await user.logout();
+    if (affectedRows === 0) {
+        throw new UserNotLoginError('로그인 상태가 아닙니다');
+    }
+
+    res.clearCookie('refreshToken', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/' });
+    res.status(200).json({ success: true, message: '로그아웃이 성공적으로 완료되었습니다' });
+};
+
+export const refreshToken = async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken;
 
     if (!refreshToken) {
@@ -283,10 +235,7 @@ const fetchAndCacheUser = async (userid: string) => {
 };
 
 // login required
-export const checkToken: RequestHandler = async (
-    req: Request,
-    res: Response
-) => {
+export const checkToken = async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken;
     
     if (!refreshToken) {
@@ -299,7 +248,7 @@ export const checkToken: RequestHandler = async (
                     throw new UserTokenVerificationFailedError('토큰이 만료되었습니다');
                 }
                 
-                const decoded = await verifyToken(accessToken);
+                const decoded = await jwt.verify(accessToken, process.env.JWT_SECRET as string) as JwtPayloadWithUserId;
                 
                 const user = await User.findOne({ userid: decoded.userid });
                 if (user) {
@@ -356,12 +305,9 @@ export const checkToken: RequestHandler = async (
 };
 
 // login required
-export const getCurrentUser: RequestHandler = async (
-    req: Request,
-    res: Response
-) => {
+export const getCurrentUser = async (req: Request, res: Response) => {
     try {
-        const user = (req as any).user;
+        const user = req.user;
         if (!user) {
             throw new UserNotFoundError('사용자를 찾을 수 없습니다');
         }
@@ -378,77 +324,40 @@ export const getCurrentUser: RequestHandler = async (
 };
 
 // email verification methods
-export const sendVerificationEmail: RequestHandler = async (req, res) => {
+export const sendVerificationEmail = async (req: Request, res: Response) => {
     const { email } = req.body;
-    const isVerified = await redisClient.get(`${email}:isVerified`);
-    const isDuplicate = await User.findOne({ email });
-    if (isVerified || isDuplicate) {
-        res.status(200).json({
-            success: true,
-            alreadyVerified: true,
-            message: '이미 인증된 이메일입니다'
-        });
-        return;
+    if (!email) {
+        throw new UserError('Email is required');
     }
-    const verificationCode = Math.floor(
-        100000 + Math.random() * 900000
-    ).toString();
-    await redisClient.set(`${email}:verificationCode`, verificationCode, {
-        EX: 60 * 10
-    });
-    const subject = '이메일 인증';
-    const content = `
-        <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
-            <h2 style="color: #333;">이메일 인증</h2>
-            <p style="font-size: 16px; color: #555;">
-                회원가입을 완료하려면 다음 인증 코드를 입력해주세요:
-            </p>
-            <div style="background-color: #f4f4f4; padding: 10px; display: inline-block; border-radius: 5px; margin: 10px 0;">
-                <strong style="font-size: 24px; color: #222;">${verificationCode}</strong>
-            </div>
-            <p style="font-size: 14px; color: #777;">
-                본인이 요청하지 않았다면 이 이메일을 무시하세요.
-            </p>
-        </div>
-    `;
-    await sendMail(email, subject, content);
-    res.status(200).json({
-        success: true,
-        message: '인증 이메일이 발송되었습니다'
-    });
+
+    const verificationCode = randomBytes(3).toString('hex').toUpperCase();
+    await redisClient.set(`${email}:verify`, verificationCode, { EX: 180 });
+
+    const mailHtml = `<h1>이메일 인증 코드</h1><p>코드: <strong>${verificationCode}</strong></p><p>이 코드는 3분 동안 유효합니다.</p>`;
+    await sendMail(email, '이메일 인증 코드', mailHtml);
+
+    res.status(200).json({ success: true, message: 'Verification email sent' });
 };
 
-export const verifyEmail: RequestHandler = async (req, res) => {
-    const { email, pin } = req.body;
-    const verificationCode = pin || req.body.verificationCode;
-    
-    const isVerified = await redisClient.get(`${email}:isVerified`);
-    const isDuplicate = await User.findOne({ email });
-    if (isVerified || isDuplicate) {
-        res.status(200).json({
-            success: true,
-            alreadyVerified: true,
-            message: '이미 인증된 이메일입니다'
-        });
-        return;
+export const verifyEmail = async (req: Request, res: Response) => {
+    const { email, code } = req.body;
+    if (!email || !code) {
+        throw new UserError('Email and code are required');
     }
-    
-    const verificationCodeFromRedis = await redisClient.get(
-        `${email}:verificationCode`
-    );
-    if (verificationCodeFromRedis !== verificationCode) {
-        throw new AuthEmailVerifyFailedError('인증 코드가 올바르지 않습니다');
+
+    const storedCode = await redisClient.get(`${email}:verify`);
+    if (storedCode !== code) {
+        throw new AuthError('Invalid verification code');
     }
-    await redisClient.del(`${email}:verificationCode`);
-    await redisClient.set(`${email}:isVerified`, 'true', { EX: 60 * 60 * 24 });
-    res.status(200).json({
-        success: true,
-        message: '이메일 인증이 성공적으로 완료되었습니다'
-    });
+
+    await redisClient.set(`${email}:isVerified`, 'true', { EX: 600 });
+    await redisClient.del(`${email}:verify`);
+
+    res.status(200).json({ success: true, message: 'Email verified successfully' });
 };
 
 //login required
-export const changeEmail: RequestHandler = async (req, res) => {
+export const changeEmail = async (req: Request, res: Response) => {
     const { userid, newEmail } = req.body;
     const user = await User.findOneAndUpdate(
         { userid },
@@ -466,79 +375,24 @@ export const changeEmail: RequestHandler = async (req, res) => {
 };
 
 // login required
-export const changePassword: RequestHandler = async (req, res) => {
+export const changePassword = async (req: Request, res: Response) => {
     const { currentPassword, newPassword } = req.body;
-    const currentUser = (req as any).user;
-
-    if (!currentUser) {
-        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
-    }
+    const userid = req.user?.userid;
 
     if (!currentPassword || !newPassword) {
-        throw new UserError('현재 비밀번호와 새 비밀번호를 입력해주세요');
+        throw new UserError('Current and new passwords are required');
     }
 
-    if (newPassword.length < 8) {
-        throw new UserError('새 비밀번호는 8자 이상이어야 합니다');
+    const user = await User.findOne({ userid });
+    if (!user || !(await user.comparePassword(currentPassword))) {
+        throw new UserNotValidPasswordError('Invalid current password');
     }
 
-    if (!/^[a-zA-Z0-9!@#$%^&*()_{}]+$/.test(newPassword)) {
-        throw new UserError(
-            '새 비밀번호에 허용되지 않는 문자가 포함되어 있습니다. 영문자, 숫자, 특수문자(!@#$%^&*()_{})만 사용 가능합니다'
-        );
-    }
-
-    if (!/[!@#$%^&*()_{}]/.test(newPassword)) {
-        throw new UserError(
-            '새 비밀번호는 최소 하나의 특수문자(!@#$%^&*()_{})를 포함해야 합니다'
-        );
-    }
-
-    if (!/[a-zA-Z]/.test(newPassword)) {
-        throw new UserError('새 비밀번호는 영문자를 포함해야 합니다');
-    }
-
-    if (!/[0-9]/.test(newPassword)) {
-        throw new UserError('새 비밀번호는 숫자를 포함해야 합니다');
-    }
-
-    const user = await User.findOne({ userid: currentUser.userid });
-    if (!user) {
-        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
-    }
-
-    if (!(await user.comparePassword(currentPassword))) {
-        throw new UserNotValidPasswordError(
-            '현재 비밀번호가 올바르지 않습니다'
-        );
-    }
-
-    if (currentPassword === newPassword) {
-        throw new UserError('새 비밀번호는 현재 비밀번호와 달라야 합니다');
-    }
-
-    await User.findOneAndUpdate(
-        { userid: currentUser.userid },
-        { password: newPassword }
-    );
-
-    await user.revokeAllRefreshTokens();
-
-    res.clearCookie('refreshToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/'
-    });
-
-    res.status(200).json({
-        success: true,
-        message:
-            '비밀번호가 성공적으로 변경되었습니다. 보안을 위해 다시 로그인해주세요.'
-    });
+    await User.findOneAndUpdate({ userid }, { password: newPassword });
+    res.status(200).json({ success: true, message: 'Password changed successfully' });
 };
 
-export const resetPasswordMailSend: RequestHandler = async (req, res) => {
+export const resetPasswordMailSend = async (req: Request, res: Response) => {
     let { email, id } = req.body;
     let user;
 
@@ -589,9 +443,9 @@ export const resetPasswordMailSend: RequestHandler = async (req, res) => {
 };
 
 // login required
-export const verifyUserWithKey: RequestHandler = async (req, res) => {
+export const verifyUserWithKey = async (req: Request, res: Response) => {
     const { key } = req.body;
-    const user = (req as any).user;
+    const user = req.user;
     if (!user || !key) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
@@ -609,28 +463,25 @@ export const verifyUserWithKey: RequestHandler = async (req, res) => {
 };
 
 // admin required
-export const setAdmin: RequestHandler = async (req, res) => {
+export const setAdmin = async (req: Request, res: Response) => {
     const { target } = req.params;
-    const user = await User.findOne({ userid: target });
-    if (!user) {
-        throw new UserNotFoundError('사용자를 찾을 수 없습니다');
+    const targetUser = await User.findOne({ userid: target });
+
+    if (!targetUser) {
+        throw new UserNotFoundError('대상 사용자를 찾을 수 없습니다.');
     }
-    if (user.authority === 'admin' || user.authority === 'bot') {
-        throw new AuthUserAlreadyAdminError(
-            '이미 관리자 권한을 가진 사용자입니다'
-        );
+    if (targetUser.authority === 'admin') {
+        throw new AuthUserAlreadyAdminError('이미 관리자입니다.');
     }
+
     await User.findOneAndUpdate({ userid: target }, { authority: 'admin' });
-    res.status(200).json({
-        success: true,
-        message: '관리자 권한이 성공적으로 설정되었습니다'
-    });
+    res.status(200).json({ success: true, message: '관리자로 설정되었습니다.' });
 };
 
 //admin required
-export const unSetAdmin: RequestHandler = async (req, res) => {
+export const unSetAdmin = async (req: Request, res: Response) => {
     const { target } = req.params;
-    const adminUser = (req as any).user;
+    const adminUser = req.user;
     const targetUser = await User.findOne({ userid: target });
     if (!targetUser) {
         throw new UserNotFoundError('대상 사용자를 찾을 수 없습니다');
@@ -640,6 +491,9 @@ export const unSetAdmin: RequestHandler = async (req, res) => {
     }
     if (adminUser.authority !== 'admin' && adminUser.authority !== 'bot') {
         throw new UserNotAdminError('관리자 권한이 없습니다');
+    }
+    if (target === adminUser.userid) {
+        throw new UserError('자신의 권한을 해제할 수 없습니다');
     }
     if (targetUser.authority !== 'admin' && targetUser.authority !== 'bot') {
         throw new UserNotAdminError('대상 사용자가 관리자가 아닙니다');
@@ -651,7 +505,7 @@ export const unSetAdmin: RequestHandler = async (req, res) => {
     });
 };
 
-export const verifyUser: RequestHandler = async (req, res) => {
+export const verifyUser = async (req: Request, res: Response) => {
     const { target } = req.params;
     const user = await User.findOne({ userid: target });
     if (!user) {
@@ -668,7 +522,7 @@ export const verifyUser: RequestHandler = async (req, res) => {
 };
 
 //admin required
-export const unVerifyUser: RequestHandler = async (req, res) => {
+export const unVerifyUser = async (req: Request, res: Response) => {
     const { target } = req.params;
     const user = await User.findOne({ userid: target });
     if (!user) {
@@ -685,9 +539,9 @@ export const unVerifyUser: RequestHandler = async (req, res) => {
 };
 
 //admin required
-export const adminUserDelete: RequestHandler = async (req, res) => {
+export const adminUserDelete = async (req: Request, res: Response) => {
     const { target } = req.params;
-    const user = (req as any).user;
+    const user = req.user;
     if (!user) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
@@ -709,8 +563,8 @@ export const adminUserDelete: RequestHandler = async (req, res) => {
 };
 
 //admin required
-export const adminUserList: RequestHandler = async (req, res) => {
-    const user = (req as any).user;
+export const adminUserList = async (req: Request, res: Response) => {
+    const user = req.user;
     if (!user) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
@@ -728,8 +582,8 @@ export const adminUserList: RequestHandler = async (req, res) => {
 };
 
 // login required
-export const getActiveTokens: RequestHandler = async (req, res) => {
-    const currentUser = (req as any).user;
+export const getActiveTokens = async (req: Request, res: Response) => {
+    const currentUser = req.user;
     if (!currentUser) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }
@@ -748,8 +602,8 @@ export const getActiveTokens: RequestHandler = async (req, res) => {
 };
 
 // login required
-export const revokeAllOtherTokens: RequestHandler = async (req, res) => {
-    const currentUser = (req as any).user;
+export const revokeAllOtherTokens = async (req: Request, res: Response) => {
+    const currentUser = req.user;
     const currentRefreshToken = req.cookies.refreshToken;
 
     if (!currentUser) {
@@ -793,9 +647,9 @@ export const revokeAllOtherTokens: RequestHandler = async (req, res) => {
 };
 
 // admin required
-export const adminRevokeUserTokens: RequestHandler = async (req, res) => {
+export const adminRevokeUserTokens = async (req: Request, res: Response) => {
     const { userid } = req.body;
-    const adminUser = (req as any).user;
+    const adminUser = req.user;
 
     if (!adminUser) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
@@ -819,8 +673,8 @@ export const adminRevokeUserTokens: RequestHandler = async (req, res) => {
 };
 
 // admin required
-export const systemCleanup: RequestHandler = async (req, res) => {
-    const user = (req as any).user;
+export const systemCleanup = async (req: Request, res: Response) => {
+    const user = req.user;
 
     if (!user) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
@@ -843,7 +697,7 @@ export const systemCleanup: RequestHandler = async (req, res) => {
 };
 
 // admin required
-export const checkEmailVerificationStatus: RequestHandler = async (req, res) => {
+export const checkEmailVerificationStatus = async (req: Request, res: Response) => {
     const { email } = req.body;
     const isVerified = await redisClient.get(`${email}:isVerified`);
     const isDuplicate = await User.findOne({ email });
@@ -854,8 +708,8 @@ export const checkEmailVerificationStatus: RequestHandler = async (req, res) => 
     });
 };
 
-export const getCurrentKey: RequestHandler = async (req, res) => {
-    const user = (req as any).user;
+export const getCurrentKey = async (req: Request, res: Response) => {
+    const user = req.user;
     if (!user) {
         throw new UserNotFoundError('사용자를 찾을 수 없습니다');
     }

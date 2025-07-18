@@ -1,79 +1,24 @@
 import { Router } from 'express';
 import { loginRequired } from '../middleware/login.js';
 import { adminRequired } from '../middleware/admin.js';
-import upload from '../middleware/upload.js';
 import asyncWrapper from '../middleware/asyncWrapper.js';
 import { userRequestWatchStart } from '../middleware/userRequestWatch.js';
 import * as userController from '../controllers/userController.js';
+import upload from '../middleware/upload.js';
 
 const router = Router();
 
-// Admin routes
-router.get(
-    '/admin/statistics',
-    loginRequired,
-    adminRequired,
-    userRequestWatchStart,
-    asyncWrapper(userController.getUserStatistics)
-);
+router.get('/admin/statistics', adminRequired, userRequestWatchStart, asyncWrapper(userController.getUserStatistics));
+router.get('/admin/search', adminRequired, userRequestWatchStart, asyncWrapper(userController.searchUsers));
 
-router.get(
-    '/admin/search',
-    adminRequired,
-    userRequestWatchStart,
-    asyncWrapper(userController.searchUsers)
-);
+router.get('/:userid', userRequestWatchStart, asyncWrapper(userController.getUser));
+router.get('/', adminRequired, userRequestWatchStart, asyncWrapper(userController.getUserList));
+router.put('/me', loginRequired, userRequestWatchStart, asyncWrapper(userController.updateUser));
+router.post('/me/profile-image', loginRequired, userRequestWatchStart, upload.single('profileImage'), asyncWrapper(userController.uploadUserProfileImage));
+router.delete('/me/profile-image', loginRequired, userRequestWatchStart, asyncWrapper(userController.deleteUserProfileImage));
+router.delete('/me', loginRequired, userRequestWatchStart, asyncWrapper(userController.deleteUser));
 
-// User management routes
-router.get(
-    '/:userid',
-    userRequestWatchStart,
-    asyncWrapper(userController.getUser)
-);
-router.get(
-    '/',
-    userRequestWatchStart,
-    asyncWrapper(userController.getUserList)
-);
-router.put(
-    '/update',
-    loginRequired,
-    userRequestWatchStart,
-    asyncWrapper(userController.updateUser)
-);
-router.post(
-    '/upload-profile',
-    loginRequired,
-    userRequestWatchStart,
-    upload.single('profileImage'),
-    asyncWrapper(userController.uploadUserProfileImage)
-);
-router.delete(
-    '/delete-profile',
-    loginRequired,
-    userRequestWatchStart,
-    asyncWrapper(userController.deleteUserProfileImage)
-);
-router.delete(
-    '/delete',
-    loginRequired,
-    userRequestWatchStart,
-    asyncWrapper(userController.deleteUser)
-);
-
-// Security routes
-router.get(
-    '/security/info',
-    loginRequired,
-    userRequestWatchStart,
-    asyncWrapper(userController.getUserSecurityInfo)
-);
-
-router.post(
-    '/security/cleanup-tokens',
-    loginRequired,
-    userRequestWatchStart,
-    asyncWrapper(userController.cleanupMyTokens)
-);
+router.get('/me/security', loginRequired, userRequestWatchStart, asyncWrapper(userController.getUserSecurityInfo));
+router.post('/me/security/cleanup-tokens', loginRequired, userRequestWatchStart, asyncWrapper(userController.cleanupMyTokens));
 
 export default router;

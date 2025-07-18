@@ -1,383 +1,100 @@
-import apiClient from '/module/api.js';
-import NoticeBox from '/module/notice.js';
-import { initializeComponents, loadSavedTheme } from '/component/index.js';
-import { createButton } from '/component/buttons/index.js';
-import { createConfirmCancelModal } from '/component/modals/index.js';
+import api from '../module/api.js';
+import Notice from '../module/notice.js';
+import { createConfirmCancelModal } from '../component/modals/index.js';
 
-let currentUser = null;
-let currentPage = 1;
-let totalPages = 1;
-let itemsPerPage = 10;
+class MyGuestbookManager {
+    constructor() {
+        this.entries = [];
+        this.currentPage = 1;
+        this.totalPages = 1;
 
-async function initializePage() {
-    initializeComponents();
-    loadSavedTheme();
-    
-    try {
-        const result = await apiClient.get('/api/v1/auth/me');
-        currentUser = result.user;
-        setupEventListeners();
-        loadGuestbookData();
-        loadGuestbookStats();
-    } catch (error) {
-        console.error('사용자 정보 로딩 실패:', error);
-        new NoticeBox('사용자 정보를 불러오는 데 실패했습니다. 다시 로그인해주세요.', 'error').show();
-        setTimeout(() => window.location.href = '/login', 2000);
-    }
-}
-
-function setupEventListeners() {
-    document.getElementById('refreshButton').addEventListener('click', () => {
-        loadGuestbookData();
-        loadGuestbookStats();
-    });
-
-    document.getElementById('retryButton').addEventListener('click', () => {
-        loadGuestbookData();
-        loadGuestbookStats();
-    });
-
-    const navDeleteBtn = document.getElementById('navDeleteAccount');
-    if (navDeleteBtn) {
-        navDeleteBtn.addEventListener('click', showAccountDeleteModal);
+        this.fetchGuestbookEntries();
+        this.setupEventListeners();
     }
 
-    setupProfileNavigation();
-}
+    async fetchGuestbookEntries(page = 1) {
+        try {
+            const response = await api.get('/api/v1/guestbook/me', { query: { page, limit: 10 } });
+            if (response && response.success) {
+                this.entries = response.data;
+                this.currentPage = response.pagination.page;
+                this.totalPages = response.pagination.totalPages;
+                this.renderGuestbook();
+                this.renderPagination(response.pagination);
+            }
+        } catch (error) {
+            Notice.error('방명록을 불러오는 데 실패했습니다.');
+        }
+    }
 
-function setupProfileNavigation() {
-    const profileMenuToggle = document.getElementById('profileMenuToggle');
-    const profileNavigation = document.getElementById('profileNavigation');
-    const profileNavClose = document.getElementById('profileNavClose');
-    const profileNavOverlay = document.getElementById('profileNavOverlay');
-
-    if (profileMenuToggle) {
-        profileMenuToggle.addEventListener('click', () => {
-            profileNavigation.classList.add('active');
-            profileNavOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
+    renderGuestbook() {
+        const list = document.getElementById('my-guestbook-list');
+        list.innerHTML = '';
+        if (this.entries.length === 0) {
+            list.innerHTML = '<li>받은 방명록이 없습니다.</li>';
+            return;
+        }
+        this.entries.forEach(entry => {
+            const item = document.createElement('li');
+            item.innerHTML = `
+                <p><strong>${entry.sender.nickname}</strong>: ${entry.message}</p>
+                <div>
+                    <button class="delete-btn" data-id="${entry.id}">삭제</button>
+                </div>
+            `;
+            list.appendChild(item);
         });
     }
-
-    if (profileNavClose) {
-        profileNavClose.addEventListener('click', closeProfileNavigation);
-    }
-
-    if (profileNavOverlay) {
-        profileNavOverlay.addEventListener('click', closeProfileNavigation);
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && profileNavigation.classList.contains('active')) {
-            closeProfileNavigation();
+    
+    renderPagination(pagination) {
+        const container = document.getElementById('pagination-container');
+        container.innerHTML = '';
+        if(pagination.totalPages <= 1) return;
+        
+        for (let i = 1; i <= pagination.totalPages; i++) {
+            const button = document.createElement('button');
+            button.textContent = i;
+            button.disabled = (i === this.currentPage);
+            button.addEventListener('click', () => this.fetchGuestbookEntries(i));
+            container.appendChild(button);
         }
-    });
-}
-
-function closeProfileNavigation() {
-    const profileNavigation = document.getElementById('profileNavigation');
-    const profileNavOverlay = document.getElementById('profileNavOverlay');
-    
-    profileNavigation.classList.remove('active');
-    profileNavOverlay.classList.remove('active');
-    document.body.style.overflow = '';
-}
-
-async function loadGuestbookStats() {
-    try {
-        const result = await apiClient.get(`/api/v1/guestbook/${currentUser.userid}/statistics`);
-        
-        const stats = result.data;
-        document.getElementById('totalMessages').textContent = stats.totalEntries;
-        document.getElementById('uniqueSenders').textContent = stats.uniqueSenders;
-        document.getElementById('recentMessages').textContent = stats.recentEntries;
-    } catch (error) {
-        console.error('방명록 통계 로딩 실패:', error);
     }
-}
 
-async function loadGuestbookData() {
-    showLoading();
-    
-    try {
-        const result = await apiClient.get(`/api/v1/guestbook/${currentUser.userid}?page=${currentPage}&limit=${itemsPerPage}`);
+    async handleDelete(id) {
+        const confirmed = await new Promise(resolve => {
+            const modal = createConfirmCancelModal({
+                title: '삭제 확인',
+                message: '정말로 이 방명록을 삭제하시겠습니까?',
+                variant: 'danger',
+                onConfirm: () => resolve(true),
+                onCancel: () => resolve(false),
+            });
+            document.body.appendChild(modal);
+        });
         
-        const { data, pagination } = result;
-        totalPages = pagination.totalPages;
-        
-        if (data.length === 0) {
-            showEmpty();
-        } else {
-            displayGuestbookEntries(data);
-            displayPagination(pagination);
+        if (!confirmed) return;
+
+        try {
+            const response = await api.delete(`/api/v1/guestbook/${id}`);
+            if(response && response.success) {
+                Notice.success('방명록이 삭제되었습니다.');
+                this.fetchGuestbookEntries(this.currentPage);
+            }
+        } catch (error) {
+            Notice.error(error.message);
         }
-    } catch (error) {
-        console.error('방명록 로딩 실패:', error);
-        showError(error.message || '방명록을 불러올 수 없습니다.');
+    }
+
+    setupEventListeners() {
+        document.getElementById('my-guestbook-list').addEventListener('click', (e) => {
+            const id = e.target.dataset.id;
+            if (e.target.classList.contains('delete-btn')) {
+                this.handleDelete(id);
+            }
+        });
     }
 }
 
-function showLoading() {
-    document.getElementById('loading').style.display = 'flex';
-    document.getElementById('error-container').style.display = 'none';
-    document.getElementById('empty-container').style.display = 'none';
-    document.getElementById('guestbook-entries').style.display = 'none';
-    document.getElementById('pagination').style.display = 'none';
-}
-
-function showError(message) {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('error-container').style.display = 'flex';
-    document.getElementById('empty-container').style.display = 'none';
-    document.getElementById('guestbook-entries').style.display = 'none';
-    document.getElementById('pagination').style.display = 'none';
-    document.getElementById('error-message').textContent = message;
-}
-
-function showEmpty() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('error-container').style.display = 'none';
-    document.getElementById('empty-container').style.display = 'flex';
-    document.getElementById('guestbook-entries').style.display = 'none';
-    document.getElementById('pagination').style.display = 'none';
-}
-
-function displayGuestbookEntries(entries) {
-    const container = document.getElementById('guestbook-entries');
-    container.innerHTML = '';
-    
-    entries.forEach(entry => {
-        const entryElement = createGuestbookEntryElement(entry);
-        container.appendChild(entryElement);
-    });
-    
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('error-container').style.display = 'none';
-    document.getElementById('empty-container').style.display = 'none';
-    container.style.display = 'flex';
-}
-
-function createGuestbookEntryElement(entry) {
-    const entryDiv = document.createElement('div');
-    entryDiv.className = 'guestbook-entry';
-    
-    const isMyMessage = entry.sender_userid === currentUser.userid;
-    const isMyGuestbook = entry.target_userid === currentUser.userid;
-    
-    entryDiv.innerHTML = `
-        <div class="entry-header">
-            <div class="entry-author">
-                <div class="author-avatar">
-                    ${entry.sender_profileImage 
-                        ? `<img src="${entry.sender_profileImage}" alt="프로필 이미지" />` 
-                        : '<span class="material-symbols-outlined">person</span>'
-                    }
-                </div>
-                <div class="author-info">
-                    <div class="author-name">${entry.sender_nickname}</div>
-                    <div class="entry-date">${formatDate(entry.createdAt)}</div>
-                </div>
-            </div>
-            ${(isMyMessage || isMyGuestbook) ? `
-                <div class="entry-actions">
-                    ${isMyMessage ? `
-                        <button class="entry-action-btn edit" title="수정" data-entry-id="${entry.id}">
-                            <span class="material-symbols-outlined">edit</span>
-                        </button>
-                    ` : ''}
-                    <button class="entry-action-btn delete" title="삭제" data-entry-id="${entry.id}">
-                        <span class="material-symbols-outlined">delete</span>
-                    </button>
-                </div>
-            ` : ''}
-        </div>
-        <div class="entry-content">${entry.message}</div>
-        <div class="entry-footer">
-            <span class="entry-id">#${entry.id}</span>
-            ${entry.updatedAt !== entry.createdAt ? '<span class="edited-badge">수정됨</span>' : ''}
-        </div>
-    `;
-    
-    const editBtn = entryDiv.querySelector('.edit');
-    const deleteBtn = entryDiv.querySelector('.delete');
-    
-    if (editBtn) {
-        editBtn.addEventListener('click', () => showEditModal(entry));
-    }
-    
-    if (deleteBtn) {
-        deleteBtn.addEventListener('click', () => showDeleteModal(entry));
-    }
-    
-    return entryDiv;
-}
-
-function displayPagination(pagination) {
-    const container = document.getElementById('pagination');
-    container.innerHTML = '';
-    
-    if (pagination.totalPages <= 1) {
-        container.style.display = 'none';
-        return;
-    }
-    
-    const prevBtn = document.createElement('button');
-    prevBtn.className = 'pagination-btn';
-    prevBtn.textContent = '이전';
-    prevBtn.disabled = pagination.currentPage <= 1;
-    prevBtn.addEventListener('click', () => handlePaginationClick(pagination.currentPage - 1));
-    container.appendChild(prevBtn);
-    
-    const startPage = Math.max(1, pagination.currentPage - 2);
-    const endPage = Math.min(pagination.totalPages, pagination.currentPage + 2);
-    
-    for (let i = startPage; i <= endPage; i++) {
-        const pageBtn = document.createElement('button');
-        pageBtn.className = `pagination-btn ${i === pagination.currentPage ? 'active' : ''}`;
-        pageBtn.textContent = i;
-        pageBtn.addEventListener('click', () => handlePaginationClick(i));
-        container.appendChild(pageBtn);
-    }
-    
-    const nextBtn = document.createElement('button');
-    nextBtn.className = 'pagination-btn';
-    nextBtn.textContent = '다음';
-    nextBtn.disabled = pagination.currentPage >= pagination.totalPages;
-    nextBtn.addEventListener('click', () => handlePaginationClick(pagination.currentPage + 1));
-    container.appendChild(nextBtn);
-    
-    const infoSpan = document.createElement('span');
-    infoSpan.className = 'pagination-info';
-    infoSpan.textContent = `${pagination.currentPage} / ${pagination.totalPages} 페이지`;
-    container.appendChild(infoSpan);
-    
-    container.style.display = 'flex';
-}
-
-function handlePaginationClick(page) {
-    if (page === currentPage || page < 1 || page > totalPages) return;
-    
-    currentPage = page;
-    loadGuestbookData();
-}
-
-function showEditModal(entry) {
-    const modal = createConfirmCancelModal({
-        id: 'edit-guestbook-modal',
-        title: '방명록 수정',
-        message: `
-            <div style="margin-bottom: 1rem;">
-                <label for="edit-message" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">메시지</label>
-                <textarea 
-                    id="edit-message" 
-                    rows="4" 
-                    style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px; resize: vertical;"
-                    maxlength="1000"
-                >${entry.message}</textarea>
-                <div style="text-align: right; margin-top: 0.25rem; font-size: 0.8rem; color: var(--text-secondary);">
-                    <span id="char-count">${entry.message.length}</span>/1000
-                </div>
-            </div>
-        `,
-        confirmText: '수정',
-        cancelText: '취소',
-        variant: 'primary',
-        onConfirm: () => handleEditGuestbook(entry.id)
-    });
-    
-    document.body.appendChild(modal);
-    
-    const textarea = document.getElementById('edit-message');
-    const charCount = document.getElementById('char-count');
-    
-    textarea.addEventListener('input', () => {
-        charCount.textContent = textarea.value.length;
-    });
-}
-
-function showDeleteModal(entry) {
-    const modal = createConfirmCancelModal({
-        id: 'delete-guestbook-modal',
-        title: '방명록 삭제',
-        message: '정말로 이 방명록을 삭제하시겠습니까?',
-        confirmText: '삭제',
-        cancelText: '취소',
-        variant: 'danger',
-        onConfirm: () => handleDeleteGuestbook(entry.id)
-    });
-    document.body.appendChild(modal);
-}
-
-async function handleEditGuestbook(entryId) {
-    const message = document.getElementById('edit-message').value.trim();
-    
-    if (!message) {
-        new NoticeBox('메시지를 입력해주세요.', 'error').show();
-        return;
-    }
-    
-    try {
-        const result = await apiClient.put(`/api/v1/guestbook/entry/${entryId}`, { message });
-        
-        new NoticeBox('방명록이 수정되었습니다.', 'success').show();
-        loadGuestbookData();
-    } catch (error) {
-        console.error('방명록 수정 실패:', error);
-        new NoticeBox('방명록 수정에 실패했습니다.', 'error').show();
-    }
-}
-
-async function handleDeleteGuestbook(entryId) {
-    try {
-        const result = await apiClient.delete(`/api/v1/guestbook/entry/${entryId}`);
-        
-        new NoticeBox('방명록이 삭제되었습니다.', 'success').show();
-        loadGuestbookData();
-        loadGuestbookStats();
-    } catch (error) {
-        console.error('방명록 삭제 실패:', error);
-        new NoticeBox('방명록 삭제에 실패했습니다.', 'error').show();
-    }
-}
-
-function showAccountDeleteModal() {
-    const modal = createConfirmCancelModal({
-        id: 'account-delete-modal',
-        title: '회원 탈퇴',
-        message:
-            '<p>정말로 계정을 삭제하시겠습니까?</p><p class="warning">이 작업은 되돌릴 수 없으며, 모든 데이터가 영구적으로 삭제됩니다.</p>',
-        confirmText: '탈퇴 확인',
-        cancelText: '취소',
-        variant: 'danger',
-        onConfirm: handleAccountDelete
-    });
-    document.body.appendChild(modal);
-}
-
-async function handleAccountDelete() {
-    try {
-        await apiClient.delete('/api/v1/users/delete');
-        new NoticeBox('회원 탈퇴가 완료되었습니다.', 'success').show();
-        window.location.href = '/login';
-    } catch (error) {
-        console.error('회원 탈퇴 처리 실패:', error);
-        new NoticeBox('회원 탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.', 'error').show();
-    }
-}
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 1) {
-        return '어제';
-    } else if (diffDays <= 7) {
-        return `${diffDays}일 전`;
-    } else {
-        return date.toLocaleDateString('ko-KR');
-    }
-}
-
-document.addEventListener('DOMContentLoaded', initializePage); 
+document.addEventListener('DOMContentLoaded', () => {
+    new MyGuestbookManager();
+}); 

@@ -34,6 +34,10 @@ export const authMiddleware = async (
         if (!refreshToken) {
             console.warn('리프레시 토큰이 없습니다');
             
+            if (req.path === '/login') {
+                return next();
+            }
+
             const authHeader = req.headers.authorization;
             if (authHeader && authHeader.startsWith('Bearer ')) {
                 return res.redirect('/login?force_logout=true');

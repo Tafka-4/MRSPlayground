@@ -1,168 +1,61 @@
-import { get, post } from '/module/api.js';
-import { setupMobileHeaderScroll } from '/module/animation.js';
-import { showNotice } from '/module/notice.js';
+import api from '../module/api.js';
+import Notice from '../module/notice.js';
 
-document.addEventListener('DOMContentLoaded', async () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get('userId');
-
-    if (!userId) {
-        window.location.href = '/';
-        return;
+class GuestbookWriteManager {
+    constructor() {
+        this.cacheDOM();
+        if (!this.form) return;
+        this.setupEventListeners();
     }
 
-    const loadingEl = document.getElementById('loading');
-    const errorContainerEl = document.getElementById('error-container');
-    const errorMessageEl = document.getElementById('error-message');
-    
-    let currentUser = null;
-    let targetUser = null;
-
-    try {
-        [currentUser, targetUser] = await Promise.all([
-            get('/api/user').catch(() => null),
-            get(`/api/user/${userId}`)
-        ]);
-
-        if (!targetUser) throw new Error('사용자를 찾을 수 없습니다.');
+    cacheDOM() {
+        this.form = document.getElementById('guestbook-write-form');
+        if (!this.form) return;
         
-        if (currentUser && currentUser.userId === targetUser.userId) {
-            showNotice('자신의 방명록에는 메시지를 남길 수 없습니다.', 'error');
-            setTimeout(() => { window.location.href = '/mypage/guestbook'; }, 1500);
-            return;
-        }
-
-        renderPage(targetUser);
-        setupEventListeners(targetUser);
-        setupMobileHeaderScroll();
-
-    } catch (error) {
-        loadingEl.style.display = 'none';
-        errorMessageEl.textContent = error.message || '정보를 불러오는데 실패했습니다.';
-        errorContainerEl.style.display = 'block';
+        this.messageInput = this.form.querySelector('#guestbook-message');
+        this.button = this.form.querySelector('button[type="submit"]');
+        this.targetUserid = this.form.dataset.targetUserid;
     }
-});
 
-function renderPage(targetUser) {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('profile-container').style.display = 'block';
-    
-    renderUserInfo(targetUser);
-    updateNavigation(targetUser);
-}
-
-
-function renderUserInfo(user) {
-    document.getElementById('page-title').textContent = `${user.nickname}님에게 방명록 작성`;
-    document.getElementById('target-username').textContent = user.nickname;
-    document.getElementById('target-description').textContent = user.description || '소개가 없습니다.';
-
-    const profileImageEl = document.getElementById('target-profile-image');
-    if (user.profileImage) {
-        profileImageEl.innerHTML = `<img src="${user.profileImage}" alt="${user.nickname} 프로필 이미지">`;
-    } else {
-        profileImageEl.innerHTML = `<span class="material-symbols-outlined">person</span>`;
+    validateForm() {
+        if (!this.messageInput.value.trim()) {
+            Notice.warning('메시지를 입력해주세요.');
+            return false;
+        }
+        return true;
     }
-}
 
-function updateNavigation(targetUser) {
-    const mobileTitleEl = document.getElementById('mobile-title');
-    const navTitleEl = document.getElementById('nav-title');
-    const navListEl = document.getElementById('profile-nav-list');
-    
-    mobileTitleEl.textContent = "방명록 작성";
-    navTitleEl.textContent = "사용자 메뉴";
-
-    const navItems = `
-        <a href="/user/${targetUser.userId}" class="profile-nav-item">
-            <span class="material-symbols-outlined">person</span>
-            <span>프로필</span>
-        </a>
-        <a href="/user/${targetUser.userId}/activity" class="profile-nav-item">
-            <span class="material-symbols-outlined">history</span>
-            <span>활동</span>
-        </a>
-        <a href="/user/${targetUser.userId}/guestbook" class="profile-nav-item active">
-            <span class="material-symbols-outlined">book</span>
-            <span>방명록</span>
-        </a>
-    `;
-    navListEl.innerHTML = navItems;
-}
-
-function setupEventListeners(targetUser) {
-    const profileMenuToggle = document.getElementById('profileMenuToggle');
-    const profileNavClose = document.getElementById('profileNavClose');
-    const profileNavOverlay = document.getElementById('profileNavOverlay');
-    const profileNavigation = document.getElementById('profileNavigation');
-
-    const openNav = () => {
-        profileNavigation.classList.add('active');
-        profileNavOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    };
-
-    const closeNav = () => {
-        profileNavigation.classList.remove('active');
-        profileNavOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-    };
-
-    profileMenuToggle.addEventListener('click', openNav);
-    profileNavClose.addEventListener('click', closeNav);
-    profileNavOverlay.addEventListener('click', closeNav);
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && profileNavigation.classList.contains('active')) {
-            closeNav();
-        }
-    });
-
-    const messageTextarea = document.getElementById('message');
-    const charCountSpan = document.getElementById('char-count');
-    const previewMessageEl = document.getElementById('preview-message');
-    const cancelButton = document.getElementById('cancelButton');
-    const guestbookForm = document.getElementById('guestbook-form');
-    
-    messageTextarea.addEventListener('input', () => {
-        const currentLength = messageTextarea.value.length;
-        charCountSpan.textContent = currentLength;
-        if (currentLength > 0) {
-            previewMessageEl.textContent = messageTextarea.value;
-        } else {
-            previewMessageEl.textContent = '메시지를 입력하면 여기에 미리보기가 표시됩니다.';
-        }
-    });
-
-    cancelButton.addEventListener('click', () => {
-        window.history.back();
-    });
-
-    guestbookForm.addEventListener('submit', async (e) => {
+    async handleSubmit(e) {
         e.preventDefault();
-        const submitButton = document.getElementById('submitButton');
-        submitButton.disabled = true;
-        submitButton.innerHTML = `<div class="spinner"></div> 전송 중...`;
+        if (!this.validateForm()) return;
+
+        this.button.disabled = true;
+        this.button.textContent = '작성 중...';
 
         try {
-            const message = messageTextarea.value;
-            if (!message.trim()) {
-                showNotice('메시지를 입력해주세요.', 'error');
-                submitButton.disabled = false;
-                submitButton.innerHTML = `<span class="material-symbols-outlined">send</span> 방명록 남기기`;
-                return;
+            const response = await api.post('/api/v1/guestbook/', {
+                target_userid: this.targetUserid,
+                message: this.messageInput.value
+            });
+
+            if (response && response.success) {
+                Notice.success('방명록이 성공적으로 작성되었습니다.');
+                window.location.href = `/user/${this.targetUserid}/guestbook`;
             }
-
-            await post(`/api/user/${targetUser.userId}/guestbook`, { message });
-            
-            showNotice('방명록이 성공적으로 작성되었습니다.', 'success');
-            setTimeout(() => {
-                window.location.href = `/user/${targetUser.userId}/guestbook`;
-            }, 1000);
-
         } catch (error) {
-            showNotice(error.message || '방명록 작성에 실패했습니다.', 'error');
-            submitButton.disabled = false;
-            submitButton.innerHTML = `<span class="material-symbols-outlined">send</span> 방명록 남기기`;
+            Notice.error(error.message);
+        } finally {
+            this.button.disabled = false;
+            this.button.textContent = '작성 완료';
         }
-    });
-} 
+    }
+
+    setupEventListeners() {
+        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+    }
+}
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    new GuestbookWriteManager();
+}); 

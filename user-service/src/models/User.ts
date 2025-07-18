@@ -15,6 +15,8 @@ import {
     UserImageUploadFailedError,
     UserImageDeleteFailedError
 } from '../utils/errors.js';
+import { BaseModel } from './BaseModel.js';
+import { RowDataPacket } from 'mysql2';
 
 export interface IUser {
     userid: string;
@@ -31,10 +33,20 @@ export interface IUser {
 }
 
 export class User {
+    private static tableName = 'users';
+
     private data: IUser;
 
     constructor(userData: IUser) {
         this.data = userData;
+    }
+    
+    private static getContext() {
+        return {
+            model: User,
+            tableName: this.tableName,
+            buildWhereClause: BaseModel.buildWhereClause
+        };
     }
 
     static async create(
@@ -43,111 +55,85 @@ export class User {
         const userid = uuidv4();
         const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-        const [result] = await pool.execute(
-            `INSERT INTO users (userid, id, nickname, password, email, authority, description, profileImage) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                userid,
-                userData.id,
-                userData.nickname,
-                hashedPassword,
-                userData.email,
-                userData.authority || 'user',
-                userData.description || '',
-                userData.profileImage || ''
-            ]
-        );
-
         const newUser: IUser = {
+            ...userData,
             userid,
-            id: userData.id,
-            nickname: userData.nickname,
             password: hashedPassword,
-            email: userData.email,
             isVerified: false,
             authority: userData.authority || 'user',
             description: userData.description || '',
             profileImage: userData.profileImage || ''
         };
+        
+        const {isVerified, ...insertData} = newUser;
+
+        const columns = Object.keys(insertData)
+            .map((key) => pool.escapeId(key))
+            .join(', ');
+        const placeholders = Object.keys(insertData)
+            .map(() => '?')
+            .join(', ');
+        const values = Object.values(insertData);
+
+        await pool.execute(
+            `INSERT INTO users (${columns}) VALUES (${placeholders})`,
+            values
+        );
 
         return new User(newUser);
     }
-
-    static async findOne(query: Partial<IUser>): Promise<User | null> {
-        let sql = 'SELECT * FROM users WHERE ';
-        const conditions: string[] = [];
-        const values: any[] = [];
-
-        Object.entries(query).forEach(([key, value]) => {
-            conditions.push(`${key} = ?`);
-            values.push(value);
-        });
-
-        sql += conditions.join(' AND ');
-
-        const [rows] = await pool.execute(sql, values);
-        const users = rows as IUser[];
-
-        if (users.length === 0) return null;
-
-        const userData = users[0];
-
-        return new User(userData);
-    }
-
-    static async find(
-        query: Partial<IUser> & { nickname?: { $regex: string } },
-        limit?: number,
-        page?: number
-    ): Promise<User[]> {
-        let sql = 'SELECT * FROM users';
+    
+    static async find(query: Partial<IUser> & { nickname?: { $regex: string; }; }, limit?: number, page?: number): Promise<User[]> {
+        let sql = `SELECT * FROM ${this.tableName}`;
         const values: any[] = [];
 
         if (Object.keys(query).length > 0) {
-            sql += ' WHERE ';
-            const conditions: string[] = [];
-
-            Object.entries(query).forEach(([key, value]) => {
-                if (
-                    key === 'nickname' &&
-                    typeof value === 'object' &&
-                    value &&
-                    '$regex' in value
-                ) {
-                    conditions.push(`${key} LIKE ?`);
-                    values.push(`%${value.$regex}%`);
-                } else {
-                    conditions.push(`${key} = ?`);
-                    values.push(value);
-                }
-            });
-
-            sql += conditions.join(' AND ');
+            const conditions = BaseModel.buildWhereClause(query, values);
+            sql += ` WHERE ${conditions}`;
         }
 
-        sql += ' ORDER BY createdAt DESC';
+        sql += ` ORDER BY createdAt DESC`;
 
         if (limit && limit > 0) {
-            const limitValue = Math.floor(Number(limit));
-            const pageValue = Math.floor(Number(page || 1));
-            
-            if (!isNaN(limitValue) && limitValue >= 1 && limitValue <= 100 &&
-                !isNaN(pageValue) && pageValue >= 1 && pageValue <= 1000000) {
-                const offset = pageValue > 1 ? (pageValue - 1) * limitValue : 0;
-                sql += ` LIMIT ? OFFSET ?`;
-                values.push(limitValue, offset);
-            }
+            const limitValue = Math.max(1, Math.min(100, Number(limit) || 10));
+            const pageValue = Math.max(1, Number(page) || 1);
+            const offset = (pageValue - 1) * limitValue;
+            sql += ` LIMIT ? OFFSET ?`;
+            values.push(limitValue, offset);
         }
 
-        console.log('sql:', sql);
-        console.log('values:', values);
+        const [rows] = await pool.query(sql, values);
+        return (rows as RowDataPacket[]).map((row) => new User(row as IUser));
+    }
+
+    static async findOne(query: Partial<IUser>): Promise<User | null> {
+        let sql = `SELECT * FROM ${this.tableName}`;
+        const values: any[] = [];
+
+        if (Object.keys(query).length > 0) {
+            const conditions = BaseModel.buildWhereClause(query, values);
+            sql += ` WHERE ${conditions}`;
+        }
+        sql += ` LIMIT 1`;
 
         const [rows] = await pool.query(sql, values);
-        const users = rows as IUser[];
+        if ((rows as RowDataPacket[]).length === 0) {
+            return null;
+        }
+        return new User((rows as RowDataPacket[])[0] as IUser);
+    }
 
-        return users.map((userData) => {
-            return new User(userData);
-        });
+    static async count(query: Partial<IUser> & { nickname?: { $regex: string; }; }): Promise<number> {
+        let sql = `SELECT COUNT(*) as count FROM ${this.tableName}`;
+        const values: any[] = [];
+
+        if (Object.keys(query).length > 0) {
+            const conditions = BaseModel.buildWhereClause(query, values);
+            sql += ` WHERE ${conditions}`;
+        }
+
+        const [rows] = await pool.query(sql, values);
+        return (rows as any[])[0].count;
     }
 
     static async findOneAndUpdate(
@@ -155,44 +141,33 @@ export class User {
         update: Partial<IUser>,
         options?: { new?: boolean }
     ): Promise<User | null> {
-        const user = await User.findOne(query);
+        const user = await this.findOne(query);
         if (!user) return null;
 
-        const updateFields: string[] = [];
-        const values: any[] = [];
+        const updateData = { ...update };
 
-        Object.entries(update).forEach(([key, value]) => {
-            if (key === 'password') {
-                updateFields.push(`${key} = ?`);
-                values.push(bcrypt.hashSync(value as string, 10));
-            } else {
-                updateFields.push(`${key} = ?`);
-                values.push(value);
-            }
-        });
-
-        if (updateFields.length === 0) return user;
-
-        values.push(user.data.userid);
-
-        await pool.execute(
-            `UPDATE users SET ${updateFields.join(
-                ', '
-            )}, updatedAt = CURRENT_TIMESTAMP WHERE userid = ?`,
-            values
-        );
-
-        await redisClient.del(`user:${user.data.userid}`);
-
-        if (options?.new) {
-            return await User.findOne({ userid: user.data.userid });
+        if (updateData.password) {
+            updateData.password = await bcrypt.hash(updateData.password, 10);
         }
 
-        return user;
+        if (Object.keys(updateData).length === 0) return user;
+        
+        const context = { tableName: this.tableName, buildWhereClause: BaseModel.buildWhereClause };
+        await BaseModel.update(context, query, updateData);
+
+        if (user) {
+            await redisClient.del(`user:${user.data.userid}`);
+            if (options?.new) {
+                return await this.findOne({ userid: user.data.userid });
+            }
+        }
+        
+        const updatedUser = await this.findOne(query);
+        return updatedUser;
     }
 
     static async deleteOne(query: Partial<IUser>): Promise<void> {
-        const user = await User.findOne(query);
+        const user = await this.findOne(query);
         if (!user) return;
 
         if (user.data.profileImage) {
@@ -214,9 +189,8 @@ export class User {
         await redisClient.del(`${user.data.userid}:refreshToken`);
         await redisClient.del(`user:${user.data.userid}`);
 
-        await pool.execute('DELETE FROM users WHERE userid = ?', [
-            user.data.userid
-        ]);
+        const context = { tableName: this.tableName, buildWhereClause: BaseModel.buildWhereClause };
+        await BaseModel.delete(context, { userid: user.data.userid });
     }
 
     async comparePassword(candidatePassword: string): Promise<boolean> {
@@ -376,7 +350,9 @@ export class User {
 
         const webPath = `/uploads/profile-image/${filename}`;
         this.data.profileImage = webPath;
-        await User.findOneAndUpdate(
+        const context = { tableName: User.tableName, buildWhereClause: BaseModel.buildWhereClause };
+        await BaseModel.update(
+            context,
             { userid: this.data.userid },
             { profileImage: webPath }
         );
@@ -406,7 +382,9 @@ export class User {
         }
 
         this.data.profileImage = '';
-        await User.findOneAndUpdate(
+        const context = { tableName: User.tableName, buildWhereClause: BaseModel.buildWhereClause };
+        await BaseModel.update(
+            context,
             { userid: this.data.userid },
             { profileImage: '' }
         );

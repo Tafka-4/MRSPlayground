@@ -150,7 +150,8 @@ async function loadActivityList(filter = 'all') {
         
         // TODO: 실제 API가 구현되면 아래 코드 사용
         /*
-        const response = await apiClient.get(`/api/v1/users/${targetUserId}/activity?filter=${filter}`);
+        const query = { filter };
+        const response = await apiClient.get(`/api/v1/users/${targetUserId}/activity`, { query });
         
         if (!response.success || !response.data || response.data.length === 0) {
             activityList.innerHTML = `

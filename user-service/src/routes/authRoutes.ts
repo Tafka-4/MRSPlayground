@@ -41,6 +41,13 @@ router.get(
     asyncWrapper(authController.getCurrentUser)
 );
 
+router.delete(
+    '/me',
+    loginRequired,
+    userRequestWatchStart,
+    asyncWrapper(authController.deleteCurrentUser)
+);
+
 // Email verification routes
 router.post(
     '/send-verification',

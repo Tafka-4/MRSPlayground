@@ -5,6 +5,7 @@ import { requestPool } from '../config/database.js';
 import { User } from '../models/User.js';
 import jwt from 'jsonwebtoken';
 import { redisClient } from '../config/redis.js';
+import { enrichLogsWithUserInfo } from '../controllers/logController.js';
 
 export interface LogMessage {
     type:
@@ -195,41 +196,7 @@ class LogWebSocketServer {
                 'SELECT * FROM user_requests ORDER BY created_at DESC LIMIT 5'
             )) as any[];
 
-            const userIds = [
-                ...new Set(
-                    logs
-                        .map((log: any) => log.user_id)
-                        .filter(
-                            (id: any) =>
-                                id && typeof id === 'string' && id.trim()
-                        )
-                )
-            ];
-
-            let usersData: any = {};
-            if (userIds.length > 0) {
-                for (const userId of userIds) {
-                    try {
-                        const user = await User.findOne({ userid: userId as string });
-                        if (user) {
-                            usersData[userId as string] = {
-                                username: user.nickname || null,
-                                email: user.email || null,
-                                login_id: user.id || null
-                            };
-                        }
-                    } catch (error) {
-                        console.warn(`Failed to fetch user info for ${userId}:`, error);
-                    }
-                }
-            }
-
-            const enrichedLogs = logs.map((log: any) => ({
-                ...log,
-                username: usersData[log.user_id]?.username || null,
-                email: usersData[log.user_id]?.email || null,
-                login_id: usersData[log.user_id]?.login_id || null
-            }));
+            const enrichedLogs = await enrichLogsWithUserInfo(logs);
 
             this.sendToClient(ws, {
                 type: 'new-log',
@@ -251,71 +218,33 @@ class LogWebSocketServer {
     }
 
     private async checkForNewLogs() {
-        const authenticatedClients = Array.from(this.clients).filter(
-            (client) => client.isAuthenticated
-        );
-
-        if (authenticatedClients.length === 0) {
+        if (this.clients.size === 0) {
             return;
         }
 
         try {
-            const [logs] = (await requestPool.execute(
-                'SELECT * FROM user_requests WHERE created_at > ? ORDER BY created_at DESC LIMIT 10',
-                [this.lastCheckTime]
+            const [newLogs] = (await requestPool.execute(
+                'SELECT * FROM user_requests WHERE created_at > ? ORDER BY created_at ASC',
+                [this.lastCheckTime.toISOString()]
             )) as any[];
 
-            if (logs.length === 0) {
-                return;
+            if (newLogs.length > 0) {
+                this.lastCheckTime = new Date(
+                    newLogs[newLogs.length - 1].created_at
+                );
+
+                const enrichedLogs = await enrichLogsWithUserInfo(newLogs);
+
+                this.broadcast({
+                    type: 'new-log',
+                    data: { logs: enrichedLogs, initial: false }
+                });
             }
-
-            const userIds = [
-                ...new Set(
-                    logs
-                        .map((log: any) => log.user_id)
-                        .filter(
-                            (id: any) =>
-                                id && typeof id === 'string' && id.trim()
-                        )
-                )
-            ];
-
-            let usersData: any = {};
-            if (userIds.length > 0) {
-                for (const userId of userIds) {
-                    try {
-                        const user = await User.findOne({ userid: userId as string });
-                        if (user) {
-                            usersData[userId as string] = {
-                                username: user.nickname || null,
-                                email: user.email || null,
-                                login_id: user.id || null
-                            };
-                        }
-                    } catch (error) {
-                        console.warn(`Failed to fetch user info for ${userId}:`, error);
-                    }
-                }
-            }
-
-            const enrichedLogs = logs.map((log: any) => ({
-                ...log,
-                username: usersData[log.user_id]?.username || null,
-                email: usersData[log.user_id]?.email || null,
-                login_id: usersData[log.user_id]?.login_id || null
-            }));
-
-            this.broadcast({
-                type: 'new-log',
-                data: { logs: enrichedLogs, new: true }
-            });
-
-            this.lastCheckTime = new Date();
         } catch (error) {
-            console.error('새로운 로그 확인 오류:', error);
+            console.error('새로운 로그 확인 중 오류 발생:', error);
             this.broadcast({
                 type: 'error',
-                message: '로그 모니터링 중 오류가 발생했습니다.'
+                message: '로그를 확인하는 중에 문제가 발생했습니다.'
             });
         }
     }

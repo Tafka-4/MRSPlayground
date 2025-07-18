@@ -22,8 +22,6 @@ class LogApiClient {
      * @returns {Promise<Object>} API 응답
      */
     async getLogs(options = {}) {
-        const params = new URLSearchParams();
-
         const {
             page = 1,
             limit = 10,
@@ -38,20 +36,21 @@ class LogApiClient {
             export: isExport = false
         } = options;
 
-        params.append('page', page.toString());
-        params.append('limit', limit.toString());
+        const query = {
+            page,
+            limit,
+            status,
+            userId,
+            route,
+            ip,
+            dateFrom,
+            dateTo,
+            onlyMine: onlyMine ? 'true' : undefined,
+            onlyErrors: onlyErrors ? 'true' : undefined,
+            export: isExport ? 'true' : undefined
+        };
 
-        if (status) params.append('status', status);
-        if (userId) params.append('userId', userId);
-        if (route) params.append('route', route);
-        if (ip) params.append('ip', ip);
-        if (dateFrom) params.append('dateFrom', dateFrom);
-        if (dateTo) params.append('dateTo', dateTo);
-        if (onlyMine) params.append('onlyMine', 'true');
-        if (onlyErrors) params.append('onlyErrors', 'true');
-        if (isExport) params.append('export', 'true');
-
-        return await apiClient.get(`${this.baseUrl}/logs?${params}`);
+        return await apiClient.get(`${this.baseUrl}/logs`, { query });
     }
 
     /**
@@ -99,15 +98,15 @@ class LogApiClient {
     async getRouteErrors(route, options = {}) {
         const { page = 1, limit = 20 } = options;
         
-        const params = new URLSearchParams({
-            route: route,
-            page: page.toString(),
-            limit: limit.toString()
-        });
+        const query = {
+            route,
+            page,
+            limit
+        };
 
-        return await apiClient.get(
-            `${this.baseUrl}/logs/route-errors?${params}`
-        );
+        return await apiClient.get(`${this.baseUrl}/logs/route-errors`, {
+            query
+        });
     }
 
     /**
@@ -117,12 +116,11 @@ class LogApiClient {
      * @returns {Promise<Object>} 삭제 결과
      */
     async cleanupLogs(beforeDate, status = null) {
-        const params = new URLSearchParams({ beforeDate });
-        if (status) params.append('status', status);
+        const query = { beforeDate, status };
 
-        return await apiClient.delete(
-            `${this.baseUrl}/logs/cleanup?${params}`
-        );
+        return await apiClient.delete(`${this.baseUrl}/logs/cleanup`, {
+            query
+        });
     }
 
     /**

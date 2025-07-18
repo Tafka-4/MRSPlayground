@@ -4,19 +4,11 @@ class ApiClient {
         this.failedQueue = [];
     }
 
-    generateRequestId() {
-        return crypto.randomUUID();
-    }
-
-    async makeRequest(url, options = {}) {
-        const token = localStorage.getItem('accessToken');
-        const requestId = this.generateRequestId();
-        
+    _buildUrl(url, query) {
         let fullUrl = url;
-        
-        if (options.query) {
+        if (query) {
             const queryParams = new URLSearchParams();
-            Object.entries(options.query).forEach(([key, value]) => {
+            Object.entries(query).forEach(([key, value]) => {
                 if (value !== undefined && value !== null) {
                     queryParams.append(key, value);
                 }
@@ -26,21 +18,35 @@ class ApiClient {
                 fullUrl += (fullUrl.includes('?') ? '&' : '?') + queryString;
             }
         }
-        
-        if (url.startsWith('http://') || url.startsWith('https://')) {
+
+        if (fullUrl.startsWith('http://') || fullUrl.startsWith('https://')) {
             const urlObj = new URL(fullUrl);
-            if (window.location.protocol === 'https:' && urlObj.protocol === 'http:') {
+            if (
+                window.location.protocol === 'https:' &&
+                urlObj.protocol === 'http:'
+            ) {
                 urlObj.protocol = 'https:';
             }
-            fullUrl = urlObj.pathname + urlObj.search;
-        } else {
-            const baseUrl = window.location.origin;
-            fullUrl = baseUrl + fullUrl;
+            return urlObj.href;
         }
 
-        console.log('API Request Debug:', { 
-            originalUrl: url, 
-            fullUrl, 
+        const baseUrl = window.location.origin;
+        return baseUrl + fullUrl;
+    }
+
+    generateRequestId() {
+        return crypto.randomUUID();
+    }
+
+    async makeRequest(url, options = {}) {
+        const token = localStorage.getItem('accessToken');
+        const requestId = this.generateRequestId();
+
+        const fullUrl = this._buildUrl(url, options.query);
+
+        console.log('API Request Debug:', {
+            originalUrl: url,
+            fullUrl,
             method: options.method || 'GET',
             hasToken: !!token,
             query: options.query,
@@ -61,25 +67,13 @@ class ApiClient {
         try {
             const response = await fetch(fullUrl, requestOptions);
 
-            if (response.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/refresh') && window.location.pathname !== '/login') {
-                const publicPages = [
-                    '/help', 
-                    '/contact', 
-                    '/feedback', 
-                    '/notice', 
-                    '/license'
-                ];
-                const userProfilePattern = /^\/user\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}(\/activity|\/guestbook)?$/;
-                const isPublicPage = publicPages.includes(window.location.pathname) || userProfilePattern.test(window.location.pathname);
-
-                if (isPublicPage) {
-                    const errorData = await response.json().catch(() => ({}));
-                    const error = new Error(errorData.message || 'Authentication required');
-                    error.status = response.status;
-                    error.data = errorData;
-                    throw error;
-                }
-
+            if (
+                response.status === 401 &&
+                token &&
+                !url.includes('/auth/login') &&
+                !url.includes('/auth/refresh') &&
+                window.location.pathname !== '/login'
+            ) {
                 if (this.isRefreshing) {
                     return new Promise((resolve, reject) => {
                         this.failedQueue.push({
@@ -95,7 +89,11 @@ class ApiClient {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('API Response:', { url: fullUrl, status: response.status, data });
+                console.log('API Response:', {
+                    url: fullUrl,
+                    status: response.status,
+                    data
+                });
                 return data;
             } else {
                 const errorData = await response.json().catch(() => ({}));
@@ -130,19 +128,9 @@ class ApiClient {
                 originalOptions.headers[
                     'Authorization'
                 ] = `Bearer ${newAccessToken}`;
-                
-                let requestUrl = originalUrl;
-                if (originalUrl.startsWith('http://') || originalUrl.startsWith('https://')) {
-                    const urlObj = new URL(originalUrl);
-                    if (window.location.protocol === 'https:' && urlObj.protocol === 'http:') {
-                        urlObj.protocol = 'https:';
-                    }
-                    requestUrl = urlObj.pathname + urlObj.search;
-                } else {
-                    const baseUrl = window.location.origin;
-                    requestUrl = baseUrl + originalUrl;
-                }
-                
+
+                const requestUrl = this._buildUrl(originalUrl);
+
                 const response = await fetch(requestUrl, originalOptions);
                 if (response.ok) {
                     return await response.json();
@@ -202,22 +190,12 @@ class ApiClient {
                     }
                 };
                 
-                let requestUrl = prom.url;
-                if (prom.url.startsWith('http://') || prom.url.startsWith('https://')) {
-                    const urlObj = new URL(prom.url);
-                    if (window.location.protocol === 'https:' && urlObj.protocol === 'http:') {
-                        urlObj.protocol = 'https:';
-                    }
-                    requestUrl = urlObj.pathname + urlObj.search;
-                } else {
-                    const baseUrl = window.location.origin;
-                    requestUrl = baseUrl + prom.url;
-                }
-                
+                const requestUrl = this._buildUrl(prom.url);
+
                 fetch(requestUrl, newOptions)
-                    .then(response => response.json())
-                    .then(data => prom.resolve(data))
-                    .catch(err => prom.reject(err));
+                    .then((response) => response.json())
+                    .then((data) => prom.resolve(data))
+                    .catch((err) => prom.reject(err));
             }
         });
         this.failedQueue = [];
