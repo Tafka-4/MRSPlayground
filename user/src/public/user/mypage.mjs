@@ -2,6 +2,7 @@ import api from '../module/api.js';
 import Notice from '../module/notice.js';
 import { createConfirmCancelModal } from '../component/modals/index.js';
 import { createRoleBadge, createVerificationBadge } from '../component/badges/index.js';
+import { createButton } from '../component/buttons/index.js';
 
 class MyPageManager {
     constructor() {
@@ -20,7 +21,7 @@ class MyPageManager {
             uid: document.getElementById('uid'),
             profileImage: document.getElementById('profile-image'),
             profileImageActions: document.getElementById('profile-image-actions'),
-            navDeleteAccount: document.getElementById('navDeleteAccount'),
+            profileImageInput: document.getElementById('profile-image-input'),
             profileMenuToggle: document.getElementById('profileMenuToggle'),
             profileNavigation: document.getElementById('profileNavigation'),
             profileNavClose: document.getElementById('profileNavClose'),
@@ -36,15 +37,14 @@ class MyPageManager {
     async fetchUser() {
         try {
             const response = await api.get('/api/v1/auth/me');
-            if (response.success) {
+            if (response.success && response.user) {
                 this.user = response.user;
                 this.renderUser();
             } else {
                 window.location.href = '/login';
             }
         } catch (error) {
-            Notice.error('사용자 정보를 불러오는 데 실패했습니다. 다시 로그인해주세요.');
-            setTimeout(() => { window.location.href = '/login'; }, 1500);
+            Notice.error('사용자 정보를 불러오는 데 실패했습니다.');
         }
     }
 
@@ -53,22 +53,20 @@ class MyPageManager {
 
         this.elements.username.textContent = this.user.nickname;
         
-        // 뱃지 렌더링
-        const badgeContainer = document.createElement('div');
+        const badgeContainer = this.elements.usernameContainer.querySelector('.badge-container') || document.createElement('div');
         badgeContainer.className = 'badge-container';
+        badgeContainer.innerHTML = '';
+
         const badges = [
-            createRoleBadge(this.user.role),
+            createRoleBadge(this.user.authority),
             createVerificationBadge(this.user.isVerified, () => window.location.href = '/auth/verify-internal-member'),
         ];
         badges.forEach(badge => {
             if (badge) badgeContainer.appendChild(badge);
         });
-        // 기존 뱃지 컨테이너가 있다면 제거 후 새로 추가
-        const existingBadgeContainer = this.elements.usernameContainer.querySelector('.badge-container');
-        if (existingBadgeContainer) {
-            this.elements.usernameContainer.removeChild(existingBadgeContainer);
+        if (!badgeContainer.parentNode) {
+            this.elements.usernameContainer.appendChild(badgeContainer);
         }
-        this.elements.usernameContainer.appendChild(badgeContainer);
 
         this.elements.email.textContent = this.user.email;
         this.elements.description.textContent = this.user.description || '소개가 없습니다.';
@@ -89,72 +87,92 @@ class MyPageManager {
     renderActionButtons() {
         this.elements.profileImageActions.innerHTML = '';
         
-        const editButton = document.createElement('a');
-        editButton.href = '/mypage/edit';
-        editButton.className = 'btn btn-primary';
-        editButton.innerHTML = `<span class="material-symbols-outlined">edit</span> 프로필 수정`;
-        
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'btn btn-danger-outline';
-        deleteButton.innerHTML = `<span class="material-symbols-outlined">delete</span> 계정 삭제`;
-        deleteButton.addEventListener('click', () => this.deleteAccount());
+        const editButton = createButton({
+            text: '사진 수정',
+            variant: 'dark',
+            icon: 'photo_camera',
+            onClick: () => this.elements.profileImageInput.click()
+        });
+
+        const deleteButton = createButton({
+            text: '사진 삭제',
+            variant: 'danger-outline',
+            icon: 'delete',
+            onClick: () => this.deleteProfileImage()
+        });
 
         this.elements.profileImageActions.appendChild(editButton);
-        this.elements.profileImageActions.appendChild(deleteButton);
+        if (this.user && this.user.profileImage) {
+            this.elements.profileImageActions.appendChild(deleteButton);
+        }
     }
     
-    async deleteAccount() {
+    async handleImageUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('profileImage', file);
+
+        try {
+            Notice.info('프로필 사진을 업로드하는 중입니다...');
+            const response = await api.post('/api/v1/users/me/profile-image', formData);
+            if(response.success) {
+                this.user.profileImage = response.filePath;
+                this.renderUser();
+                Notice.success('프로필 사진이 변경되었습니다.');
+            }
+        } catch (error) {
+            Notice.error(error.message || '사진 업로드에 실패했습니다.');
+        }
+    }
+    
+    async deleteProfileImage() {
         const confirmed = await new Promise(resolve => {
-            const modal = createConfirmCancelModal({
-                title: '회원 탈퇴',
-                message: '정말로 회원 탈퇴를 하시겠습니까? 모든 정보가 영구적으로 삭제되며, 이 작업은 되돌릴 수 없습니다.',
+            createConfirmCancelModal({
+                title: '사진 삭제',
+                message: '정말로 프로필 사진을 삭제하시겠습니까?',
                 variant: 'danger',
-                confirmText: '탈퇴 확인',
                 onConfirm: () => resolve(true),
                 onCancel: () => resolve(false),
-            });
-            document.body.appendChild(modal);
+            }).show();
         });
         
         if (!confirmed) return;
 
         try {
-            await api.delete('/api/v1/users/me');
-            Notice.success('회원 탈퇴가 완료되었습니다. 이용해주셔서 감사합니다.');
-            localStorage.removeItem('accessToken');
-            setTimeout(() => { window.location.href = '/'; }, 1500);
+            await api.delete('/api/v1/users/me/profile-image');
+            this.user.profileImage = null;
+            this.renderUser();
+            Notice.success('프로필 사진이 삭제되었습니다.');
         } catch (error) {
-            Notice.error(error.message || '회원 탈퇴 중 오류가 발생했습니다.');
+            Notice.error(error.message || '사진 삭제에 실패했습니다.');
         }
     }
 
     toggleMobileNav(show) {
-        if (show) {
-            this.elements.profileNavigation.classList.add('open');
-            this.elements.profileNavOverlay.classList.add('open');
-        } else {
-            this.elements.profileNavigation.classList.remove('open');
-            this.elements.profileNavOverlay.classList.remove('open');
-        }
+        this.elements.profileNavigation.classList.toggle('open', show);
+        this.elements.profileNavOverlay.classList.toggle('open', show);
     }
 
     setupEventListeners() {
-        // navDeleteAccount는 이제 동적으로 생성된 버튼으로 대체됨
-        // if (this.elements.navDeleteAccount) {
-        //     this.elements.navDeleteAccount.addEventListener('click', () => this.deleteAccount());
-        // }
-        if (this.elements.profileMenuToggle) {
-            this.elements.profileMenuToggle.addEventListener('click', () => this.toggleMobileNav(true));
+        if(this.elements.profileImageInput) {
+            this.elements.profileImageInput.addEventListener('change', (e) => this.handleImageUpload(e));
         }
-        if (this.elements.profileNavClose) {
-            this.elements.profileNavClose.addEventListener('click', () => this.toggleMobileNav(false));
-        }
-        if (this.elements.profileNavOverlay) {
-            this.elements.profileNavOverlay.addEventListener('click', () => this.toggleMobileNav(false));
-        }
+        this.elements.profileMenuToggle?.addEventListener('click', () => this.toggleMobileNav(true));
+        this.elements.profileNavClose?.addEventListener('click', () => this.toggleMobileNav(false));
+        this.elements.profileNavOverlay?.addEventListener('click', () => this.toggleMobileNav(false));
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    if (!document.getElementById('profile-image-input')) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.id = 'profile-image-input';
+        input.hidden = true;
+        input.accept = 'image/*';
+        document.body.appendChild(input);
+    }
     new MyPageManager();
 });

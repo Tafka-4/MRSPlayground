@@ -105,35 +105,42 @@ class UserGuestbookManager {
             return;
         }
 
-        this.elements.guestbookList.innerHTML = entries.map(entry => {
-            const sender = entry.sender;
-            const canDelete = this.currentUser && sender && (this.currentUser.userid === sender.userid || this.currentUser.authority === 'admin' || this.currentUser.userid === this.targetUserId);
-            
-            const authorProfile = sender ? `/user/${escape(sender.userid)}` : '#';
-            const authorAvatar = sender?.profileImage 
-                ? `<img src="${escape(sender.profileImage)}" alt="${escape(sender.nickname)}" class="author-avatar">` 
-                : `<div class="author-avatar-placeholder"><span class="material-symbols-outlined">person</span></div>`;
-            const authorNickname = sender ? escape(sender.nickname) : '알 수 없는 사용자';
+        this.elements.guestbookList.innerHTML = entries
+            .map(entry => {
+                if (!entry || !entry.sender) {
+                    console.warn('Invalid guestbook entry data:', entry);
+                    return ''; 
+                }
 
-            return `
-                <div class="card guestbook-entry">
-                    <div class="card-header">
-                        <a href="${authorProfile}" class="author-link">
-                            ${authorAvatar}
-                            <strong>${authorNickname}</strong>
-                        </a>
-                        <span class="entry-date">${new Date(entry.createdAt).toLocaleString()}</span>
+                const sender = entry.sender;
+                const canDelete = this.currentUser && (this.currentUser.userid === sender.userid || this.currentUser.authority === 'admin' || this.currentUser.userid === this.targetUserId);
+                
+                const authorProfile = `/user/${escape(sender.userid)}`;
+                const authorAvatar = sender.profileImage 
+                    ? `<img src="${escape(sender.profileImage)}" alt="${escape(sender.nickname)}" class="author-avatar">` 
+                    : `<div class="author-avatar-placeholder"><span class="material-symbols-outlined">person</span></div>`;
+                const authorNickname = escape(sender.nickname);
+
+                return `
+                    <div class="card guestbook-entry">
+                        <div class="card-header">
+                            <a href="${authorProfile}" class="author-link">
+                                ${authorAvatar}
+                                <strong>${authorNickname}</strong>
+                            </a>
+                            <span class="entry-date">${new Date(entry.createdAt).toLocaleString()}</span>
+                        </div>
+                        <div class="card-body"><p>${escape(entry.message)}</p></div>
+                        ${canDelete ? `
+                        <div class="card-footer">
+                            <button class="btn btn-danger-outline delete-btn" data-id="${escape(String(entry.id))}">
+                                <span class="material-symbols-outlined">delete</span> 삭제
+                            </button>
+                        </div>` : ''}
                     </div>
-                    <div class="card-body"><p>${escape(entry.message)}</p></div>
-                    ${canDelete ? `
-                    <div class="card-footer">
-                        <button class="btn btn-danger-outline delete-btn" data-id="${escape(String(entry.id))}">
-                            <span class="material-symbols-outlined">delete</span> 삭제
-                        </button>
-                    </div>` : ''}
-                </div>
-            `;
-        }).join('');
+                `;
+            })
+            .join('');
     }
 
     async handleSubmit() {
@@ -186,10 +193,10 @@ class UserGuestbookManager {
         }
     }
 
-    showError(message) { /* ... 로직은 user-activity.mjs와 동일 ... */ }
-    showProfile() { /* ... 로직은 user-activity.mjs와 동일 ... */ }
+    showError(message) { }
+    showProfile() { }
     showGuestbookError(message) { this.elements.guestbookList.innerHTML = `<div class="error-message">${message}</div>`; }
-    toggleMobileNav(show) { /* ... 로직은 user-activity.mjs와 동일 ... */ }
+    toggleMobileNav(show) { }
     
     setupEventListeners() {
         this.elements.messageInput.addEventListener('input', () => {

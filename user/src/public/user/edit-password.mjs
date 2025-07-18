@@ -1,6 +1,7 @@
 import api from '../module/api.js';
 import escape from '../module/escape.js';
 import Notice from '../module/notice.js';
+import { createButton } from '../component/buttons/index.js';
 
 class EditPasswordManager {
     constructor() {
@@ -24,19 +25,25 @@ class EditPasswordManager {
         this.containers.newPassword.innerHTML = this.createInputHTML('new-password', 'password', '새 비밀번호', 'lock');
         this.containers.confirmPassword.innerHTML = this.createInputHTML('confirm-password', 'password', '새 비밀번호 확인', 'lock');
         
-        this.containers.formActions.innerHTML = `
-            <button id="save-btn" class="auth-btn auth-btn-primary" disabled>
-                <span class="material-symbols-outlined">save</span> 변경사항 저장
-            </button>
-        `;
+        this.containers.formActions.innerHTML = '';
         
-        // Re-cache dynamic elements
+        const saveButton = createButton({
+            text: '변경사항 저장',
+            variant: 'primary',
+            icon: 'save',
+            disabled: true,
+            onClick: () => this.handleUpdate()
+        });
+        saveButton.id = 'save-btn';
+        
+        this.containers.formActions.appendChild(saveButton);
+        
         this.inputs = {
             currentPassword: document.getElementById('current-password'),
             newPassword: document.getElementById('new-password'),
             confirmPassword: document.getElementById('confirm-password'),
         };
-        this.buttons = { save: document.getElementById('save-btn') };
+        this.buttons = { save: saveButton };
     }
 
     createInputHTML(id, type, placeholder, icon) {
@@ -125,8 +132,6 @@ class EditPasswordManager {
     }
 
     setupEventListeners() {
-        this.buttons.save.addEventListener('click', () => this.handleUpdate());
-        
         Object.values(this.inputs).forEach(input => {
             input.addEventListener('input', () => this.validatePassword());
             input.addEventListener('keyup', (e) => {

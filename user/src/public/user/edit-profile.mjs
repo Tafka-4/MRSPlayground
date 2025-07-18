@@ -2,6 +2,7 @@ import api from '../module/api.js';
 import escape from '../module/escape.js';
 import Notice from '../module/notice.js';
 import { createConfirmCancelModal } from '../component/modals/index.js';
+import { createButton } from '../component/buttons/index.js';
 
 class EditProfileManager {
     constructor() {
@@ -60,55 +61,74 @@ class EditProfileManager {
         this.elements.readOnly.email.textContent = this.user.email;
         this.elements.readOnly.uid.textContent = this.user.userid;
         
-        // Render profile image action buttons
-        const uploadButton = document.createElement('button');
-        uploadButton.id = 'upload-image-btn';
-        uploadButton.className = 'auth-btn auth-btn-secondary';
-        uploadButton.innerHTML = `<span class="material-symbols-outlined">upload</span> 사진 업로드`;
+        this.elements.profileImageActions.innerHTML = '';
         
-        const deleteButton = document.createElement('button');
-        deleteButton.id = 'delete-image-btn';
-        deleteButton.className = 'auth-btn auth-btn-danger';
-        deleteButton.innerHTML = `<span class="material-symbols-outlined">delete</span> 사진 삭제`;
+        const uploadButton = createButton({
+            text: '사진 업로드',
+            variant: 'secondary',
+            icon: 'upload',
+            onClick: () => this.elements.profileImageInput.click()
+        });
         
-        this.elements.profileImageActions.append(uploadButton, deleteButton);
+        const deleteButton = createButton({
+            text: '사진 삭제',
+            variant: 'danger',
+            icon: 'delete',
+            onClick: () => this.deleteProfileImage()
+        });
+        
+        this.elements.profileImageActions.appendChild(uploadButton);
+        if (this.user.profileImage) {
+            this.elements.profileImageActions.appendChild(deleteButton);
+        }
     }
     
     renderForm() {
         this.elements.formContainer.innerHTML = `
             <form id="edit-profile-form">
-                <div class="info-item">
+                <div class="input-wrapper">
                     <label for="nickname">닉네임</label>
-                    <input type="text" id="nickname" value="${escape(this.initialData.nickname)}" required>
+                    <input type="text" id="nickname" class="input" value="${escape(this.initialData.nickname)}" required>
                 </div>
-                <div class="info-item">
+                <div class="input-wrapper">
                     <label for="description">소개</label>
-                    <textarea id="description" rows="5" maxlength="500">${escape(this.initialData.description)}</textarea>
+                    <textarea id="description" class="textarea" rows="5" maxlength="500">${escape(this.initialData.description)}</textarea>
                     <div id="char-count" class="char-counter">0/500</div>
                 </div>
             </form>
         `;
 
-        this.elements.formActions.innerHTML = `
-            <button id="save-btn" class="auth-btn auth-btn-primary" disabled>
-                <span class="material-symbols-outlined">save</span> 저장
-            </button>
-            <button id="cancel-btn" class="auth-btn auth-btn-secondary">
-                <span class="material-symbols-outlined">cancel</span> 취소
-            </button>
-        `;
+        this.elements.formActions.innerHTML = '';
 
-        // Re-cache dynamic elements
+        const saveButton = createButton({
+            text: '저장',
+            variant: 'primary',
+            icon: 'save',
+            disabled: true,
+            onClick: () => this.handleUpdate()
+        });
+        saveButton.id = 'save-btn';
+
+        const cancelButton = createButton({
+            text: '취소',
+            variant: 'secondary',
+            icon: 'cancel',
+            onClick: () => window.location.href = '/mypage'
+        });
+        cancelButton.id = 'cancel-btn';
+
+        this.elements.formActions.append(cancelButton, saveButton);
+
         this.form = document.getElementById('edit-profile-form');
         this.inputs = {
             nickname: document.getElementById('nickname'),
             description: document.getElementById('description'),
         };
         this.buttons = {
-            save: document.getElementById('save-btn'),
-            cancel: document.getElementById('cancel-btn'),
-            uploadImage: document.getElementById('upload-image-btn'),
-            deleteImage: document.getElementById('delete-image-btn'),
+            save: saveButton,
+            cancel: cancelButton,
+            uploadImage: this.elements.profileImageActions.querySelector('button'),
+            deleteImage: this.elements.profileImageActions.querySelector('button:last-child'),
         };
         this.messages = {
             charCount: document.getElementById('char-count'),
@@ -193,9 +213,6 @@ class EditProfileManager {
     }
 
     setupEventListeners() {
-        this.buttons.save.addEventListener('click', () => this.handleUpdate());
-        this.buttons.cancel.addEventListener('click', () => window.location.href = '/mypage');
-        
         this.inputs.nickname.addEventListener('input', () => this.checkForChanges());
         this.inputs.description.addEventListener('input', () => {
             this.updateCharCount();
@@ -206,13 +223,10 @@ class EditProfileManager {
                 this.handleUpdate();
             }
         });
-        
-        this.buttons.uploadImage.addEventListener('click', () => this.elements.profileImageInput.click());
         this.elements.profileImageInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) this.uploadProfileImage(file);
         });
-        this.buttons.deleteImage.addEventListener('click', () => this.deleteProfileImage());
     }
 }
 
