@@ -126,12 +126,6 @@
     margin: 0;
 }
 
-@media (max-width: 1000px) {
-    .mypage-header {
-        display: inline !important;
-    }
-}
-
 @media (max-width: 768px) {
     .guestbook-form {
         padding: 1rem;
@@ -139,9 +133,12 @@
     }
     
     .guestbook-form-footer {
-        flex-direction: column;
+        flex-direction: row;
         gap: 1rem;
-        align-items: stretch;
+        align-items: center;
+    }
+    .guestbook-form-footer .btn {
+        flex-shrink: 0;
     }
     
     .guestbook-item {
@@ -149,8 +146,8 @@
     }
     
     .guestbook-author {
-        flex-direction: column;
-        align-items: flex-start;
+        flex-direction: row;
+        align-items: center;
         gap: 0.5rem;
     }
 }

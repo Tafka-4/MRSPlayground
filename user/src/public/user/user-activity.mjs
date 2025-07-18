@@ -239,5 +239,5 @@ style.textContent = `
 document.head.appendChild(style);
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadUserProfile();
+loadUserProfile(); 
 }); 
