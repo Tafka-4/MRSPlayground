@@ -3,7 +3,6 @@ import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
 import userRoute from './route/userRoute.js';
-import testRoute from './route/test.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -72,7 +71,6 @@ app.get('/health', (req: express.Request, res: express.Response) => {
 });
 
 app.use('/', userRoute);
-app.use('/test', testRoute);
 
 app.use('*', (req: express.Request, res: express.Response) => {
     console.log(req.originalUrl);
