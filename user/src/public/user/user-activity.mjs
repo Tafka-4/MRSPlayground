@@ -41,8 +41,15 @@ function displayUserProfile(user) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('profile-container').style.display = 'block';
 
-    document.getElementById('mobile-title').textContent = `${user.nickname}님의 활동 내역`;
-    document.getElementById('user-nickname').textContent = user.nickname;
+    const userNicknameDisplay = document.getElementById('user-nickname-display');
+    if (userNicknameDisplay) {
+        userNicknameDisplay.textContent = `${user.nickname}님의 활동 내역`;
+    }
+
+    const mobileTitle = document.getElementById('mobile-title');
+    if (mobileTitle) {
+        mobileTitle.textContent = `${user.nickname}님의 활동 내역`;
+    }
     document.title = `${user.nickname}님의 활동 내역 - 마법연구회`;
 
     setupEventListeners();

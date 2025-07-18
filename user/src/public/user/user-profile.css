@@ -512,8 +512,31 @@
 }
 
 @media (max-width: 1000px) {
-    .mypage-header {
-        display: inline !important;
+    .main-content {
+        flex-direction: column;
+    }
+
+    .profile-navigation-container {
+        display: none;
+    }
+
+    .mobile-profile-header {
+        display: flex;
+    }
+
+    .container {
+        margin-left: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 0;
+    }
+
+    .tab-header {
+        padding: 0 1.5rem;
+    }
+    
+    .tab-title {
+        white-space: nowrap;
     }
 }
 

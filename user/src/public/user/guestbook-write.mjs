@@ -6,33 +6,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get('userId');
 
+    if (!userId) {
+        window.location.href = '/';
+        return;
+    }
+
     const loadingEl = document.getElementById('loading');
     const errorContainerEl = document.getElementById('error-container');
     const errorMessageEl = document.getElementById('error-message');
-    const profileContainerEl = document.getElementById('profile-container');
-    const guestbookWriteContainerEl = document.getElementById('guestbook-write-container');
-
+    
     let currentUser = null;
     let targetUser = null;
 
     try {
         [currentUser, targetUser] = await Promise.all([
-            get('/api/user'),
+            get('/api/user').catch(() => null),
             get(`/api/user/${userId}`)
         ]);
 
-        if (!targetUser) {
-            throw new Error('사용자를 찾을 수 없습니다.');
+        if (!targetUser) throw new Error('사용자를 찾을 수 없습니다.');
+        
+        if (currentUser && currentUser.userId === targetUser.userId) {
+            showNotice('자신의 방명록에는 메시지를 남길 수 없습니다.', 'error');
+            setTimeout(() => { window.location.href = '/mypage/guestbook'; }, 1500);
+            return;
         }
 
-        renderUserInfo(targetUser);
-        updateNavigation(currentUser, targetUser);
-        setupEventListeners(currentUser, targetUser);
+        renderPage(currentUser, targetUser);
+        setupEventListeners(targetUser);
         setupMobileHeaderScroll();
-
-        loadingEl.style.display = 'none';
-        profileContainerEl.style.display = 'block';
-        guestbookWriteContainerEl.style.display = 'flex';
 
     } catch (error) {
         loadingEl.style.display = 'none';
@@ -41,57 +43,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
+function renderPage(currentUser, targetUser) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('profile-container').style.display = 'block';
+    
+    renderUserInfo(targetUser);
+    updateNavigation(currentUser, targetUser);
+}
+
+
 function renderUserInfo(user) {
-    const pageTitleEl = document.getElementById('page-title');
-    const targetUsernameEl = document.getElementById('target-username');
-    const targetDescriptionEl = document.getElementById('target-description');
-    const targetProfileImageEl = document.getElementById('target-profile-image');
+    document.getElementById('page-title').textContent = `${user.nickname}님에게 방명록 작성`;
+    document.getElementById('target-username').textContent = user.nickname;
+    document.getElementById('target-description').textContent = user.description || '소개가 없습니다.';
 
-    pageTitleEl.textContent = `${user.nickname}님에게 방명록 작성`;
-    targetUsernameEl.textContent = user.nickname;
-    targetDescriptionEl.textContent = user.description || '소개가 없습니다.';
-
+    const profileImageEl = document.getElementById('target-profile-image');
     if (user.profileImage) {
-        targetProfileImageEl.innerHTML = `<img src="${user.profileImage}" alt="${user.nickname} 프로필 이미지">`;
+        profileImageEl.innerHTML = `<img src="${user.profileImage}" alt="${user.nickname} 프로필 이미지">`;
     } else {
-        targetProfileImageEl.innerHTML = `<span class="material-symbols-outlined">person</span>`;
+        profileImageEl.innerHTML = `<span class="material-symbols-outlined">person</span>`;
     }
 }
 
 function updateNavigation(currentUser, targetUser) {
-    const isMyPage = currentUser.userId === targetUser.userId;
+    const mobileTitleEl = document.getElementById('mobile-title');
+    const navTitleEl = document.getElementById('nav-title');
+    const navListEl = document.getElementById('profile-nav-list');
     
-    mobileTitleEl.textContent = isMyPage ? "내 프로필" : "사용자 프로필";
+    const isMyPage = currentUser && currentUser.userId === targetUser.userId;
+    
+    mobileTitleEl.textContent = "방명록 작성";
     navTitleEl.textContent = isMyPage ? "프로필 관리" : "사용자 메뉴";
 
     let navItems = '';
+    const writeLink = `
+        <a href="/user/${targetUser.userId}/guestbook/write" class="profile-nav-item">
+            <span class="material-symbols-outlined">edit_note</span>
+            <span>방명록 작성</span>
+        </a>
+    `;
+
     if (isMyPage) {
         navItems = `
-            <a href="/mypage" class="profile-nav-item">
-                <span class="material-symbols-outlined">person</span>
-                <span>프로필 보기</span>
-            </a>
-            <a href="/mypage/edit" class="profile-nav-item">
-                <span class="material-symbols-outlined">edit</span>
-                <span>프로필 수정</span>
-            </a>
-            <a href="/mypage/activity" class="profile-nav-item">
-                <span class="material-symbols-outlined">history</span>
-                <span>활동</span>
-            </a>
-            <a href="/mypage/guestbook" class="profile-nav-item">
-                <span class="material-symbols-outlined">book</span>
-                <span>방명록</span>
-            </a>
-            <a href="/mypage/edit/password" class="profile-nav-item">
-                <span class="material-symbols-outlined">lock</span>
-                <span>비밀번호 변경</span>
-            </a>
-            <div class="profile-nav-divider"></div>
-            <a href="/user/${targetUser.userId}/guestbook/write" class="profile-nav-item active">
-                <span class="material-symbols-outlined">edit_note</span>
-                <span>방명록 작성</span>
-            </a>
+            <a href="/mypage" class="profile-nav-item">...</a>
+            ${writeLink}
         `;
     } else {
         navItems = `
@@ -108,16 +103,13 @@ function updateNavigation(currentUser, targetUser) {
                 <span>방명록</span>
             </a>
              <div class="profile-nav-divider"></div>
-            <a href="/user/${targetUser.userId}/guestbook/write" class="profile-nav-item active">
-                <span class="material-symbols-outlined">edit_note</span>
-                <span>방명록 작성</span>
-            </a>
+            ${writeLink}
         `;
     }
     navListEl.innerHTML = navItems;
 }
 
-function setupEventListeners(currentUser, targetUser) {
+function setupEventListeners(targetUser) {
     const profileMenuToggle = document.getElementById('profileMenuToggle');
     const profileNavClose = document.getElementById('profileNavClose');
     const profileNavOverlay = document.getElementById('profileNavOverlay');
@@ -128,22 +120,19 @@ function setupEventListeners(currentUser, targetUser) {
         profileNavOverlay.classList.add('open');
     });
 
-    profileNavClose.addEventListener('click', () => {
+    const closeNav = () => {
         profileNavigation.classList.remove('open');
         profileNavOverlay.classList.remove('open');
-    });
-
-    profileNavOverlay.addEventListener('click', () => {
-        profileNavigation.classList.remove('open');
-        profileNavOverlay.classList.remove('open');
-    });
+    };
+    profileNavClose.addEventListener('click', closeNav);
+    profileNavOverlay.addEventListener('click', closeNav);
 
     const messageTextarea = document.getElementById('message');
     const charCountSpan = document.getElementById('char-count');
     const previewMessageEl = document.getElementById('preview-message');
     const cancelButton = document.getElementById('cancelButton');
     const guestbookForm = document.getElementById('guestbook-form');
-
+    
     messageTextarea.addEventListener('input', () => {
         const currentLength = messageTextarea.value.length;
         charCountSpan.textContent = currentLength;
