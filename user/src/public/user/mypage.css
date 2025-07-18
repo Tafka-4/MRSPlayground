@@ -68,10 +68,11 @@
     color: var(--text-primary);
 }
 
-/* Navigation & Main Content Layout */
+/* Main Content */
 .main-content {
     display: flex;
-    align-items: flex-start;
+    justify-content: center;
+    align-items: center;
     min-height: 100vh;
     padding: 2rem;
     position: relative;
@@ -79,7 +80,7 @@
 }
 
 .profile-navigation-container {
-    width: 250px;
+    width: 280px;
     background: var(--card-background);
     border-radius: 1rem;
     padding: 1.5rem;

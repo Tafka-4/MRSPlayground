@@ -77,10 +77,6 @@
     padding: 1.5rem;
     box-shadow: var(--shadow);
     height: fit-content;
-    position: absolute;
-    left: 2rem;
-    top: 50%;
-    transform: translateY(-50%);
 }
 
 .profile-nav-header {
@@ -179,9 +175,11 @@
     z-index: 150;
 }
 
+/* Main Content */
 .main-content {
     display: flex;
-    align-items: flex-start;
+    justify-content: center;
+    align-items: center;
     min-height: 100vh;
     padding: 2rem;
     position: relative;
