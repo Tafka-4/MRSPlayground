@@ -11,9 +11,9 @@
         />
 
         <link rel="stylesheet" href="/component/style/base.css" />
-        <link rel="stylesheet" href="/component/style/badges.css" />
         <link rel="stylesheet" href="/component/style/buttons.css" />
         <link rel="stylesheet" href="/component/style/modals.css" />
+        <link rel="stylesheet" href="/user/user-profile.css" />
         <link rel="stylesheet" href="/user/guestbook-write.css" />
     </head>
     <body>
@@ -31,113 +31,85 @@
                     <button class="profile-menu-toggle" id="profileMenuToggle">
                         <span class="material-symbols-outlined">menu</span>
                     </button>
-                    <h2 class="mobile-page-title">방명록 작성</h2>
+                    <h2 class="mobile-page-title" id="mobile-title">방명록 작성</h2>
                 </div>
 
                 <div class="profile-navigation-container" id="profileNavigation">
                     <div class="profile-nav-header">
-                        <h3>프로필 관리</h3>
+                        <h3 id="nav-title"></h3>
                         <button class="profile-nav-close" id="profileNavClose">
                             <span class="material-symbols-outlined">close</span>
                         </button>
                     </div>
-                    <nav class="profile-nav">
-                        <a href="/mypage" class="profile-nav-item">
-                            <span class="material-symbols-outlined">person</span>
-                            <span>프로필 보기</span>
-                        </a>
-                        <a href="/mypage/edit" class="profile-nav-item">
-                            <span class="material-symbols-outlined">edit</span>
-                            <span>프로필 수정</span>
-                        </a>
-                        <a href="#activity" class="profile-nav-item">
-                            <span class="material-symbols-outlined">history</span>
-                            <span>활동</span>
-                        </a>
-                        <a href="/mypage/guestbook" class="profile-nav-item">
-                            <span class="material-symbols-outlined">book</span>
-                            <span>방명록</span>
-                        </a>
-                        <a href="/mypage/edit/password" class="profile-nav-item">
-                            <span class="material-symbols-outlined">lock</span>
-                            <span>비밀번호 변경</span>
-                        </a>
-                        <div class="profile-nav-divider"></div>
-                        <a href="/" class="profile-nav-item">
-                            <span class="material-symbols-outlined">home</span>
-                            <span>홈으로 돌아가기</span>
-                        </a>
-                    </nav>
+                    <nav class="profile-nav" id="profile-nav-list"></nav>
                 </div>
 
                 <div class="profile-nav-overlay" id="profileNavOverlay"></div>
 
                 <div class="container">
-                    <div class="mypage-header">
-                        <h1 class="title" id="page-title">방명록 작성</h1>
-                        <div id="admin-button-container"></div>
-                    </div>
-
                     <div id="loading" class="loading">사용자 정보를 불러오는 중...</div>
-
-                    <div
-                        id="error-container"
-                        class="error-container"
-                        style="display: none"
-                    >
-                        <div class="error-message" id="error-message">
-                            사용자를 찾을 수 없습니다.
-                        </div>
+                    
+                    <div id="error-container" class="error-container" style="display: none">
+                        <div class="error-message" id="error-message"></div>
                     </div>
 
-                    <div id="guestbook-write-container" style="display: none">
-                        <div class="target-user-info">
-                            <div class="profile-image-container">
-                                <div class="profile-image" id="target-profile-image">
-                                    <span class="material-symbols-outlined">person</span>
-                                </div>
-                            </div>
-                            <div class="user-info">
-                                <h2 id="target-username">사용자</h2>
-                                <p id="target-description">소개가 없습니다.</p>
-                            </div>
+                    <div id="profile-container" style="display: none;">
+                        <div class="tab-header">
+                            <h2 class="tab-title">
+                                <span class="material-symbols-outlined">edit_note</span>
+                                <span id="page-title"></span>
+                            </h2>
                         </div>
-
-                        <div class="guestbook-form-container">
-                            <h3>방명록 작성</h3>
-                            <form id="guestbook-form" class="guestbook-form">
-                                <div class="form-group">
-                                    <label for="message">메시지</label>
-                                    <textarea 
-                                        id="message" 
-                                        name="message" 
-                                        rows="6" 
-                                        placeholder="방명록에 남길 메시지를 입력하세요..."
-                                        maxlength="1000"
-                                        required
-                                    ></textarea>
-                                    <div class="char-counter">
-                                        <span id="char-count">0</span>/1000
+                        <div class="tab-content">
+                            <div id="guestbook-write-container">
+                                <div class="target-user-info">
+                                    <div class="profile-image-container">
+                                        <div class="profile-image" id="target-profile-image">
+                                            <span class="material-symbols-outlined">person</span>
+                                        </div>
+                                    </div>
+                                    <div class="user-info">
+                                        <h2 id="target-username">사용자</h2>
+                                        <p id="target-description">소개가 없습니다.</p>
                                     </div>
                                 </div>
-                                
-                                <div class="form-actions">
-                                    <button type="button" class="btn btn-secondary" id="cancelButton">
-                                        취소
-                                    </button>
-                                    <button type="submit" class="btn btn-primary" id="submitButton">
-                                        <span class="material-symbols-outlined">send</span>
-                                        방명록 남기기
-                                    </button>
+        
+                                <div class="guestbook-form-container">
+                                    <form id="guestbook-form" class="guestbook-form">
+                                        <div class="form-group">
+                                            <label for="message">메시지</label>
+                                            <textarea 
+                                                id="message" 
+                                                name="message" 
+                                                rows="6" 
+                                                placeholder="방명록에 남길 메시지를 입력하세요..."
+                                                maxlength="150"
+                                                required
+                                            ></textarea>
+                                            <div class="char-counter">
+                                                <span id="char-count">0</span>/150
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="form-actions">
+                                            <button type="button" class="btn btn-secondary" id="cancelButton">
+                                                취소
+                                            </button>
+                                            <button type="submit" class="btn btn-primary" id="submitButton">
+                                                <span class="material-symbols-outlined">send</span>
+                                                방명록 남기기
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
-                            </form>
-                        </div>
-
-                        <div class="guestbook-preview">
-                            <h3>미리보기</h3>
-                            <div class="preview-container">
-                                <div class="preview-message" id="preview-message">
-                                    메시지를 입력하면 여기에 미리보기가 표시됩니다.
+        
+                                <div class="guestbook-preview">
+                                    <h3>미리보기</h3>
+                                    <div class="preview-container">
+                                        <div class="preview-message" id="preview-message">
+                                            메시지를 입력하면 여기에 미리보기가 표시됩니다.
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
