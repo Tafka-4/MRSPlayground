@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
 
-        renderPage(currentUser, targetUser);
+        renderPage(targetUser);
         setupEventListeners(targetUser);
         setupMobileHeaderScroll();
 
@@ -43,12 +43,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-function renderPage(currentUser, targetUser) {
+function renderPage(targetUser) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('profile-container').style.display = 'block';
     
     renderUserInfo(targetUser);
-    updateNavigation(currentUser, targetUser);
+    updateNavigation(targetUser);
 }
 
 
@@ -65,47 +65,28 @@ function renderUserInfo(user) {
     }
 }
 
-function updateNavigation(currentUser, targetUser) {
+function updateNavigation(targetUser) {
     const mobileTitleEl = document.getElementById('mobile-title');
     const navTitleEl = document.getElementById('nav-title');
     const navListEl = document.getElementById('profile-nav-list');
     
-    const isMyPage = currentUser && currentUser.userId === targetUser.userId;
-    
     mobileTitleEl.textContent = "방명록 작성";
-    navTitleEl.textContent = isMyPage ? "프로필 관리" : "사용자 메뉴";
+    navTitleEl.textContent = "사용자 메뉴";
 
-    let navItems = '';
-    const writeLink = `
-        <a href="/user/${targetUser.userId}/guestbook/write" class="profile-nav-item">
-            <span class="material-symbols-outlined">edit_note</span>
-            <span>방명록 작성</span>
+    const navItems = `
+        <a href="/user/${targetUser.userId}" class="profile-nav-item">
+            <span class="material-symbols-outlined">person</span>
+            <span>프로필</span>
+        </a>
+        <a href="/user/${targetUser.userId}/activity" class="profile-nav-item">
+            <span class="material-symbols-outlined">history</span>
+            <span>활동</span>
+        </a>
+        <a href="/user/${targetUser.userId}/guestbook" class="profile-nav-item active">
+            <span class="material-symbols-outlined">book</span>
+            <span>방명록</span>
         </a>
     `;
-
-    if (isMyPage) {
-        navItems = `
-            <a href="/mypage" class="profile-nav-item">...</a>
-            ${writeLink}
-        `;
-    } else {
-        navItems = `
-            <a href="/user/${targetUser.userId}" class="profile-nav-item">
-                <span class="material-symbols-outlined">person</span>
-                <span>프로필</span>
-            </a>
-            <a href="/user/${targetUser.userId}/activity" class="profile-nav-item">
-                <span class="material-symbols-outlined">history</span>
-                <span>활동</span>
-            </a>
-            <a href="/user/${targetUser.userId}/guestbook" class="profile-nav-item">
-                <span class="material-symbols-outlined">book</span>
-                <span>방명록</span>
-            </a>
-             <div class="profile-nav-divider"></div>
-            ${writeLink}
-        `;
-    }
     navListEl.innerHTML = navItems;
 }
 
@@ -115,17 +96,26 @@ function setupEventListeners(targetUser) {
     const profileNavOverlay = document.getElementById('profileNavOverlay');
     const profileNavigation = document.getElementById('profileNavigation');
 
-    profileMenuToggle.addEventListener('click', () => {
-        profileNavigation.classList.add('open');
-        profileNavOverlay.classList.add('open');
-    });
+    const openNav = () => {
+        profileNavigation.classList.add('active');
+        profileNavOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    };
 
     const closeNav = () => {
-        profileNavigation.classList.remove('open');
-        profileNavOverlay.classList.remove('open');
+        profileNavigation.classList.remove('active');
+        profileNavOverlay.classList.remove('active');
+        document.body.style.overflow = '';
     };
+
+    profileMenuToggle.addEventListener('click', openNav);
     profileNavClose.addEventListener('click', closeNav);
     profileNavOverlay.addEventListener('click', closeNav);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && profileNavigation.classList.contains('active')) {
+            closeNav();
+        }
+    });
 
     const messageTextarea = document.getElementById('message');
     const charCountSpan = document.getElementById('char-count');
@@ -157,6 +147,8 @@ function setupEventListeners(targetUser) {
             const message = messageTextarea.value;
             if (!message.trim()) {
                 showNotice('메시지를 입력해주세요.', 'error');
+                submitButton.disabled = false;
+                submitButton.innerHTML = `<span class="material-symbols-outlined">send</span> 방명록 남기기`;
                 return;
             }
 
@@ -169,7 +161,6 @@ function setupEventListeners(targetUser) {
 
         } catch (error) {
             showNotice(error.message || '방명록 작성에 실패했습니다.', 'error');
-        } finally {
             submitButton.disabled = false;
             submitButton.innerHTML = `<span class="material-symbols-outlined">send</span> 방명록 남기기`;
         }
