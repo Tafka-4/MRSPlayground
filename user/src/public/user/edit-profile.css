@@ -181,11 +181,11 @@
 
 .main-content {
     display: flex;
-    justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     min-height: 100vh;
-    padding: 2rem 1rem;
+    padding: 2rem;
     position: relative;
+    gap: 2rem;
 }
 
 .container {
@@ -201,7 +201,7 @@
 
 .edit-header {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 2rem;
     flex-wrap: wrap;
@@ -777,5 +777,21 @@ textarea:focus {
 
 [data-theme='dark'] .profile-nav-item.active {
     background-color: var(--primary-color);
-    color: var(--background-color);
+    color: #1e1e1e !important; /* 흰색 배경에 어두운 글자색 */
+}
+
+.input-with-icon {
+    position: relative;
+}
+
+.input-with-icon .material-symbols-outlined {
+    position: absolute;
+    left: 0.75rem;
+    top: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.input-with-icon input,
+.input-with-icon textarea {
+    padding-left: 2.5rem; /* 아이콘 너비만큼 패딩 추가 */
 }

@@ -34,7 +34,8 @@ class UserGuestbookManager {
                 nav: document.getElementById('profileNavigation'),
                 close: document.getElementById('profileNavClose'),
                 overlay: document.getElementById('profileNavOverlay'),
-            }
+            },
+            guestbookStats: document.getElementById('guestbook-stats'),
         };
     }
 
@@ -68,7 +69,7 @@ class UserGuestbookManager {
             this.renderUserHeader();
             this.showProfile();
             this.loadGuestbookEntries();
-
+            this.loadGuestbookStats(); // 통계 로딩 함수 호출
         } catch (error) {
             this.showError(error.message);
         }
@@ -83,6 +84,34 @@ class UserGuestbookManager {
         this.elements.navLinks.profile.href = `/user/${this.targetUser.userid}`;
         this.elements.navLinks.activity.href = `/user/${this.targetUser.userid}/activity`;
         this.elements.navLinks.guestbook.href = `/user/${this.targetUser.userid}/guestbook`;
+    }
+
+    async loadGuestbookStats() {
+        try {
+            const response = await api.get(`/api/v1/guestbook/stats/${this.targetUserId}`);
+            if (response.success) {
+                this.renderStats(response.stats);
+            }
+        } catch (error) {
+            console.error('Failed to load guestbook stats:', error);
+        }
+    }
+
+    renderStats(stats) {
+        this.elements.guestbookStats.innerHTML = `
+            <div class="stat-item">
+                <span class="stat-value">${stats.totalMessages}</span>
+                <span class="stat-label">총 메시지</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${stats.uniqueSenders}</span>
+                <span class="stat-label">방문자 수</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value">${stats.recentMessages}</span>
+                <span class="stat-label">최근 7일</span>
+            </div>
+        `;
     }
 
     async loadGuestbookEntries() {

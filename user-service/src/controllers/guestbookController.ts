@@ -167,3 +167,33 @@ export const getMyGuestbookStats = async (req: Request, res: Response) => {
         }
     });
 };
+
+export const getGuestbookStats = async (req: Request, res: Response) => {
+    try {
+        const { userid } = req.params;
+        if (!userid) {
+            return res.status(400).json({ success: false, message: 'User ID is required.' });
+        }
+
+        const totalMessages = await Guestbook.count({ target_userid: userid });
+        
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        const recentMessages = await Guestbook.count({ target_userid: userid, createdAt: { $gte: sevenDaysAgo } as any });
+
+        const entries = await Guestbook.find({ target_userid: userid });
+        const uniqueSenders = new Set(entries.map(entry => entry.sender_userid));
+
+        res.status(200).json({
+            success: true,
+            stats: {
+                totalMessages,
+                uniqueSenders: uniqueSenders.size,
+                recentMessages
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching guestbook stats:', error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+};

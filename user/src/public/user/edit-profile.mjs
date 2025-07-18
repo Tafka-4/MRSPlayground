@@ -88,11 +88,17 @@ class EditProfileManager {
             <form id="edit-profile-form">
                 <div class="input-wrapper">
                     <label for="nickname">닉네임</label>
-                    <input type="text" id="nickname" class="input" value="${escape(this.initialData.nickname)}" required>
+                    <div class="input-with-icon">
+                        <span class="material-symbols-outlined">badge</span>
+                        <input type="text" id="nickname" class="input" value="${escape(this.initialData.nickname)}" required>
+                    </div>
                 </div>
                 <div class="input-wrapper">
                     <label for="description">소개</label>
-                    <textarea id="description" class="textarea" rows="5" maxlength="500">${escape(this.initialData.description)}</textarea>
+                    <div class="input-with-icon">
+                        <span class="material-symbols-outlined">notes</span>
+                        <textarea id="description" class="textarea" rows="5" maxlength="500">${escape(this.initialData.description)}</textarea>
+                    </div>
                     <div id="char-count" class="char-counter">0/500</div>
                 </div>
             </form>

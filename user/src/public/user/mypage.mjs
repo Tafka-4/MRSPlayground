@@ -89,14 +89,14 @@ class MyPageManager {
         
         const editButton = createButton({
             text: '사진 수정',
-            variant: 'dark',
+            variant: 'secondary',
             icon: 'photo_camera',
             onClick: () => this.elements.profileImageInput.click()
         });
 
         const deleteButton = createButton({
             text: '사진 삭제',
-            variant: 'danger-outline',
+            variant: 'danger',
             icon: 'delete',
             onClick: () => this.deleteProfileImage()
         });
