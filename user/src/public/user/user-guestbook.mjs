@@ -1,944 +1,278 @@
+import { get, post, put, del } from '/module/api.js';
+import { setupMobileHeaderScroll } from '/module/animation.js';
+import { showNotice } from '/module/notice.js';
 import escape from '/module/escape.js';
-import apiClient from '/module/api.js';
-import NoticeBox from '/module/notice.js';
 
-const pathParts = window.location.pathname.split('/');
-const targetUserId = pathParts[2];
-
+let targetUserId = null;
 let currentUser = null;
 let currentPage = 1;
-const itemsPerPage = 5;
+const ITEMS_PER_PAGE = 5;
 let totalPages = 1;
 let editingEntryId = null;
 
-async function isMe() {
-    try {
-        const result = await apiClient.get(`/api/v1/auth/me`);
-        return result.success && result.user && result.user.userid === targetUserId;
-    } catch (error) {
-        return false;
-    }
-}
-
-async function getCurrentUserInfo() {
-    try {
-        const result = await apiClient.get(`/api/v1/auth/me`);
-        if (result.success && result.user) {
-            currentUser = result.user;
-        }
-    } catch (error) {
-        console.error('Current user info fetch failed:', error);
-        currentUser = null;
-    }
-}
-
-function canEditEntry(entry) {
-    return currentUser && currentUser.userid === entry.sender_userid;
-}
-
-function updatePaginationDisplay() {
-    const paginationContainer = document.getElementById('pagination-container');
-    if (!paginationContainer) {
-        createPaginationContainer();
-        return updatePaginationDisplay();
-    }
-
-    if (totalPages <= 1) {
-        paginationContainer.style.display = 'none';
+document.addEventListener('DOMContentLoaded', () => {
+    const pathParts = window.location.pathname.split('/');
+    targetUserId = pathParts[2];
+    
+    if (!targetUserId) {
+        window.location.href = '/';
         return;
     }
 
-    paginationContainer.style.display = 'flex';
-    
-    let paginationHTML = '';
-    
-    if (currentPage > 1) {
-        paginationHTML += `
-            <button class="pagination-btn" onclick="handlePaginationClick(${currentPage - 1})">
-                <span class="material-symbols-outlined">chevron_left</span>
-            </button>
-        `;
-    }
-    
-    const startPage = Math.max(1, currentPage - 2);
-    const endPage = Math.min(totalPages, currentPage + 2);
-    
-    for (let i = startPage; i <= endPage; i++) {
-        const isActive = i === currentPage ? 'active' : '';
-        paginationHTML += `
-            <button class="pagination-btn ${isActive}" onclick="handlePaginationClick(${i})">
-                ${i}
-            </button>
-        `;
-    }
-    
-    if (currentPage < totalPages) {
-        paginationHTML += `
-            <button class="pagination-btn" onclick="handlePaginationClick(${currentPage + 1})">
-                <span class="material-symbols-outlined">chevron_right</span>
-            </button>
-        `;
-    }
-    
-    paginationContainer.innerHTML = paginationHTML;
-}
+    initializePage();
+});
 
-async function handlePaginationClick(page) {
-    if (page === currentPage) return;
-    
-    loadGuestbookList(page);
-}
+async function initializePage() {
+    const loadingEl = document.getElementById('loading');
+    const errorContainerEl = document.getElementById('error-container');
+    const errorMessageEl = document.getElementById('error-message');
 
-function createPaginationContainer() {
-    const guestbookContent = document.querySelector('.guestbook-content');
-    if (guestbookContent && !document.getElementById('pagination-container')) {
-        const paginationContainer = document.createElement('div');
-        paginationContainer.id = 'pagination-container';
-        paginationContainer.className = 'pagination-container';
-        guestbookContent.appendChild(paginationContainer);
-    }
-}
-
-function hidePagination() {
-    const paginationContainer = document.getElementById('pagination-container');
-    if (paginationContainer) {
-        paginationContainer.style.display = 'none';
-    }
-}
-
-async function loadUserProfile() {
     try {
-        const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
-        
-        if (!response.success || !response.user) {
-            throw new Error('사용자 정보를 찾을 수 없습니다.');
-        }
-        
-        if (await isMe()) {
-            location.href = '/mypage';
+        const [user, targetUser] = await Promise.all([
+            get('/api/user').catch(() => null),
+            get(`/api/user/${targetUserId}`)
+        ]);
+
+        currentUser = user;
+
+        if (!targetUser) throw new Error('사용자를 찾을 수 없습니다.');
+
+        if (currentUser && currentUser.userId === targetUser.userId) {
+            window.location.href = '/mypage/guestbook';
             return;
         }
-        displayUserProfile(response.user);
+
+        renderPage(targetUser);
+        setupEventListeners();
+        loadGuestbook(1);
+
     } catch (error) {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('error-container').style.display = 'block';
-        document.getElementById('error-message').textContent = error.message;
+        loadingEl.style.display = 'none';
+        errorMessageEl.textContent = error.message || '정보를 불러오는 데 실패했습니다.';
+        errorContainerEl.style.display = 'block';
     }
 }
 
-function displayUserProfile(user) {
-    currentUser = user;
-    
+function renderPage(targetUser) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('profile-container').style.display = 'block';
-
-    document.getElementById('mobile-title').textContent = `${user.nickname}님의 방명록`;
-    document.getElementById('user-nickname').textContent = user.nickname;
-    document.title = `${user.nickname}님의 방명록 - 마법연구회`;
-
-    setupEventListeners();
-    setupProfileNavigation();
+    document.getElementById('mobile-title').textContent = `${targetUser.nickname}님의 방명록`;
+    document.getElementById('user-nickname').textContent = `${targetUser.nickname}`;
+    document.title = `${targetUser.nickname}님의 방명록 - 마법연구회`;
+    
     updateNavigationLinks();
-    loadGuestbookList();
-}
-
-function updateNavigationLinks() {
-    const profileNavLink = document.getElementById('profile-nav-link');
-    const activityNavLink = document.getElementById('activity-nav-link');
-    const guestbookNavLink = document.getElementById('guestbook-nav-link');
-    
-    if (profileNavLink) {
-        profileNavLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = `/user/${targetUserId}`;
-        });
-    }
-    if (activityNavLink) {
-        activityNavLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = `/user/${targetUserId}/activity`;
-        });
-    }
-    if (guestbookNavLink) {
-        guestbookNavLink.addEventListener('click', (e) => {
-            e.preventDefault();
-        });
-    }
-}
-
-function setupEventListeners() {
-    const submitGuestbook = document.getElementById('submit-guestbook');
-    const guestbookMessage = document.getElementById('guestbook-message');
-    
-    if (submitGuestbook) {
-        submitGuestbook.addEventListener('click', handleGuestbookSubmit);
-    }
-    
-    if (guestbookMessage) {
-        guestbookMessage.addEventListener('input', handleGuestbookInput);
-        updateGuestbookCharCounter();
-    }
-}
-
-function setupProfileNavigation() {
-    const profileMenuToggle = document.getElementById('profileMenuToggle');
-    const profileNavigation = document.getElementById('profileNavigation');
-    const profileNavClose = document.getElementById('profileNavClose');
-    const profileNavOverlay = document.getElementById('profileNavOverlay');
-
-    if (profileMenuToggle) {
-        profileMenuToggle.addEventListener('click', () => {
-            profileNavigation.classList.add('active');
-            profileNavOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-    }
-
-    if (profileNavClose) {
-        profileNavClose.addEventListener('click', closeProfileNavigation);
-    }
-
-    if (profileNavOverlay) {
-        profileNavOverlay.addEventListener('click', closeProfileNavigation);
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && profileNavigation.classList.contains('active')) {
-            closeProfileNavigation();
-        }
-    });
-    
     setupMobileHeaderScroll();
 }
 
-function setupMobileHeaderScroll() {
-    const mobileHeader = document.querySelector('.mobile-profile-header');
-    if (!mobileHeader) return;
-
-    let lastScrollY = window.scrollY;
-    let ticking = false;
-
-    function updateMobileHeader() {
-        const scrollY = window.scrollY;
-        const scrollDirection = scrollY > lastScrollY ? 'down' : 'up';
-        const scrollDelta = Math.abs(scrollY - lastScrollY);
-
-        if (scrollY === 0) {
-            mobileHeader.classList.remove('header-hidden');
-        } else if (
-            scrollY > 50 &&
-            scrollDirection === 'up' &&
-            scrollDelta > 2
-        ) {
-            mobileHeader.classList.add('header-hidden');
-        } else if (scrollDirection === 'down' && scrollDelta > 1) {
-            mobileHeader.classList.remove('header-hidden');
-        }
-
-        if (scrollY > 50) {
-            mobileHeader.classList.add('header-shadow');
-        } else {
-            mobileHeader.classList.remove('header-shadow');
-        }
-
-        lastScrollY = scrollY;
-        ticking = false;
-    }
-
-    function requestTick() {
-        if (!ticking) {
-            requestAnimationFrame(updateMobileHeader);
-            ticking = true;
-        }
-    }
-
-    window.addEventListener('scroll', requestTick, { passive: true });
-
-    let touchStartY = 0;
-    let touchEndY = 0;
-
-    window.addEventListener(
-        'touchstart',
-        (e) => {
-            touchStartY = e.changedTouches[0].screenY;
-        },
-        { passive: true }
-    );
-
-    window.addEventListener(
-        'touchend',
-        (e) => {
-            touchEndY = e.changedTouches[0].screenY;
-            const touchDelta = touchStartY - touchEndY;
-
-            if (Math.abs(touchDelta) > 50) {
-                if (touchDelta < 0) {
-                    mobileHeader.classList.add('header-hidden');
-                } else {
-                    mobileHeader.classList.remove('header-hidden');
-                }
-            }
-        },
-        { passive: true }
-    );
+function updateNavigationLinks() {
+    document.getElementById('profile-nav-link').href = `/user/${targetUserId}`;
+    document.getElementById('activity-nav-link').href = `/user/${targetUserId}/activity`;
+    document.getElementById('guestbook-nav-link').href = `/user/${targetUserId}/guestbook`;
 }
 
-function closeProfileNavigation() {
-    const profileNavigation = document.getElementById('profileNavigation');
+function setupEventListeners() {
+    const profileMenuToggle = document.getElementById('profileMenuToggle');
+    const profileNavClose = document.getElementById('profileNavClose');
     const profileNavOverlay = document.getElementById('profileNavOverlay');
-    
-    profileNavigation.classList.remove('active');
-    profileNavOverlay.classList.remove('active');
-    document.body.style.overflow = '';
+    const profileNavigation = document.getElementById('profileNavigation');
+
+    const openNav = () => {
+        profileNavigation.classList.add('active');
+        profileNavOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    };
+    const closeNav = () => {
+        profileNavigation.classList.remove('active');
+        profileNavOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    };
+
+    profileMenuToggle.addEventListener('click', openNav);
+    profileNavClose.addEventListener('click', closeNav);
+    profileNavOverlay.addEventListener('click', closeNav);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && profileNavigation.classList.contains('active')) {
+            closeNav();
+        }
+    });
+
+    document.getElementById('submit-guestbook').addEventListener('click', submitGuestbook);
+    document.getElementById('guestbook-message').addEventListener('input', updateCharCounter);
 }
 
-async function loadGuestbookList(page = 1) {
-    const guestbookList = document.getElementById('guestbook-list');
-    if (!guestbookList) return;
+function updateCharCounter() {
+    const textarea = document.getElementById('guestbook-message');
+    const counter = document.getElementById('guestbook-char-counter');
+    const maxLength = textarea.maxLength;
+    const currentLength = textarea.value.length;
+    counter.textContent = `${currentLength}/${maxLength}`;
+    counter.classList.toggle('warning', currentLength > maxLength * 0.9);
+}
+
+async function loadGuestbook(page) {
+    currentPage = page;
+    const listEl = document.getElementById('guestbook-list');
+    listEl.innerHTML = '<div class="loading">방명록을 불러오는 중...</div>';
 
     try {
-        guestbookList.innerHTML = '<div class="loading">방명록을 불러오는 중...</div>';
+        const data = await get(`/api/user/${targetUserId}/guestbook?page=${page}&limit=${ITEMS_PER_PAGE}`);
         
-        const response = await apiClient.get(`/api/v1/guestbook/${targetUserId}?page=${page}&limit=${itemsPerPage}`);
-        
-        if (!response.success || !response.data || response.data.length === 0) {
-            guestbookList.innerHTML = `
+        if (!data || data.entries.length === 0) {
+            listEl.innerHTML = `
                 <div class="empty-state">
                     <span class="material-symbols-outlined">book</span>
                     <p>아직 방명록이 없습니다.</p>
-                </div>
-            `;
-            hidePagination();
+                </div>`;
+            updatePagination(null);
             return;
         }
-        
-        currentPage = page;
-        if (response.pagination) {
-            totalPages = response.pagination.totalPages;
-            updatePaginationDisplay();
-        }
-        
-        await getCurrentUserInfo();
-        
-        guestbookList.innerHTML = response.data.map(entry => `
-            <div class="guestbook-item" data-entry-id="${entry.id}">
-                <div class="guestbook-header">
-                    <div class="guestbook-author">
-                        <strong>${escape(entry.sender_nickname || '익명')}</strong>
-                        <small>${new Date(entry.createdAt).toLocaleDateString('ko-KR')}</small>
-                        ${entry.updatedAt && entry.updatedAt !== entry.createdAt ? 
-                            `<small class="edited-indicator">(수정됨)</small>` : ''
-                        }
-                    </div>
-                    <div class="guestbook-actions">
-                        ${canEditEntry(entry) ? `
-                            <button class="action-btn edit-btn" onclick="startEditEntry(${entry.id})">
-                                <span class="material-symbols-outlined">edit</span>
-                            </button>
-                            <button class="action-btn delete-btn" onclick="deleteEntry(${entry.id})">
-                                <span class="material-symbols-outlined">delete</span>
-                            </button>
-                        ` : ''}
-                    </div>
-                </div>
-                <div class="guestbook-message" id="message-${entry.id}">
-                    ${escape(entry.message)}
-                </div>
-                <div class="edit-form" id="edit-form-${entry.id}" style="display: none;">
-                    <textarea class="edit-textarea" maxlength="150">${escape(entry.message)}</textarea>
-                    <div class="edit-actions">
-                        <button class="btn btn-sm btn-primary" onclick="saveEdit(${entry.id})">저장</button>
-                        <button class="btn btn-sm btn-secondary" onclick="cancelEdit(${entry.id})">취소</button>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-        
+
+        renderGuestbookEntries(data.entries);
+        totalPages = data.totalPages;
+        updatePagination(data);
+
     } catch (error) {
-        console.error('방명록 로딩 실패:', error);
-        guestbookList.innerHTML = `
+        listEl.innerHTML = `
             <div class="empty-state">
                 <span class="material-symbols-outlined">error</span>
                 <p>방명록을 불러올 수 없습니다.</p>
+            </div>`;
+    }
+}
+
+function renderGuestbookEntries(entries) {
+    const listEl = document.getElementById('guestbook-list');
+    listEl.innerHTML = entries.map(entry => {
+        const canEdit = currentUser && currentUser.userId === entry.senderId;
+        return `
+        <div class="guestbook-item" data-entry-id="${entry.id}">
+            <div class="guestbook-author">
+                <div>
+                    <strong>${escape(entry.senderNickname || '익명')}</strong>
+                    <small>${new Date(entry.createdAt).toLocaleDateString()}</small>
+                    ${entry.isEdited ? '<small class="edited-indicator">(수정됨)</small>' : ''}
+                </div>
+                ${canEdit ? `
+                <div class="guestbook-actions">
+                    <button class="action-btn edit-btn" onclick="window.startEditEntry(${entry.id}, \`${escape(entry.message)}\`)">
+                        <span class="material-symbols-outlined">edit</span>
+                    </button>
+                    <button class="action-btn delete-btn" onclick="window.deleteEntry(${entry.id})">
+                        <span class="material-symbols-outlined">delete</span>
+                    </button>
+                </div>` : ''}
             </div>
-        `;
-        hidePagination();
-    }
+            <div class="guestbook-message" id="message-${entry.id}">${escape(entry.message)}</div>
+            <div class="edit-form" id="edit-form-${entry.id}" style="display:none;"></div>
+        </div>
+    `}).join('');
 }
 
-function handleGuestbookInput() {
-    const messageInput = document.getElementById('guestbook-message');
-    const maxLength = 150;
-    const currentLength = messageInput.value.length;
-    
-    if (currentLength > maxLength) {
-        messageInput.value = messageInput.value.substring(0, maxLength);
-        showGuestbookCharLimitMessage();
-    }
-    
-    updateGuestbookCharCounter();
-}
-
-function updateGuestbookCharCounter() {
-    const messageInput = document.getElementById('guestbook-message');
-    const charCounter = document.getElementById('guestbook-char-counter');
-    
-    if (!messageInput || !charCounter) return;
-    
-    const maxLength = 150;
-    const currentLength = messageInput.value.length;
-    
-    charCounter.textContent = `${currentLength}/${maxLength}`;
-    
-    if (currentLength >= 130) {
-        charCounter.classList.add('warning');
-    } else {
-        charCounter.classList.remove('warning');
-    }
-}
-
-function showGuestbookCharLimitMessage() {
-    const existingMessage = document.querySelector('.char-limit-message');
-    if (existingMessage) {
-        existingMessage.remove();
-    }
-    
-    const charLimitMessage = document.createElement('div');
-    charLimitMessage.className = 'char-limit-message';
-    charLimitMessage.textContent = '방명록은 150자까지 입력 가능합니다.';
-    
-    const guestbookForm = document.querySelector('.guestbook-form');
-    guestbookForm.appendChild(charLimitMessage);
-    
-    setTimeout(() => {
-        charLimitMessage.remove();
-    }, 2000);
-}
-
-async function handleGuestbookSubmit() {
-    const messageInput = document.getElementById('guestbook-message');
-    const message = messageInput.value.trim();
-    
-    if (!message) {
-        new NoticeBox('방명록 내용을 입력해주세요.', 'warning').show();
+function updatePagination(data) {
+    const paginationContainer = document.querySelector('.pagination-container') || createPaginationContainer();
+    if (!data || data.totalPages <= 1) {
+        paginationContainer.style.display = 'none';
         return;
     }
     
-    if (message.length > 150) {
-        new NoticeBox('방명록은 150자 이하로 작성해주세요.', 'warning').show();
+    paginationContainer.style.display = 'flex';
+    let paginationHTML = '';
+
+    if (data.currentPage > 1) {
+        paginationHTML += `<button class="pagination-btn" onclick="window.loadGuestbook(${data.currentPage - 1})">&lt;</button>`;
+    }
+
+    for (let i = 1; i <= data.totalPages; i++) {
+        paginationHTML += `<button class="pagination-btn ${i === data.currentPage ? 'active' : ''}" onclick="window.loadGuestbook(${i})">${i}</button>`;
+    }
+
+    if (data.currentPage < data.totalPages) {
+        paginationHTML += `<button class="pagination-btn" onclick="window.loadGuestbook(${data.currentPage + 1})">&gt;</button>`;
+    }
+
+    paginationContainer.innerHTML = paginationHTML;
+}
+
+function createPaginationContainer() {
+    const container = document.createElement('div');
+    container.className = 'pagination-container';
+    document.querySelector('.guestbook-content').appendChild(container);
+    return container;
+}
+
+
+async function submitGuestbook() {
+    const textarea = document.getElementById('guestbook-message');
+    const message = textarea.value.trim();
+
+    if (!message) {
+        showNotice('메시지를 입력해주세요.', 'warning');
         return;
     }
     
     try {
-        const response = await apiClient.post(`/api/v1/guestbook/${targetUserId}`, {
-            message: message
-        });
-        
-        if (response.success) {
-            messageInput.value = '';
-            updateGuestbookCharCounter();
-            new NoticeBox(response.message || '방명록이 작성되었습니다.', 'success').show();
-            loadGuestbookList(currentPage);
-        } else {
-            throw new Error(response.message || '방명록 작성에 실패했습니다.');
-        }
-        
+        await post(`/api/user/${targetUserId}/guestbook`, { message });
+        textarea.value = '';
+        updateCharCounter();
+        showNotice('방명록이 성공적으로 작성되었습니다.', 'success');
+        loadGuestbook(1);
     } catch (error) {
-        new NoticeBox(error.message || '방명록 작성에 실패했습니다.', 'error').show();
+        showNotice(error.message || '방명록 작성에 실패했습니다.', 'error');
     }
 }
 
-async function startEditEntry(entryId) {
-    if (editingEntryId && editingEntryId !== entryId) {
-        cancelEdit(editingEntryId);
-    }
+window.startEditEntry = (entryId, currentMessage) => {
+    if (editingEntryId) cancelEdit(editingEntryId);
     
     editingEntryId = entryId;
     document.getElementById(`message-${entryId}`).style.display = 'none';
-    document.getElementById(`edit-form-${entryId}`).style.display = 'block';
-    
-    const textarea = document.querySelector(`#edit-form-${entryId} .edit-textarea`);
-    if (textarea) {
-        textarea.focus();
-    }
-}
+    const formEl = document.getElementById(`edit-form-${entryId}`);
+    formEl.style.display = 'block';
+    formEl.innerHTML = `
+        <textarea class="edit-textarea" maxlength="150">${currentMessage}</textarea>
+        <div class="edit-actions">
+            <button class="btn btn-sm btn-primary" onclick="saveEdit(${entryId})">저장</button>
+            <button class="btn btn-sm btn-secondary" onclick="cancelEdit(${entryId})">취소</button>
+        </div>
+    `;
+    formEl.querySelector('textarea').focus();
+};
 
-async function saveEdit(entryId) {
+window.saveEdit = async (entryId) => {
     const textarea = document.querySelector(`#edit-form-${entryId} .edit-textarea`);
-    const newMessage = textarea.value.trim();
-    
-    if (!newMessage) {
-        new NoticeBox('메시지를 입력해주세요.', 'warning').show();
+    const message = textarea.value.trim();
+
+    if (!message) {
+        showNotice('메시지를 입력해주세요.', 'warning');
         return;
     }
-    
-    if (newMessage.length > 150) {
-        new NoticeBox('메시지는 150자를 초과할 수 없습니다.', 'warning').show();
-        return;
-    }
-    
+
     try {
-        const response = await apiClient.put(`/api/v1/guestbook/entry/${entryId}`, {
-            message: newMessage
-        });
-        
-        if (response.success) {
-            new NoticeBox('방명록이 수정되었습니다.', 'success').show();
-            loadGuestbookList(currentPage);
-            editingEntryId = null;
-        } else {
-            throw new Error(response.message || '방명록 수정에 실패했습니다.');
-        }
-        
+        await put(`/api/user/guestbook/${entryId}`, { message });
+        showNotice('방명록이 수정되었습니다.', 'success');
+        editingEntryId = null;
+        loadGuestbook(currentPage);
     } catch (error) {
-        new NoticeBox(error.message || '방명록 수정에 실패했습니다.', 'error').show();
+        showNotice(error.message || '수정에 실패했습니다.', 'error');
     }
-}
+};
 
-function cancelEdit(entryId) {
+window.cancelEdit = (entryId) => {
     document.getElementById(`message-${entryId}`).style.display = 'block';
     document.getElementById(`edit-form-${entryId}`).style.display = 'none';
     editingEntryId = null;
-}
+};
 
-async function deleteEntry(entryId) {
-    if (!confirm('정말로 이 방명록을 삭제하시겠습니까?')) {
-        return;
-    }
-    
-    const response = await apiClient.delete(`/api/v1/guestbook/entry/${entryId}`);
-        
-    if (!response.success) {
-        new NoticeBox(response.message || '방명록 삭제에 실패했습니다.', 'error').show();
-        return;
-    }
-
-    new NoticeBox('방명록이 삭제되었습니다.', 'success').show();
-    const guestbookItems = document.querySelectorAll('.guestbook-item');
-
-    if (guestbookItems.length === 1 && currentPage > 1) {
-        loadGuestbookList(currentPage - 1);
-    } else {
-        loadGuestbookList(currentPage);
-    }
-}
-
-const style = document.createElement('style');
-style.textContent = `
-    .guestbook-item {
-        padding: 0.75rem;
-        margin-bottom: 0.75rem;
-        background: var(--background-color);
-        border-radius: 0.5rem;
-        box-shadow: var(--shadow);
-    }
-
-    .guestbook-author {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.375rem;
-        color: var(--text-primary);
-    }
-
-    .guestbook-author small {
-        color: var(--text-muted);
-    }
-
-    .guestbook-message {
-        color: var(--text-secondary);
-        line-height: 1.4;
-        margin: 0;
-        word-wrap: break-word;
-    }
-
-    .loading {
-        text-align: center;
-        color: var(--text-secondary);
-        padding: 2rem;
-    }
-
-    .guestbook-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 0.25rem;
-    }
-
-    .guestbook-actions {
-        display: flex;
-        gap: 0.25rem;
-    }
-
-    .action-btn {
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0.25rem;
-        border-radius: 0.25rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s ease;
-    }
-
-    .action-btn:hover {
-        background-color: var(--lighter-background);
-    }
-
-    .action-btn .material-symbols-outlined {
-        font-size: 16px;
-        color: var(--text-secondary);
-    }
-
-    .edit-btn:hover .material-symbols-outlined {
-        color: var(--info-color);
-    }
-
-    .delete-btn:hover .material-symbols-outlined {
-        color: var(--error-color);
-    }
-
-    .edited-indicator {
-        color: var(--text-muted);
-        font-style: italic;
-        margin-left: 0.5rem;
-    }
-
-    .edit-form {
-        margin-top: 0.25rem;
-    }
-
-    .edit-textarea {
-        width: 100%;
-        min-height: 60px;
-        padding: 0.5rem;
-        border: 1px solid var(--border-color);
-        border-radius: 0.25rem;
-        font-family: inherit;
-        font-size: 0.9rem;
-        resize: vertical;
-        background-color: var(--card-background);
-        color: var(--text-primary);
-    }
-
-    .edit-textarea:focus {
-        outline: none;
-        border-color: var(--primary-color);
-    }
-
-    .edit-actions {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 0.375rem;
-        justify-content: flex-end;
-    }
-
-    .btn {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        font-size: 0.875rem;
-        font-weight: 500;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    .btn-sm {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.8rem;
-    }
-
-    .btn-primary {
-        background-color: var(--primary-color);
-        color: var(--card-background);
-    }
-
-    .btn-primary:hover {
-        background-color: var(--primary-hover);
-    }
-
-    .btn-secondary {
-        background-color: var(--secondary-color);
-        color: var(--card-background);
-    }
-
-    .btn-secondary:hover {
-        background-color: var(--text-secondary);
-    }
-
-    .pagination-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 1.5rem;
-        padding: 1rem 0;
-    }
-
-    .pagination-btn {
-        background-color: var(--card-background);
-        border: 1px solid var(--border-color);
-        color: var(--text-secondary);
-        padding: 0.5rem 0.75rem;
-        border-radius: 0.25rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 2.5rem;
-        font-size: 0.875rem;
-    }
-
-    .pagination-btn:hover {
-        background-color: var(--lighter-background);
-        color: var(--text-primary);
-    }
-
-    .pagination-btn.active {
-        background-color: var(--primary-color);
-        color: var(--card-background);
-        border-color: var(--primary-color);
-    }
-
-    .pagination-btn .material-symbols-outlined {
-        font-size: 18px;
-    }
-
-    .mobile-profile-header {
-        display: none;
-        position: sticky;
-        top: 64px;
-        background: var(--card-background);
-        z-index: 999;
-        border-bottom: 1px solid var(--border-color);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        align-items: center;
-        padding: 1rem;
-        width: 100%;
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1),
-            box-shadow 0.3s ease, backdrop-filter 0.3s ease;
-        transform: translateY(0);
-    }
-
-    .mobile-profile-header.header-hidden {
-        transform: translateY(-100%);
-        transition: transform 0.2s cubic-bezier(0.4, 0, 1, 1);
-    }
-
-    .mobile-profile-header.header-shadow {
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom-color: rgba(var(--border-color-rgb), 0.5);
-    }
-
-    .guestbook-content {
-        position: relative;
-    }
-
-    .guestbook-form {
-        background: var(--lighter-background);
-        border-radius: 0.5rem;
-        padding: 0.75rem;
-        margin-bottom: 1rem;
-        border: 1px solid var(--border-color);
-    }
-
-    .guestbook-form textarea {
-        margin-bottom: 0.5rem;
-    }
-
-    .guestbook-form-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .char-counter {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-    }
-
-    .char-counter.warning {
-        color: var(--warning-color);
-        font-weight: 500;
-    }
-
-    @media (max-width: 768px) {
-        .guestbook-header {
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
-        .guestbook-actions {
-            align-self: flex-end;
-        }
-        
-        .edit-actions {
-            flex-direction: column;
-        }
-        
-        .pagination-container {
-            flex-wrap: wrap;
-        }
-
-        .mobile-profile-header {
-            top: 64px;
-            display: flex;
-            z-index: 999;
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-
-        .profile-navigation-container {
-            position: fixed !important;
-            left: -100%;
-            width: 300px;
-            height: calc(100vh - 120px);
-            margin: 0;
-            border-radius: 0;
-            transition: left 0.3s ease;
-            z-index: 1001;
-            padding-top: 1rem;
-            overflow-y: auto;
-        }
-
-        .profile-navigation-container.active {
-            left: 0;
-        }
-
-        .profile-nav-close {
-            display: block;
-        }
-
-        .profile-nav-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-        }
-
-        .profile-nav-overlay.active {
-            display: block;
-        }
-
-        .main-content {
-            padding-top: 10rem !important;
+window.deleteEntry = async (entryId) => {
+    if (confirm('정말로 이 방명록을 삭제하시겠습니까?')) {
+        try {
+            await del(`/api/user/guestbook/${entryId}`);
+            showNotice('방명록이 삭제되었습니다.', 'success');
+            loadGuestbook(currentPage);
+        } catch (error) {
+            showNotice(error.message || '삭제에 실패했습니다.', 'error');
         }
     }
+};
 
-    .main-content {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        min-height: calc(100vh - 120px);
-        padding: 2rem 1rem;
-        position: relative;
-    }
-
-    .container {
-        width: 100%;
-        max-width: 720px;
-        margin-left: 0;
-        transition: margin-left 0.3s ease, max-width 0.3s ease;
-    }
-
-    @media (max-width: 1200px) {
-        .main-content {
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .profile-navigation-container {
-            position: static;
-            width: 100%;
-            max-width: 720px;
-            margin: 0 0 2rem 0;
-            position: sticky;
-            top: 2rem;
-            z-index: 100;
-        }
-        
-        .container {
-            margin-left: 0;
-        }
-    }
-
-    @media (min-width: 769px) {
-        .profile-nav-close {
-            display: none;
-        }
-
-        .mobile-profile-header {
-            display: none !important;
-        }
-    }
-
-    @media (min-width: 1201px) {
-        .main-content {
-            justify-content: flex-start;
-            padding-left: calc(280px + 4rem);
-        }
-        
-        .profile-navigation-container {
-            position: fixed;
-            left: 2rem;
-            width: 280px;
-            overflow-y: auto;
-            z-index: 100;
-        }
-
-        .container {
-            margin-left: 2rem;
-        }
-
-        .profile-nav-close {
-            display: none;
-        }
-
-        .mobile-profile-header {
-            display: none !important;
-        }
-    }
-
-    @media (min-width: 769px) and (max-width: 1200px) {
-        .profile-navigation-container {
-            position: sticky;
-            top: 2rem;
-            left: 2rem;
-            margin-right: 2rem;
-            z-index: 100;
-        }
-
-        .profile-nav-close {
-            display: none;
-        }
-
-        .mobile-profile-header {
-            display: none !important;
-        }
-    }
-`;
-document.head.appendChild(style);
-
-window.startEditEntry = startEditEntry;
-window.saveEdit = saveEdit;
-window.cancelEdit = cancelEdit;
-window.deleteEntry = deleteEntry;
-window.loadGuestbookList = loadGuestbookList;
-window.handlePaginationClick = handlePaginationClick;
-
-document.addEventListener('DOMContentLoaded', () => {
-    loadUserProfile();
-}); 
+window.loadGuestbook = loadGuestbook; 
