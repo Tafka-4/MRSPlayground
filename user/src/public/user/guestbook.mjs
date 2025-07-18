@@ -96,11 +96,19 @@ class MyGuestbookManager {
         this.entries.forEach(entry => {
             const item = document.createElement('div');
             item.className = 'card guestbook-entry';
+
+            const sender = entry.sender;
+            const authorProfile = sender ? `/user/${escape(sender.userid)}` : '#';
+            const authorAvatarContainer = sender?.profileImage 
+                ? `<img src="${escape(sender.profileImage)}" alt="${escape(sender.nickname)}" class="author-avatar">` 
+                : `<div class="author-avatar-placeholder"><span class="material-symbols-outlined">person</span></div>`;
+            const authorNickname = sender ? escape(sender.nickname) : '알 수 없는 사용자';
+            
             item.innerHTML = `
                 <div class="card-header">
-                    <a href="/user/${escape(entry.sender.userid)}" class="author-link">
-                        <img src="${entry.sender.profileImage || '/img/default-avatar.png'}" alt="${escape(entry.sender.nickname)}" class="author-avatar">
-                        <strong>${escape(entry.sender.nickname)}</strong>
+                    <a href="${authorProfile}" class="author-link">
+                        ${authorAvatarContainer}
+                        <strong>${authorNickname}</strong>
                     </a>
                     <span class="entry-date">${new Date(entry.createdAt).toLocaleString()}</span>
                 </div>

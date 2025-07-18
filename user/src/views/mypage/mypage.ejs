@@ -50,9 +50,9 @@
                             <span class="material-symbols-outlined">edit</span>
                             <span>프로필 수정</span>
                         </a>
-                        <a href="#activity" class="profile-nav-item">
+                        <a href="/mypage/activity" class="profile-nav-item">
                             <span class="material-symbols-outlined">history</span>
-                            <span>활동</span>
+                            <span>내 활동</span>
                         </a>
                         <a href="/mypage/guestbook" class="profile-nav-item">
                             <span class="material-symbols-outlined">book</span>
@@ -73,59 +73,43 @@
                 <div class="profile-nav-overlay" id="profileNavOverlay"></div>
 
                 <div class="container">
-                    <div class="mypage-header">
-                        <h1 class="title">마이페이지</h1>
-                        <div id="admin-button-container"></div>
-                    </div>
-
-                    <div class="profile-section">
-                        <div class="profile-image-container">
-                            <div id="profile-image" class="profile-image">
-                                <span class="material-symbols-outlined"
-                                    >person</span
-                                >
-                            </div>
-                            <div class="profile-image-actions">
-                                <input
-                                    type="file"
-                                    id="profile-image-input"
-                                    hidden
-                                    accept="image/*"
-                                />
-                            </div>
+                     <div id="profile-container">
+                        <div class="user-profile-header">
+                            <h1 class="title">마이페이지</h1>
                         </div>
 
-                        <div class="profile-info">
-                            <div class="info-item">
-                                <label>닉네임</label>
-                                <div
-                                    id="username-container"
-                                    class="username-container"
-                                >
-                                    <span id="username" class="info-value"
-                                        >...</span
-                                    >
+                        <div class="profile-section">
+                            <div class="profile-image-container">
+                                <div class="profile-image" id="profile-image">
+                                    <span class="material-symbols-outlined">person</span>
                                 </div>
                             </div>
-                            <div class="info-item">
-                                <label>이메일</label>
-                                <div id="email" class="info-value">...</div>
-                            </div>
-                            <div class="info-item">
-                                <label>소개</label>
-                                <div id="description" class="info-value">
-                                    ...
+
+                            <div class="profile-info">
+                                <div class="info-item">
+                                    <label>닉네임</label>
+                                    <div id="username-container" class="username-container">
+                                        <span id="username" class="info-value">...</span>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="info-item">
-                                <label>가입일</label>
-                                <div id="created-at" class="info-value">
-                                    ...
+                                <div class="info-item">
+                                    <label>이메일</label>
+                                    <div class="info-value" id="email">...</div>
                                 </div>
-                            </div>
-                            <div class="info-item">
-                                <label>UID</label>
-                                <div id="uid" class="info-value">...</div>
+                                <div class="info-item">
+                                    <label>소개</label>
+                                    <div class="info-value" id="description">
+                                        소개가 없습니다.
+                                    </div>
+                                </div>
+                                <div class="info-item">
+                                    <label>가입일</label>
+                                    <div class="info-value" id="created-at">...</div>
+                                </div>
+                                <div class="info-item">
+                                    <label>UID</label>
+                                    <div class="info-value" id="uid">...</div>
+                                </div>
                             </div>
                         </div>
                     </div>

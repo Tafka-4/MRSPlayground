@@ -1,6 +1,6 @@
 import { BaseModel } from './BaseModel.js';
 import { RowDataPacket } from 'mysql2';
-import { pool } from '../config/database.js';
+import { pool, requestPool } from '../config/database.js';
 
 export interface ILog {
     request_id: string;
@@ -28,23 +28,39 @@ export class Log {
     }
 
     static async find(query: QueryObject, limit?: number, page?: number, sort?: { by: string; order: 'ASC' | 'DESC' }): Promise<ILog[]> {
-        const context = { tableName: this.tableName, buildWhereClause: BaseModel.buildWhereClause };
+        const context = { 
+            tableName: this.tableName, 
+            buildWhereClause: BaseModel.buildWhereClause,
+            pool: requestPool
+        };
         const results = await BaseModel.find(context, query, limit, page, sort);
         return results as ILog[];
     }
 
     static async count(query: QueryObject): Promise<number> {
-        const context = { tableName: this.tableName, buildWhereClause: BaseModel.buildWhereClause };
+        const context = { 
+            tableName: this.tableName, 
+            buildWhereClause: BaseModel.buildWhereClause,
+            pool: requestPool
+        };
         return BaseModel.count(context, query);
     }
 
     static async delete(query: QueryObject): Promise<number> {
-        const context = { tableName: this.tableName, buildWhereClause: BaseModel.buildWhereClause };
+        const context = { 
+            tableName: this.tableName, 
+            buildWhereClause: BaseModel.buildWhereClause,
+            pool: requestPool
+        };
         return BaseModel.delete(context, query);
     }
 
     static async aggregate(pipeline: (QueryObject | { $group: { _id: any; [key: string]: any; }; })[]): Promise<any[]> {
-        const context = { tableName: this.tableName, buildWhereClause: BaseModel.buildWhereClause };
+        const context = { 
+            tableName: this.tableName, 
+            buildWhereClause: BaseModel.buildWhereClause,
+            pool: requestPool
+        };
         return BaseModel.aggregate(context, pipeline);
     }
 } 

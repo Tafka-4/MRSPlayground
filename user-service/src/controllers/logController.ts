@@ -318,27 +318,40 @@ export const getRouteErrorDetails = async (req: Request, res: Response) => {
 };
 
 export const getUserLogs = async (req: Request, res: Response) => {
-    const { userid } = req.params;
-    const { page = 1, limit = 10, filter } = req.query;
+    try {
+        const { userid } = req.params;
+        const { page = 1, limit = 10, filter } = req.query;
 
-    const query: any = { userid };
-    if (filter && filter !== 'all') {
-        query.type = filter;
-    }
+        const { page: safePage, limit: safeLimit } = validatePaginationParams(page, limit);
 
-    const logs = await Log.find(query, Number(limit), Number(page), { by: 'createdAt', order: 'DESC' });
-    const total = await Log.count(query);
-
-    const enrichedLogs = await enrichLogsWithUserInfo(logs);
-
-    res.status(200).json({
-        success: true,
-        logs: enrichedLogs,
-        pagination: {
-            page: Number(page),
-            limit: Number(limit),
-            total,
-            totalPages: Math.ceil(total / Number(limit))
+        const query: any = { user_id: userid }; 
+        
+        if (filter && filter !== 'all') {
+            const sanitizedFilter = sanitizeString(filter as string, 20);
+            if (['success', 'failed', 'pending'].includes(sanitizedFilter)) {
+                query.status = sanitizedFilter; 
+            }
         }
-    });
+
+        const logs = await Log.find(query, safeLimit, safePage, { by: 'created_at', order: 'DESC' });
+        const total = await Log.count(query);
+
+        res.status(200).json({
+            success: true,
+            logs: logs,
+            pagination: {
+                page: safePage,
+                limit: safeLimit,
+                total,
+                totalPages: Math.ceil(total / safeLimit)
+            }
+        });
+    } catch (error) {
+        console.error(`Error fetching logs for user ${req.params.userid}:`, error);
+        res.status(500).json({
+            success: false,
+            error: 'Database service temporarily unavailable',
+            message: 'Please try again later'
+        });
+    }
 };

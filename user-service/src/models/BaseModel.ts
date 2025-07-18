@@ -1,26 +1,32 @@
-import { pool } from '../config/database.js';
-import { OkPacket, RowDataPacket } from 'mysql2/promise';
+import { pool as defaultPool } from '../config/database.js';
+import { OkPacket, RowDataPacket, Pool } from 'mysql2/promise';
 
 type QueryObject = { [key: string]: any };
+type BaseModelContext = {
+    tableName: string;
+    buildWhereClause: (query: QueryObject, values: any[], currentPool: Pool) => string;
+    pool?: Pool;
+};
 
 export class BaseModel {
     static async find(
-        context: { tableName: string; buildWhereClause: (query: QueryObject, values: any[]) => string },
+        context: BaseModelContext,
         query: QueryObject,
         limit?: number,
         page?: number,
         sort?: { by: string; order: 'ASC' | 'DESC' }
     ): Promise<RowDataPacket[]> {
+        const currentPool = context.pool || defaultPool;
         let sql = `SELECT * FROM ${context.tableName}`;
         const values: any[] = [];
 
         if (Object.keys(query).length > 0) {
-            const conditions = context.buildWhereClause(query, values);
+            const conditions = context.buildWhereClause(query, values, currentPool);
             sql += ` WHERE ${conditions}`;
         }
 
         if (sort) {
-            sql += ` ORDER BY ${pool.escapeId(sort.by)} ${
+            sql += ` ORDER BY ${currentPool.escapeId(sort.by)} ${
                 sort.order === 'ASC' ? 'ASC' : 'DESC'
             }`;
         }
@@ -33,24 +39,25 @@ export class BaseModel {
             values.push(limitValue, offset);
         }
 
-        const [rows] = await pool.query(sql, values);
+        const [rows] = await currentPool.query(sql, values);
         return rows as RowDataPacket[];
     }
 
     static async findOne(
-        context: { tableName: string; buildWhereClause: (query: QueryObject, values: any[]) => string },
+        context: BaseModelContext,
         query: QueryObject
     ): Promise<RowDataPacket | null> {
+        const currentPool = context.pool || defaultPool;
         let sql = `SELECT * FROM ${context.tableName}`;
         const values: any[] = [];
 
         if (Object.keys(query).length > 0) {
-            const conditions = context.buildWhereClause(query, values);
+            const conditions = context.buildWhereClause(query, values, currentPool);
             sql += ` WHERE ${conditions}`;
         }
         sql += ` LIMIT 1`;
 
-        const [rows] = await pool.query(sql, values);
+        const [rows] = await currentPool.query(sql, values);
         if ((rows as RowDataPacket[]).length === 0) {
             return null;
         }
@@ -58,66 +65,70 @@ export class BaseModel {
     }
 
     static async update(
-        context: { tableName: string; buildWhereClause: (query: QueryObject, values: any[]) => string },
+        context: BaseModelContext,
         query: QueryObject,
         updateData: QueryObject
     ): Promise<number> {
+        const currentPool = context.pool || defaultPool;
         let sql = `UPDATE ${context.tableName} SET `;
         const values: any[] = [];
 
         const updateFields = Object.keys(updateData)
             .map((key) => {
                 values.push(updateData[key]);
-                return `${pool.escapeId(key)} = ?`;
+                return `${currentPool.escapeId(key)} = ?`;
             })
             .join(', ');
 
         sql += updateFields;
 
         if (Object.keys(query).length > 0) {
-            const conditions = context.buildWhereClause(query, values);
+            const conditions = context.buildWhereClause(query, values, currentPool);
             sql += ` WHERE ${conditions}`;
         }
 
-        const [result] = await pool.execute<OkPacket>(sql, values);
+        const [result] = await currentPool.execute<OkPacket>(sql, values);
         return result.affectedRows;
     }
 
     static async delete(
-        context: { tableName: string; buildWhereClause: (query: QueryObject, values: any[]) => string },
+        context: BaseModelContext,
         query: QueryObject
     ): Promise<number> {
+        const currentPool = context.pool || defaultPool;
         let sql = `DELETE FROM ${context.tableName}`;
         const values: any[] = [];
 
         if (Object.keys(query).length > 0) {
-            const conditions = context.buildWhereClause(query, values);
+            const conditions = context.buildWhereClause(query, values, currentPool);
             sql += ` WHERE ${conditions}`;
         }
 
-        const [result] = await pool.execute<OkPacket>(sql, values);
+        const [result] = await currentPool.execute<OkPacket>(sql, values);
         return result.affectedRows;
     }
 
     static async count(
-        context: { tableName: string; buildWhereClause: (query: QueryObject, values: any[]) => string },
+        context: BaseModelContext,
         query: QueryObject
     ): Promise<number> {
+        const currentPool = context.pool || defaultPool;
         let sql = `SELECT COUNT(*) as count FROM ${context.tableName}`;
         const values: any[] = [];
 
         if (Object.keys(query).length > 0) {
-            const conditions = context.buildWhereClause(query, values);
+            const conditions = context.buildWhereClause(query, values, currentPool);
             sql += ` WHERE ${conditions}`;
         }
 
-        const [rows] = await pool.query(sql, values);
+        const [rows] = await currentPool.query(sql, values);
         return (rows as RowDataPacket[]).length > 0 ? (rows as RowDataPacket[])[0].count : 0;
     }
 
     static buildWhereClause(
         query: QueryObject,
-        values: any[]
+        values: any[],
+        currentPool: Pool
     ): string {
         const conditions: string[] = [];
         Object.entries(query).forEach(([key, value]) => {
@@ -130,32 +141,32 @@ export class BaseModel {
                 const operand = value[operator];
                 switch (operator) {
                     case '$regex':
-                        conditions.push(`${pool.escapeId(key)} LIKE ?`);
+                        conditions.push(`${currentPool.escapeId(key)} LIKE ?`);
                         values.push(`%${operand}%`);
                         break;
                     case '$lt':
-                        conditions.push(`${pool.escapeId(key)} < ?`);
+                        conditions.push(`${currentPool.escapeId(key)} < ?`);
                         values.push(operand);
                         break;
                     case '$lte':
-                        conditions.push(`${pool.escapeId(key)} <= ?`);
+                        conditions.push(`${currentPool.escapeId(key)} <= ?`);
                         values.push(operand);
                         break;
                     case '$gt':
-                        conditions.push(`${pool.escapeId(key)} > ?`);
+                        conditions.push(`${currentPool.escapeId(key)} > ?`);
                         values.push(operand);
                         break;
                     case '$gte':
-                        conditions.push(`${pool.escapeId(key)} >= ?`);
+                        conditions.push(`${currentPool.escapeId(key)} >= ?`);
                         values.push(operand);
                         break;
                     default:
-                        conditions.push(`${pool.escapeId(key)} = ?`);
+                        conditions.push(`${currentPool.escapeId(key)} = ?`);
                         values.push(value);
                         break;
                 }
             } else {
-                conditions.push(`${pool.escapeId(key)} = ?`);
+                conditions.push(`${currentPool.escapeId(key)} = ?`);
                 values.push(value);
             }
         });
@@ -163,28 +174,29 @@ export class BaseModel {
     }
 
     static async aggregate(
-        context: { tableName: string; buildWhereClause: (query: QueryObject, values: any[]) => string },
-        pipeline: (QueryObject | { $group: { _id: any; [key: string]: any; }; })[]
+        context: BaseModelContext,
+        pipeline: (QueryObject | { $group: { _id: any; [key:string]: any; }; })[]
     ): Promise<any[]> {
+        const currentPool = context.pool || defaultPool;
         let sql = `SELECT `;
         const values: any[] = [];
         let groupByFields: string[] = [];
         let whereClause = '';
 
-        const groupStage = pipeline.find(p => '$group' in p) as { $group: { _id: any; [key: string]: any; } } | undefined;
+        const groupStage = pipeline.find(p => '$group' in p) as { $group: { _id: any; [key: string]: any; }; } | undefined;
         
         if (groupStage) {
             const selectFields: string[] = [];
             
             if (typeof groupStage.$group._id === 'string') {
                 const fieldName = groupStage.$group._id.replace('$', '');
-                selectFields.push(`${pool.escapeId(fieldName)}`);
-                groupByFields.push(`${pool.escapeId(fieldName)}`);
+                selectFields.push(`${currentPool.escapeId(fieldName)}`);
+                groupByFields.push(`${currentPool.escapeId(fieldName)}`);
             } else if (typeof groupStage.$group._id === 'object' && groupStage.$group._id !== null) {
                 Object.values(groupStage.$group._id).forEach((field: any) => {
                     const fieldName = field.replace('$', '');
-                    selectFields.push(`${pool.escapeId(fieldName)}`);
-                    groupByFields.push(`${pool.escapeId(fieldName)}`);
+                    selectFields.push(`${currentPool.escapeId(fieldName)}`);
+                    groupByFields.push(`${currentPool.escapeId(fieldName)}`);
                 });
             }
 
@@ -193,7 +205,7 @@ export class BaseModel {
                     const operator = Object.keys(value)[0];
                     const field = Object.values(value)[0];
                     if (operator === '$sum' || operator === '$count') {
-                        selectFields.push(`COUNT(*) as ${pool.escapeId(key)}`);
+                        selectFields.push(`COUNT(*) as ${currentPool.escapeId(key)}`);
                     }
                 }
             });
@@ -206,7 +218,7 @@ export class BaseModel {
 
         const matchStage = pipeline.find(p => '$match' in p) as { $match: QueryObject } | undefined;
         if (matchStage) {
-            whereClause = ' WHERE ' + context.buildWhereClause(matchStage.$match, values);
+            whereClause = ' WHERE ' + context.buildWhereClause(matchStage.$match, values, currentPool);
             sql += whereClause;
         }
 
@@ -214,7 +226,7 @@ export class BaseModel {
             sql += ` GROUP BY ${groupByFields.join(', ')}`;
         }
 
-        const [rows] = await pool.query(sql, values);
+        const [rows] = await currentPool.query(sql, values);
         return rows as any[];
     }
 } 

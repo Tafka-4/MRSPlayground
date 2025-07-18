@@ -1,6 +1,10 @@
 import api from '../module/api.js';
 import Notice from '../module/notice.js';
 import { createConfirmCancelModal } from '../component/modals/index.js';
+import {
+    createRoleBadge,
+    createVerificationBadge,
+} from '../component/badges/index.js';
 
 class MyPageManager {
     constructor() {
@@ -17,8 +21,7 @@ class MyPageManager {
             createdAt: document.getElementById('created-at'),
             uid: document.getElementById('uid'),
             profileImage: document.getElementById('profile-image'),
-            profileImageInput: document.getElementById('profile-image-input'),
-            adminButtonContainer: document.getElementById('admin-button-container'),
+            usernameContainer: document.getElementById('username-container'),
             navDeleteAccount: document.getElementById('navDeleteAccount'),
             profileMenuToggle: document.getElementById('profileMenuToggle'),
             profileNavigation: document.getElementById('profileNavigation'),
@@ -49,7 +52,25 @@ class MyPageManager {
 
     renderUser() {
         if (!this.user) return;
-        this.elements.username.textContent = this.user.nickname;
+
+        // 기존 닉네임 텍스트 노드만 남기고 모두 제거
+        const textNode = Array.from(this.elements.username.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
+        this.elements.username.innerHTML = '';
+        if(textNode) this.elements.username.appendChild(textNode);
+        this.elements.username.firstChild.textContent = this.user.nickname;
+        
+        const badgeContainer = document.createElement('div');
+        badgeContainer.className = 'badge-container';
+        
+        const badges = [
+            createRoleBadge(this.user.role),
+            createVerificationBadge(this.user.isVerified),
+        ];
+        badges.forEach(badge => {
+            if (badge) badgeContainer.appendChild(badge);
+        });
+        this.elements.usernameContainer.appendChild(badgeContainer);
+
         this.elements.email.textContent = this.user.email;
         this.elements.description.textContent = this.user.description || '소개가 없습니다.';
         this.elements.createdAt.textContent = new Date(this.user.createdAt).toLocaleDateString('ko-KR');
@@ -61,14 +82,6 @@ class MyPageManager {
         } else {
             this.elements.profileImage.style.backgroundImage = 'none';
             this.elements.profileImage.innerHTML = '<span class="material-symbols-outlined">person</span>';
-        }
-
-        if (this.user.authority === 'admin' || this.user.authority === 'bot') {
-            const adminButton = document.createElement('a');
-            adminButton.href = '/admin';
-            adminButton.className = 'auth-btn auth-btn-secondary';
-            adminButton.innerHTML = '<span class="material-symbols-outlined">admin_panel_settings</span> 관리자 페이지';
-            this.elements.adminButtonContainer.appendChild(adminButton);
         }
     }
     

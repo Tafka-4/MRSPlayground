@@ -88,7 +88,7 @@ export class User {
         const values: any[] = [];
 
         if (Object.keys(query).length > 0) {
-            const conditions = BaseModel.buildWhereClause(query, values);
+            const conditions = BaseModel.buildWhereClause(query, values, pool);
             sql += ` WHERE ${conditions}`;
         }
 
@@ -111,7 +111,7 @@ export class User {
         const values: any[] = [];
 
         if (Object.keys(query).length > 0) {
-            const conditions = BaseModel.buildWhereClause(query, values);
+            const conditions = BaseModel.buildWhereClause(query, values, pool);
             sql += ` WHERE ${conditions}`;
         }
         sql += ` LIMIT 1`;
@@ -128,7 +128,7 @@ export class User {
         const values: any[] = [];
 
         if (Object.keys(query).length > 0) {
-            const conditions = BaseModel.buildWhereClause(query, values);
+            const conditions = BaseModel.buildWhereClause(query, values, pool);
             sql += ` WHERE ${conditions}`;
         }
 
