@@ -1,17 +1,33 @@
 import api from '../module/api.js';
 import Notice from '../module/notice.js';
-import { initializeComponents, loadSavedTheme } from '../component/index.js';
 import { createConfirmCancelModal } from '../component/modals/index.js';
 
 class MyPageManager {
     constructor() {
         this.user = null;
+        this.cacheDOM();
         this.init();
     }
     
+    cacheDOM() {
+        this.elements = {
+            username: document.getElementById('username'),
+            email: document.getElementById('email'),
+            description: document.getElementById('description'),
+            createdAt: document.getElementById('created-at'),
+            uid: document.getElementById('uid'),
+            profileImage: document.getElementById('profile-image'),
+            profileImageInput: document.getElementById('profile-image-input'),
+            adminButtonContainer: document.getElementById('admin-button-container'),
+            navDeleteAccount: document.getElementById('navDeleteAccount'),
+            profileMenuToggle: document.getElementById('profileMenuToggle'),
+            profileNavigation: document.getElementById('profileNavigation'),
+            profileNavClose: document.getElementById('profileNavClose'),
+            profileNavOverlay: document.getElementById('profileNavOverlay'),
+        };
+    }
+
     init() {
-        initializeComponents();
-        loadSavedTheme();
         this.fetchUser();
         this.setupEventListeners();
     }
@@ -26,66 +42,43 @@ class MyPageManager {
                 window.location.href = '/login';
             }
         } catch (error) {
-            Notice.error('사용자 정보를 불러오는 데 실패했습니다.');
+            Notice.error('사용자 정보를 불러오는 데 실패했습니다. 다시 로그인해주세요.');
             setTimeout(() => { window.location.href = '/login'; }, 1500);
         }
     }
 
     renderUser() {
-        document.getElementById('nickname').textContent = this.user.nickname;
-        const profileImage = document.getElementById('profile-image');
-        if (this.user.profile_image_url) {
-            profileImage.src = this.user.profile_image_url;
-        } else {
-            profileImage.src = '';
-        }
-    }
+        if (!this.user) return;
+        this.elements.username.textContent = this.user.nickname;
+        this.elements.email.textContent = this.user.email;
+        this.elements.description.textContent = this.user.description || '소개가 없습니다.';
+        this.elements.createdAt.textContent = new Date(this.user.createdAt).toLocaleDateString('ko-KR');
+        this.elements.uid.textContent = this.user.userid;
 
-    async uploadProfileImage(file) {
-        const formData = new FormData();
-        formData.append('profileImage', file);
-        try {
-            const response = await api.post('/api/v1/users/me/profile-image', formData);
-            if(response.success) {
-                Notice.success('프로필 사진이 변경되었습니다.');
-                this.fetchUser();
-            }
-        } catch (error) {
-            Notice.error('업로드에 실패했습니다.');
+        if (this.user.profileImage) {
+            this.elements.profileImage.style.backgroundImage = `url('${this.user.profileImage}')`;
+            this.elements.profileImage.innerHTML = '';
+        } else {
+            this.elements.profileImage.style.backgroundImage = 'none';
+            this.elements.profileImage.innerHTML = '<span class="material-symbols-outlined">person</span>';
+        }
+
+        if (this.user.authority === 'admin' || this.user.authority === 'bot') {
+            const adminButton = document.createElement('a');
+            adminButton.href = '/admin';
+            adminButton.className = 'auth-btn auth-btn-secondary';
+            adminButton.innerHTML = '<span class="material-symbols-outlined">admin_panel_settings</span> 관리자 페이지';
+            this.elements.adminButtonContainer.appendChild(adminButton);
         }
     }
     
-    async deleteProfileImage() {
-        const confirmed = await new Promise(resolve => {
-            const modal = createConfirmCancelModal({
-                title: '프로필 사진 삭제',
-                message: '정말로 프로필 사진을 삭제하시겠습니까?',
-                variant: 'danger',
-                onConfirm: () => resolve(true),
-                onCancel: () => resolve(false),
-            });
-            document.body.appendChild(modal);
-        });
-
-        if (!confirmed) return;
-
-        try {
-            const response = await api.delete('/api/v1/users/me/profile-image');
-            if(response.success) {
-                Notice.success('프로필 사진이 삭제되었습니다.');
-                this.fetchUser();
-            }
-        } catch (error) {
-            Notice.error(error.message);
-        }
-    }
-
     async deleteAccount() {
         const confirmed = await new Promise(resolve => {
             const modal = createConfirmCancelModal({
                 title: '회원 탈퇴',
-                message: '정말로 회원 탈퇴를 하시겠습니까? 이 작업은 되돌릴 수 없습니다.',
+                message: '정말로 회원 탈퇴를 하시겠습니까? 모든 정보가 영구적으로 삭제되며, 이 작업은 되돌릴 수 없습니다.',
                 variant: 'danger',
+                confirmText: '탈퇴 확인',
                 onConfirm: () => resolve(true),
                 onCancel: () => resolve(false),
             });
@@ -96,31 +89,36 @@ class MyPageManager {
 
         try {
             await api.delete('/api/v1/users/me');
-            Notice.success('회원 탈퇴가 완료되었습니다.');
+            Notice.success('회원 탈퇴가 완료되었습니다. 이용해주셔서 감사합니다.');
             localStorage.removeItem('accessToken');
-            window.location.href = '/';
+            setTimeout(() => { window.location.href = '/'; }, 1500);
         } catch (error) {
-            Notice.error(error.message);
+            Notice.error(error.message || '회원 탈퇴 중 오류가 발생했습니다.');
+        }
+    }
+
+    toggleMobileNav(show) {
+        if (show) {
+            this.elements.profileNavigation.classList.add('open');
+            this.elements.profileNavOverlay.classList.add('open');
+        } else {
+            this.elements.profileNavigation.classList.remove('open');
+            this.elements.profileNavOverlay.classList.remove('open');
         }
     }
 
     setupEventListeners() {
-        const profileImageInput = document.getElementById('profile-image-input');
-        if(profileImageInput) {
-            profileImageInput.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) this.uploadProfileImage(file);
-            });
+        if (this.elements.navDeleteAccount) {
+            this.elements.navDeleteAccount.addEventListener('click', () => this.deleteAccount());
         }
-        
-        const deleteImageBtn = document.getElementById('delete-profile-image-btn');
-        if(deleteImageBtn) {
-            deleteImageBtn.addEventListener('click', () => this.deleteProfileImage());
+        if (this.elements.profileMenuToggle) {
+            this.elements.profileMenuToggle.addEventListener('click', () => this.toggleMobileNav(true));
         }
-
-        const deleteAccountBtn = document.getElementById('delete-account-btn');
-        if(deleteAccountBtn) {
-            deleteAccountBtn.addEventListener('click', () => this.deleteAccount());
+        if (this.elements.profileNavClose) {
+            this.elements.profileNavClose.addEventListener('click', () => this.toggleMobileNav(false));
+        }
+        if (this.elements.profileNavOverlay) {
+            this.elements.profileNavOverlay.addEventListener('click', () => this.toggleMobileNav(false));
         }
     }
 }

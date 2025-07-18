@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { Guestbook, IGuestbook } from '../models/Guestbook.js';
 import { User } from '../models/User.js';
 import { validatePaginationParams } from '../utils/sqlSecurity.js';
+import { UserNotFoundError } from '../utils/errors.js';
 
 export const createGuestbookEntry = async (req: Request, res: Response) => {
     try {
@@ -73,6 +74,11 @@ export const getGuestbookEntries = async (req: Request, res: Response) => {
     }
 };
 
+export const getMyGuestbookEntries = async (req: Request, res: Response) => {
+    req.params.userid = req.user?.userid as string;
+    return getGuestbookEntries(req, res);
+};
+
 export const updateGuestbookEntry = async (req: Request, res: Response) => {
     try {
         const { entryId } = req.params;
@@ -135,4 +141,29 @@ export const deleteGuestbookEntry = async (req: Request, res: Response) => {
         console.error('Error deleting guestbook entry:', error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
+};
+
+export const getMyGuestbookStats = async (req: Request, res: Response) => {
+    const userid = req.user?.userid;
+    if (!userid) {
+        throw new UserNotFoundError('사용자를 찾을 수 없습니다.');
+    }
+
+    const totalMessages = await Guestbook.count({ target_userid: userid });
+    
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const recentMessages = await Guestbook.count({ target_userid: userid, createdAt: { $gte: sevenDaysAgo } as any });
+
+    const entries = await Guestbook.find({ target_userid: userid });
+    const uniqueSenders = new Set(entries.map(entry => entry.sender_userid));
+
+    res.status(200).json({
+        success: true,
+        stats: {
+            totalMessages,
+            uniqueSenders: uniqueSenders.size,
+            recentMessages
+        }
+    });
 };

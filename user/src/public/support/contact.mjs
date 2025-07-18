@@ -4,11 +4,11 @@ import Notice from '../module/notice.js';
 class ContactManager {
     constructor() {
         this.cacheDOM();
-        this.setupEventListeners();
+        this.init();
     }
 
     cacheDOM() {
-        this.form = document.getElementById('contact-form');
+        this.form = document.getElementById('contactForm');
         this.inputs = {
             subject: this.form.querySelector('input[name="subject"]'),
             category: this.form.querySelector('select[name="category"]'),
@@ -16,6 +16,25 @@ class ContactManager {
             message: this.form.querySelector('textarea[name="message"]'),
         };
         this.button = this.form.querySelector('button[type="submit"]');
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.fetchUserEmail();
+    }
+
+    async fetchUserEmail() {
+        try {
+            if (localStorage.getItem('accessToken')) {
+                const response = await api.get('/api/v1/auth/me');
+                if (response.success && response.user) {
+                    this.inputs.email.value = response.user.email;
+                    this.inputs.email.disabled = true;
+                }
+            }
+        } catch (error) {
+            console.warn('Could not fetch user email.', error);
+        }
     }
 
     validateForm() {
@@ -39,26 +58,31 @@ class ContactManager {
 
         const formData = new FormData(this.form);
         const data = Object.fromEntries(formData.entries());
+        if (this.inputs.email.disabled) {
+            data.email = this.inputs.email.value;
+        }
 
+        const originalButtonHTML = this.button.innerHTML;
         this.button.disabled = true;
-        this.button.textContent = '제출 중...';
+        this.button.innerHTML = '<span class="spinner"></span> 제출 중...';
 
         try {
-            const response = await api.post('/api/v1/contacts/', data);
-            if (response && response.success) {
-                Notice.success('문의가 성공적으로 접수되었습니다.');
-                this.form.reset();
-            }
+            await api.post('/api/v1/contacts', data);
+            Notice.success('문의가 성공적으로 접수되었습니다. 검토 후 입력하신 이메일로 답변드리겠습니다.');
+            this.form.reset();
+            this.fetchUserEmail(); 
         } catch (error) {
-            Notice.error(error.message);
+            Notice.error(error.message || '문의 제출에 실패했습니다.');
         } finally {
             this.button.disabled = false;
-            this.button.textContent = '문의 보내기';
+            this.button.innerHTML = originalButtonHTML;
         }
     }
     
     setupEventListeners() {
-        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+        if(this.form) {
+            this.form.addEventListener('submit', (e) => this.handleSubmit(e));
+        }
     }
 }
 

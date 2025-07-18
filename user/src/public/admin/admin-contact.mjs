@@ -201,5 +201,13 @@ class AdminContactManager {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    new AdminContactManager();
+    const manager = new AdminContactManager();
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                manager.fetchContacts(1);
+            }
+        });
+    }
 }); 

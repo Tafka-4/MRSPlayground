@@ -1,87 +1,143 @@
 import api from '../module/api.js';
+import escape from '../module/escape.js';
 import Notice from '../module/notice.js';
-import { initializeComponents, loadSavedTheme } from '../component/index.js';
 
 class EditPasswordManager {
     constructor() {
         this.cacheDOM();
-        this.init();
+        this.renderForm();
+        this.setupEventListeners();
     }
 
     cacheDOM() {
-        this.form = document.getElementById('edit-password-form');
-        this.inputs = {
-            currentPassword: this.form.querySelector('#current_password'),
-            newPassword: this.form.querySelector('#new_password'),
-            newPasswordCheck: this.form.querySelector('#new_password_check'),
+        this.containers = {
+            currentPassword: document.getElementById('current-password-container'),
+            newPassword: document.getElementById('new-password-container'),
+            confirmPassword: document.getElementById('confirm-password-container'),
+            message: document.querySelector('.password-message-container-message'),
+            formActions: document.getElementById('form-actions'),
         };
-        this.messages = {
-            password: document.getElementById('password-message'),
-        };
-        this.buttons = {
-            save: this.form.querySelector('#save-btn'),
-        }
-    }
-
-    init() {
-        initializeComponents();
-        loadSavedTheme();
-        this.setupEventListeners();
     }
     
-    validatePassword() {
-        const { newPassword, newPasswordCheck } = this.inputs;
-        const message = this.messages.password;
+    renderForm() {
+        this.containers.currentPassword.innerHTML = this.createInputHTML('current-password', 'password', '현재 비밀번호', 'lock');
+        this.containers.newPassword.innerHTML = this.createInputHTML('new-password', 'password', '새 비밀번호', 'lock');
+        this.containers.confirmPassword.innerHTML = this.createInputHTML('confirm-password', 'password', '새 비밀번호 확인', 'lock');
         
-        message.style.display = 'block';
+        this.containers.formActions.innerHTML = `
+            <button id="save-btn" class="auth-btn auth-btn-primary" disabled>
+                <span class="material-symbols-outlined">save</span> 변경사항 저장
+            </button>
+        `;
+        
+        // Re-cache dynamic elements
+        this.inputs = {
+            currentPassword: document.getElementById('current-password'),
+            newPassword: document.getElementById('new-password'),
+            confirmPassword: document.getElementById('confirm-password'),
+        };
+        this.buttons = { save: document.getElementById('save-btn') };
+    }
 
-        if(newPassword.value.length === 0 && newPasswordCheck.value.length === 0) {
-            message.style.display = 'none';
-            return true;
+    createInputHTML(id, type, placeholder, icon) {
+        return `
+            <div class="input-wrapper icon-left">
+                <span class="material-symbols-outlined">${icon}</span>
+                <input type="${type}" id="${escape(id)}" placeholder="${escape(placeholder)}" required style="font-family: 'Courier New';">
+                <div class="visibility-container">
+                    <span class="material-symbols-outlined visibility-on">visibility</span>
+                    <span class="material-symbols-outlined visibility-off" style="display: none;">visibility_off</span>
+                </div>
+            </div>
+        `;
+    }
+
+    validatePassword() {
+        const { newPassword, confirmPassword } = this.inputs;
+        const message = this.containers.message;
+        
+        message.textContent = '';
+        message.className = 'password-message-container-message';
+
+        if (!newPassword.value && !confirmPassword.value) {
+            this.buttons.save.disabled = true;
+            return;
         }
 
         if (newPassword.value.length < 8) {
              message.textContent = '새 비밀번호는 8자 이상이어야 합니다.';
+             message.classList.add('error');
+             this.buttons.save.disabled = true;
              return false;
         }
         
-        if (newPassword.value !== newPasswordCheck.value) {
+        if (newPassword.value !== confirmPassword.value) {
             message.textContent = '새 비밀번호가 일치하지 않습니다.';
+            message.classList.add('error');
+            this.buttons.save.disabled = true;
             return false;
         }
         
-        message.textContent = '새 비밀번호가 일치합니다.';
+        message.textContent = '새 비밀번호가 유효합니다.';
+        message.classList.add('success');
+        this.buttons.save.disabled = !this.inputs.currentPassword.value;
         return true;
     }
+    
+    togglePasswordVisibility(inputElement) {
+        const wrapper = inputElement.closest('.input-wrapper');
+        const onIcon = wrapper.querySelector('.visibility-on');
+        const offIcon = wrapper.querySelector('.visibility-off');
+        if (inputElement.type === 'password') {
+            inputElement.type = 'text';
+            onIcon.style.display = 'none';
+            offIcon.style.display = 'block';
+        } else {
+            inputElement.type = 'password';
+            onIcon.style.display = 'block';
+            offIcon.style.display = 'none';
+        }
+    }
 
-    async handleUpdate(e) {
-        e.preventDefault();
-
-        if (!this.validatePassword()) {
-            Notice.error('비밀번호를 확인해주세요.');
+    async handleUpdate() {
+        if (!this.validatePassword() || this.buttons.save.disabled) {
+            Notice.error('입력 내용을 다시 확인해주세요.');
             return;
         }
 
-        const { currentPassword, newPassword } = this.inputs;
+        const originalButtonHTML = this.buttons.save.innerHTML;
+        this.buttons.save.disabled = true;
+        this.buttons.save.innerHTML = '<span class="spinner"></span> 변경 중...';
 
         try {
-            await api.put('/api/v1/users/me/password', { 
-                current_password: currentPassword.value,
-                new_password: newPassword.value 
+            await api.put('/api/v1/auth/change-password', { 
+                currentPassword: this.inputs.currentPassword.value,
+                newPassword: this.inputs.newPassword.value 
             });
             Notice.success('비밀번호가 변경되었습니다. 다시 로그인해주세요.');
             localStorage.removeItem('accessToken');
             setTimeout(() => { window.location.href = '/login'; }, 1500);
-            
         } catch (error) {
-            Notice.error(error.message);
+            Notice.error(error.message || '비밀번호 변경에 실패했습니다.');
+            this.buttons.save.disabled = false;
+            this.buttons.save.innerHTML = originalButtonHTML;
         }
     }
 
     setupEventListeners() {
-        this.form.addEventListener('submit', (e) => this.handleUpdate(e));
-        this.inputs.newPassword.addEventListener('input', () => this.validatePassword());
-        this.inputs.newPasswordCheck.addEventListener('input', () => this.validatePassword());
+        this.buttons.save.addEventListener('click', () => this.handleUpdate());
+        
+        Object.values(this.inputs).forEach(input => {
+            input.addEventListener('input', () => this.validatePassword());
+            input.addEventListener('keyup', (e) => {
+                if (e.key === 'Enter') this.handleUpdate();
+            });
+            
+            const visibilityToggle = input.closest('.input-wrapper').querySelector('.visibility-container');
+            if (visibilityToggle) {
+                visibilityToggle.addEventListener('click', () => this.togglePasswordVisibility(input));
+            }
+        });
     }
 }
 

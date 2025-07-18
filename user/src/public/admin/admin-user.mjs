@@ -161,7 +161,7 @@ function confirmDeleteUser(userid, nickname) {
     userToDelete = userid;
     document.getElementById(
         'delete-user-info'
-    ).textContent = `정말로 "${nickname}" 사용자를 삭제하시겠습니까?`;
+    ).textContent = `정말로 "${escape(nickname)}" 사용자를 삭제하시겠습니까?`;
     document.getElementById('delete-modal-overlay').style.display = 'flex';
 }
 
@@ -184,8 +184,8 @@ function confirmAdminAction(userid, nickname, action) {
     const title = action === 'set' ? '관리자 권한 부여' : '관리자 권한 해제';
     const message =
         action === 'set'
-            ? `"${nickname}" 사용자에게 관리자 권한을 부여하시겠습니까?`
-            : `"${nickname}" 사용자의 관리자 권한을 해제하시겠습니까?`;
+            ? `"${escape(nickname)}" 사용자에게 관리자 권한을 부여하시겠습니까?`
+            : `"${escape(nickname)}" 사용자의 관리자 권한을 해제하시겠습니까?`;
 
     document.getElementById('admin-modal-title').textContent = title;
     document.getElementById('admin-action-info').textContent = message;
@@ -221,8 +221,8 @@ function confirmVerifyAction(userid, nickname, action) {
     const title = action === 'verify' ? '사용자 인증' : '사용자 인증 해제';
     const message =
         action === 'verify'
-            ? `"${nickname}" 사용자를 인증된 사용자로 설정하시겠습니까?`
-            : `"${nickname}" 사용자의 인증을 해제하시겠습니까?`;
+            ? `"${escape(nickname)}" 사용자를 인증된 사용자로 설정하시겠습니까?`
+            : `"${escape(nickname)}" 사용자의 인증을 해제하시겠습니까?`;
 
     document.getElementById('verify-modal-title').textContent = title;
     document.getElementById('verify-action-info').textContent = message;
@@ -253,122 +253,120 @@ async function performVerifyAction(userid, action) {
     }
 }
 
-document.getElementById('search-button').addEventListener('click', () => {
-    const query = document.getElementById('search-input').value.trim();
-    currentQuery = query;
-    loadUsers(query);
-});
-
-document.getElementById('search-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        document.getElementById('search-button').click();
-    }
-});
-
-document.getElementById('refresh-button').addEventListener('click', () => {
-    loadUsers(currentQuery);
-});
-
-document.getElementById('modal-close').addEventListener('click', () => {
-    document.getElementById('delete-modal-overlay').style.display = 'none';
-    userToDelete = null;
-});
-
-document.getElementById('cancel-delete').addEventListener('click', () => {
-    document.getElementById('delete-modal-overlay').style.display = 'none';
-    userToDelete = null;
-});
-
-document.getElementById('confirm-delete').addEventListener('click', () => {
-    if (userToDelete) {
-        deleteUser(userToDelete);
-        document.getElementById('delete-modal-overlay').style.display = 'none';
-        userToDelete = null;
-    }
-});
-
-document
-    .getElementById('delete-modal-overlay')
-    .addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) {
-            document.getElementById('delete-modal-overlay').style.display =
-                'none';
-            userToDelete = null;
-        }
-    });
-
-document.getElementById('admin-modal-close').addEventListener('click', () => {
-    document.getElementById('admin-modal-overlay').style.display = 'none';
-    pendingAdminAction = null;
-});
-
-document.getElementById('cancel-admin-action').addEventListener('click', () => {
-    document.getElementById('admin-modal-overlay').style.display = 'none';
-    pendingAdminAction = null;
-});
-
-document
-    .getElementById('confirm-admin-action')
-    .addEventListener('click', () => {
-        if (pendingAdminAction) {
-            performAdminAction(
-                pendingAdminAction.userid,
-                pendingAdminAction.action
-            );
-            document.getElementById('admin-modal-overlay').style.display =
-                'none';
-            pendingAdminAction = null;
-        }
-    });
-
-document
-    .getElementById('admin-modal-overlay')
-    .addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) {
-            document.getElementById('admin-modal-overlay').style.display =
-                'none';
-            pendingAdminAction = null;
-        }
-    });
-
-document.getElementById('verify-modal-close').addEventListener('click', () => {
-    document.getElementById('verify-modal-overlay').style.display = 'none';
-    pendingVerifyAction = null;
-});
-
-document
-    .getElementById('cancel-verify-action')
-    .addEventListener('click', () => {
-        document.getElementById('verify-modal-overlay').style.display = 'none';
-        pendingVerifyAction = null;
-    });
-
-document
-    .getElementById('confirm-verify-action')
-    .addEventListener('click', () => {
-        if (pendingVerifyAction) {
-            performVerifyAction(
-                pendingVerifyAction.userid,
-                pendingVerifyAction.action
-            );
-            document.getElementById('verify-modal-overlay').style.display =
-                'none';
-            pendingVerifyAction = null;
-        }
-    });
-
-document
-    .getElementById('verify-modal-overlay')
-    .addEventListener('click', (e) => {
-        if (e.target === e.currentTarget) {
-            document.getElementById('verify-modal-overlay').style.display =
-                'none';
-            pendingVerifyAction = null;
-        }
-    });
-
 document.addEventListener('DOMContentLoaded', () => {
     loadUsers();
+
+    const searchInput = document.getElementById('search-input');
+    const searchButton = document.getElementById('search-button');
+    const refreshButton = document.getElementById('refresh-button');
+    
+    const deleteModalOverlay = document.getElementById('delete-modal-overlay');
+    const confirmDeleteBtn = document.getElementById('confirm-delete');
+    const cancelDeleteBtn = document.getElementById('cancel-delete');
+    const deleteModalCloseBtn = document.querySelector('#delete-modal-overlay .modal-close');
+
+    const adminModalOverlay = document.getElementById('admin-modal-overlay');
+    const confirmAdminBtn = document.getElementById('confirm-admin-action');
+    const cancelAdminBtn = document.getElementById('cancel-admin-action');
+    const adminModalCloseBtn = document.querySelector('#admin-modal-overlay .modal-close');
+
+    const verifyModalOverlay = document.getElementById('verify-modal-overlay');
+    const confirmVerifyBtn = document.getElementById('confirm-verify-action');
+    const cancelVerifyBtn = document.getElementById('cancel-verify-action');
+    const verifyModalCloseBtn = document.querySelector('#verify-modal-overlay .modal-close');
+
+    if (searchButton) {
+        searchButton.addEventListener('click', () => {
+            currentQuery = searchInput.value;
+            loadUsers(currentQuery);
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                searchButton.click();
+            }
+        });
+    }
+
+    if (refreshButton) {
+        refreshButton.addEventListener('click', () => {
+            searchInput.value = '';
+            currentQuery = '';
+            loadUsers();
+        });
+    }
+
+    const closeModal = (modal) => {
+        if (modal) {
+            modal.style.display = 'none';
+        }
+        userToDelete = null;
+        pendingAdminAction = null;
+        pendingVerifyAction = null;
+    };
+
+    // Delete Modal
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', () => {
+            if (userToDelete) {
+                deleteUser(userToDelete);
+            }
+            closeModal(deleteModalOverlay);
+        });
+    }
+    if(cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', () => closeModal(deleteModalOverlay));
+    if(deleteModalCloseBtn) deleteModalCloseBtn.addEventListener('click', () => closeModal(deleteModalOverlay));
+
+    // Admin Modal
+    if (confirmAdminBtn) {
+        confirmAdminBtn.addEventListener('click', () => {
+            if (pendingAdminAction) {
+                performAdminAction(pendingAdminAction.userid, pendingAdminAction.action);
+            }
+            closeModal(adminModalOverlay);
+        });
+    }
+    if(cancelAdminBtn) cancelAdminBtn.addEventListener('click', () => closeModal(adminModalOverlay));
+    if(adminModalCloseBtn) adminModalCloseBtn.addEventListener('click', () => closeModal(adminModalOverlay));
+    
+    // Verify Modal
+    if(confirmVerifyBtn) {
+        confirmVerifyBtn.addEventListener('click', () => {
+            if (pendingVerifyAction) {
+                performVerifyAction(pendingVerifyAction.userid, pendingVerifyAction.action);
+            }
+            closeModal(verifyModalOverlay);
+        });
+    }
+    if(cancelVerifyBtn) cancelVerifyBtn.addEventListener('click', () => closeModal(verifyModalOverlay));
+    if(verifyModalCloseBtn) verifyModalCloseBtn.addEventListener('click', () => closeModal(verifyModalOverlay));
+
+    window.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            if (deleteModalOverlay && deleteModalOverlay.style.display === 'flex') {
+                closeModal(deleteModalOverlay);
+            }
+            if (adminModalOverlay && adminModalOverlay.style.display === 'flex') {
+                closeModal(adminModalOverlay);
+            }
+            if (verifyModalOverlay && verifyModalOverlay.style.display === 'flex') {
+                closeModal(verifyModalOverlay);
+            }
+        }
+        if (event.key === 'Enter') {
+            if (deleteModalOverlay && deleteModalOverlay.style.display === 'flex') {
+                confirmDeleteBtn.click();
+            }
+            if (adminModalOverlay && adminModalOverlay.style.display === 'flex') {
+                confirmAdminBtn.click();
+            }
+            if (verifyModalOverlay && verifyModalOverlay.style.display === 'flex') {
+                confirmVerifyBtn.click();
+            }
+        }
+    });
 });
 
 window.viewUser = viewUser;

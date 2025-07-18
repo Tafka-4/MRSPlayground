@@ -1,227 +1,164 @@
-import apiClient from '/module/api.js';
-import NoticeBox from '/module/notice.js';
+import api from '/module/api.js';
+import escape from '/module/escape.js';
 import { createRoleBadge, createVerificationBadge } from '/component/badges/index.js';
 
-const pathParts = window.location.pathname.split('/');
-const targetUserId = pathParts[2];
-
-let currentUser = null;
-
-async function isMe() {
-    try {
-        const result = await apiClient.get(`/api/v1/auth/me`);
-        return result.success && result.user && result.user.userid === targetUserId;
-    } catch (error) {
-        return false;
+class UserProfileManager {
+    constructor() {
+        this.targetUserId = window.location.pathname.split('/')[2];
+        this.currentUser = null;
+        this.cacheDOM();
+        this.init();
     }
-}
-
-async function loadUserProfile() {
-    try {
-        const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
-        
-        if (!response.success || !response.user) {
-            throw new Error('사용자 정보를 찾을 수 없습니다.');
-        }
-        
-        if (await isMe()) {
-            location.href = '/mypage';
+    
+    cacheDOM() {
+        this.elements = {
+            loading: document.getElementById('loading'),
+            errorContainer: document.getElementById('error-container'),
+            errorMessage: document.getElementById('error-message'),
+            profileContainer: document.getElementById('profile-container'),
+            pageTitle: document.getElementById('page-title'),
+            mobileTitle: document.getElementById('mobile-title'),
+            usernameContainer: document.getElementById('username-container'),
+            userid: document.getElementById('userid'),
+            username: document.getElementById('username'),
+            description: document.getElementById('description'),
+            createdAt: document.getElementById('created-at'),
+            uid: document.getElementById('uid'),
+            profileImage: document.getElementById('profile-image'),
+            navLinks: {
+                profile: document.getElementById('profile-nav-link'),
+                activity: document.getElementById('activity-nav-link'),
+                guestbook: document.getElementById('guestbook-nav-link'),
+            },
+            mobileNav: {
+                toggle: document.getElementById('profileMenuToggle'),
+                nav: document.getElementById('profileNavigation'),
+                close: document.getElementById('profileNavClose'),
+                overlay: document.getElementById('profileNavOverlay'),
+            }
+        };
+    }
+    
+    init() {
+        if (!this.targetUserId) {
+            this.showError('사용자 ID가 올바르지 않습니다.');
             return;
         }
-        displayUserProfile(response.user);
-    } catch (error) {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('error-container').style.display = 'block';
-        document.getElementById('error-message').textContent = error.message;
+        this.loadUserProfile();
+        this.setupEventListeners();
+    }
+
+    async isMe() {
+        try {
+            const result = await api.get(`/api/v1/auth/me`);
+            return result.success && result.user && result.user.userid === this.targetUserId;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async loadUserProfile() {
+        if (await this.isMe()) {
+            window.location.href = '/mypage';
+            return;
+        }
+        
+        try {
+            const response = await api.get(`/api/v1/users/${this.targetUserId}`);
+            if (!response.success || !response.user) {
+                throw new Error('사용자 정보를 찾을 수 없습니다.');
+            }
+            this.currentUser = response.user;
+            this.renderUserProfile();
+            this.showProfile();
+        } catch (error) {
+            this.showError(error.message);
+        }
+    }
+
+    renderUserProfile() {
+        const user = this.currentUser;
+        const title = `${user.nickname}님의 프로필`;
+        document.title = `${title} - 마법연구회`;
+        this.elements.pageTitle.textContent = title;
+        this.elements.mobileTitle.textContent = '프로필';
+
+        this.elements.usernameContainer.innerHTML = ''; // Clear previous badges
+        this.elements.username.textContent = user.nickname;
+        this.elements.usernameContainer.prepend(this.elements.username);
+
+        if (user.authority === 'admin' || user.authority === 'bot') {
+            const roleBadge = createRoleBadge(user.authority);
+            this.elements.usernameContainer.appendChild(roleBadge);
+        }
+        if (user.isVerified) {
+            const verifiedBadge = createVerificationBadge();
+            this.elements.usernameContainer.appendChild(verifiedBadge);
+        }
+
+        this.elements.userid.textContent = user.id;
+        this.elements.description.textContent = user.description || '소개가 없습니다.';
+        this.elements.createdAt.textContent = new Date(user.createdAt).toLocaleDateString('ko-KR');
+        this.elements.uid.textContent = user.userid;
+
+        if (user.profileImage) {
+            this.elements.profileImage.style.backgroundImage = `url('${escape(user.profileImage)}')`;
+            this.elements.profileImage.innerHTML = '';
+        } else {
+            this.elements.profileImage.style.backgroundImage = 'none';
+            this.elements.profileImage.innerHTML = '<span class="material-symbols-outlined">person</span>';
+        }
+        
+        // Update nav links
+        this.elements.navLinks.profile.href = `/user/${escape(user.userid)}`;
+        this.elements.navLinks.activity.href = `/user/${escape(user.userid)}/activity`;
+        this.elements.navLinks.guestbook.href = `/user/${escape(user.userid)}/guestbook`;
+    }
+    
+    showLoading() {
+        this.elements.loading.style.display = 'block';
+        this.elements.errorContainer.style.display = 'none';
+        this.elements.profileContainer.style.display = 'none';
+    }
+
+    showError(message) {
+        this.elements.loading.style.display = 'none';
+        this.elements.errorContainer.style.display = 'block';
+        this.elements.profileContainer.style.display = 'none';
+        this.elements.errorMessage.textContent = message;
+    }
+
+    showProfile() {
+        this.elements.loading.style.display = 'none';
+        this.elements.errorContainer.style.display = 'none';
+        this.elements.profileContainer.style.display = 'block';
+    }
+
+    toggleMobileNav(show) {
+        const { nav, overlay } = this.elements.mobileNav;
+        if (show) {
+            nav.classList.add('open');
+            overlay.classList.add('open');
+        } else {
+            nav.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+    }
+
+    setupEventListeners() {
+        const { toggle, nav, close, overlay } = this.elements.mobileNav;
+        if (toggle && nav) {
+            toggle.addEventListener('click', () => this.toggleMobileNav(true));
+        }
+        if (close && nav) {
+            close.addEventListener('click', () => this.toggleMobileNav(false));
+        }
+        if (overlay && nav) {
+            overlay.addEventListener('click', () => this.toggleMobileNav(false));
+        }
     }
 }
-
-function displayUserProfile(user) {
-    currentUser = user;
-    
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('profile-container').style.display = 'block';
-
-    document.getElementById('page-title').textContent = `${user.nickname}님의 프로필`;
-    document.title = `${user.nickname}님의 프로필 - 마법연구회`;
-
-    const usernameContainer = document.getElementById('username-container');
-
-    if (user.authority === 'admin') {
-        const adminBadge = createRoleBadge('admin');
-        usernameContainer.appendChild(adminBadge);
-    } else if (user.authority === 'bot') {
-        const botBadge = createRoleBadge('bot');
-        usernameContainer.appendChild(botBadge);
-    }
-
-    if (user.isVerified) {
-        const verifiedBadge = createVerificationBadge(user.isVerified);
-        usernameContainer.appendChild(verifiedBadge);
-    }
-
-    document.getElementById('userid').textContent = user.id;
-    document.getElementById('username').textContent = user.nickname;
-    document.getElementById('description').textContent = user.description || '소개가 없습니다.';
-    document.getElementById('created-at').textContent = new Date(user.createdAt).toLocaleDateString('ko-KR');
-    document.getElementById('uid').textContent = user.userid;
-
-    const profileImage = document.getElementById('profile-image');
-    if (user.profileImage) {
-        profileImage.innerHTML = `<img src="${user.profileImage}" alt="프로필 이미지" />`;
-    }
-}
-
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-    
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadUserProfile();
-    
-    const profileNavLink = document.getElementById('profile-nav-link');
-    const activityNavLink = document.getElementById('activity-nav-link');
-    const guestbookNavLink = document.getElementById('guestbook-nav-link');
-
-    if (profileNavLink) {
-        profileNavLink.addEventListener('click', (e) => {
-            e.preventDefault();
-        });
-    }
-
-    if (activityNavLink) {
-        activityNavLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = `/user/${targetUserId}/activity`;
-        });
-    }
-
-    if (guestbookNavLink) {
-        guestbookNavLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = `/user/${targetUserId}/guestbook`;
-        });
-    }
-
-    const profileMenuToggle = document.getElementById('profileMenuToggle');
-    const profileNavigation = document.getElementById('profileNavigation');
-    const profileNavClose = document.getElementById('profileNavClose');
-    const profileNavOverlay = document.getElementById('profileNavOverlay');
-
-    if (profileMenuToggle && profileNavigation) {
-        profileMenuToggle.addEventListener('click', () => {
-            profileNavigation.classList.add('active');
-            profileNavOverlay.classList.add('active');
-        });
-    }
-
-    if (profileNavClose && profileNavigation) {
-        profileNavClose.addEventListener('click', () => {
-            profileNavigation.classList.remove('active');
-            profileNavOverlay.classList.remove('active');
-        });
-    }
-
-    if (profileNavOverlay && profileNavigation) {
-        profileNavOverlay.addEventListener('click', () => {
-            profileNavigation.classList.remove('active');
-            profileNavOverlay.classList.remove('active');
-        });
-    }
-
-    setupMobileHeaderScroll();
+    new UserProfileManager();
 });
-
-function setupMobileHeaderScroll() {
-    const mobileHeader = document.querySelector('.mobile-profile-header');
-    if (!mobileHeader) return;
-
-    let lastScrollY = window.scrollY;
-    let ticking = false;
-
-    function updateMobileHeader() {
-        const scrollY = window.scrollY;
-        const scrollDirection = scrollY > lastScrollY ? 'down' : 'up';
-        const scrollDelta = Math.abs(scrollY - lastScrollY);
-
-        if (scrollY === 0) {
-            mobileHeader.classList.remove('header-hidden');
-        } else if (
-            scrollY > 50 &&
-            scrollDirection === 'up' &&
-            scrollDelta > 2
-        ) {
-            mobileHeader.classList.add('header-hidden');
-        } else if (scrollDirection === 'down' && scrollDelta > 1) {
-            mobileHeader.classList.remove('header-hidden');
-        }
-
-        if (scrollY > 50) {
-            mobileHeader.classList.add('header-shadow');
-        } else {
-            mobileHeader.classList.remove('header-shadow');
-        }
-
-        lastScrollY = scrollY;
-        ticking = false;
-    }
-
-    function requestTick() {
-        if (!ticking) {
-            requestAnimationFrame(updateMobileHeader);
-            ticking = true;
-        }
-    }
-
-    window.addEventListener('scroll', requestTick, { passive: true });
-
-    let touchStartY = 0;
-    let touchEndY = 0;
-
-    window.addEventListener(
-        'touchstart',
-        (e) => {
-            touchStartY = e.changedTouches[0].screenY;
-        },
-        { passive: true }
-    );
-
-    window.addEventListener(
-        'touchend',
-        (e) => {
-            touchEndY = e.changedTouches[0].screenY;
-            const touchDelta = touchStartY - touchEndY;
-
-            if (Math.abs(touchDelta) > 50) {
-                if (touchDelta < 0) {
-                    mobileHeader.classList.add('header-hidden');
-                } else {
-                    mobileHeader.classList.remove('header-hidden');
-                }
-            }
-        },
-        { passive: true }
-    );
-}

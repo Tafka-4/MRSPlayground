@@ -1152,7 +1152,7 @@ function clearLogDisplay() {
     new NoticeBox('로그 화면이 지워졌습니다.', 'info').show();
 }
 
-async function initializePage() {
+function init() {
     const now = new Date();
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
@@ -1174,6 +1174,23 @@ async function initializePage() {
         userSearchInput.addEventListener('blur', () => {
             setTimeout(() => hideUserSuggestions(), 200);
         });
+        userSearchInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') applyFilters();
+        });
+    }
+
+    const routeFilterInput = document.getElementById('route-filter');
+    if (routeFilterInput) {
+        routeFilterInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') applyFilters();
+        });
+    }
+
+    const ipFilterInput = document.getElementById('ip-filter');
+    if (ipFilterInput) {
+        ipFilterInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter') applyFilters();
+        });
     }
 
     document.addEventListener('keypress', (e) => {
@@ -1187,14 +1204,35 @@ async function initializePage() {
             state.realTimeWebSocket.disconnect();
         }
     });
-
-    await Promise.all([
-        loadLogStatistics(),
-        loadLogs(1),
-        loadPopularRoutes(),
-        loadErrorAnalysis()
-    ]);
 }
+
+function addKeyboardShortcuts() {
+    window.addEventListener('keydown', (event) => {
+        if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.tagName === 'SELECT') {
+            return;
+        }
+
+        switch (event.key.toUpperCase()) {
+            case 'R':
+                event.preventDefault();
+                refreshLogs();
+                break;
+            case 'C':
+                event.preventDefault();
+                clearLogDisplay();
+                break;
+            case 'F':
+                event.preventDefault();
+                toggleFilters();
+                break;
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    init();
+    addKeyboardShortcuts();
+});
 
 window.loadLogs = loadLogs;
 window.goToPage = goToPage;
@@ -1217,5 +1255,3 @@ window.hideCleanupModal = hideCleanupModal;
 window.performCleanup = performCleanup;
 window.loadPopularRoutes = loadPopularRoutes;
 window.loadErrorAnalysis = loadErrorAnalysis;
-
-document.addEventListener('DOMContentLoaded', initializePage);

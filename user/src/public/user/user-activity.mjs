@@ -1,251 +1,187 @@
-import apiClient from '/module/api.js';
+import api from '/module/api.js';
 import escape from '/module/escape.js';
 
-const pathParts = window.location.pathname.split('/');
-const targetUserId = pathParts[2];
-
-let currentUser = null;
-
-async function isMe() {
-    try {
-        const result = await apiClient.get(`/api/v1/auth/me`);
-        return result.success && result.user && result.user.userid === targetUserId;
-    } catch (error) {
-        return false;
+class UserActivityManager {
+    constructor() {
+        this.targetUserId = window.location.pathname.split('/')[2];
+        this.currentUser = null;
+        this.cacheDOM();
+        this.init();
     }
-}
 
-async function loadUserProfile() {
-    try {
-        const response = await apiClient.get(`/api/v1/users/${targetUserId}`);
-        
-        if (!response.success || !response.user) {
-            throw new Error('사용자 정보를 찾을 수 없습니다.');
-        }
-        
-        if (await isMe()) {
-            location.href = '/mypage';
+    cacheDOM() {
+        this.elements = {
+            loading: document.getElementById('loading'),
+            errorContainer: document.getElementById('error-container'),
+            errorMessage: document.getElementById('error-message'),
+            profileContainer: document.getElementById('profile-container'),
+            userNicknameDisplay: document.getElementById('user-nickname-display'),
+            mobileTitle: document.getElementById('mobile-title'),
+            activityList: document.getElementById('activity-list'),
+            filterButtons: document.querySelectorAll('.filter-btn'),
+            navLinks: {
+                profile: document.getElementById('profile-nav-link'),
+                activity: document.getElementById('activity-nav-link'),
+                guestbook: document.getElementById('guestbook-nav-link'),
+            },
+            mobileNav: {
+                toggle: document.getElementById('profileMenuToggle'),
+                nav: document.getElementById('profileNavigation'),
+                close: document.getElementById('profileNavClose'),
+                overlay: document.getElementById('profileNavOverlay'),
+            }
+        };
+    }
+
+    init() {
+        if (!this.targetUserId) {
+            this.showError('사용자 ID가 올바르지 않습니다.');
             return;
         }
-        displayUserProfile(response.user);
-    } catch (error) {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('error-container').style.display = 'block';
-        document.getElementById('error-message').textContent = error.message;
+        this.loadUserProfileAndActivity();
+        this.setupEventListeners();
     }
-}
-
-function displayUserProfile(user) {
-    currentUser = user;
     
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('profile-container').style.display = 'block';
-
-    const userNicknameDisplay = document.getElementById('user-nickname-display');
-    if (userNicknameDisplay) {
-        userNicknameDisplay.textContent = `${user.nickname}님의 활동 내역`;
-    }
-
-    const mobileTitle = document.getElementById('mobile-title');
-    if (mobileTitle) {
-        mobileTitle.textContent = `${user.nickname}님의 활동 내역`;
-    }
-    document.title = `${user.nickname}님의 활동 내역 - 마법연구회`;
-
-    setupEventListeners();
-    setupProfileNavigation();
-    updateNavigationLinks();
-    loadActivityList('all');
-}
-
-function updateNavigationLinks() {
-    const profileNavLink = document.getElementById('profile-nav-link');
-    const activityNavLink = document.getElementById('activity-nav-link');
-    const guestbookNavLink = document.getElementById('guestbook-nav-link');
-    
-    if (profileNavLink) {
-        profileNavLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = `/user/${targetUserId}`;
-        });
-    }
-    if (activityNavLink) {
-        activityNavLink.addEventListener('click', (e) => {
-            e.preventDefault();
-        });
-    }
-    if (guestbookNavLink) {
-        guestbookNavLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            window.location.href = `/user/${targetUserId}/guestbook`;
-        });
-    }
-}
-
-function setupEventListeners() {
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    filterBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            filterBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            loadActivityList(btn.dataset.filter);
-        });
-    });
-}
-
-function setupProfileNavigation() {
-    const profileMenuToggle = document.getElementById('profileMenuToggle');
-    const profileNavigation = document.getElementById('profileNavigation');
-    const profileNavClose = document.getElementById('profileNavClose');
-    const profileNavOverlay = document.getElementById('profileNavOverlay');
-
-    if (profileMenuToggle) {
-        profileMenuToggle.addEventListener('click', () => {
-            profileNavigation.classList.add('active');
-            profileNavOverlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
-        });
-    }
-
-    if (profileNavClose) {
-        profileNavClose.addEventListener('click', closeProfileNavigation);
-    }
-
-    if (profileNavOverlay) {
-        profileNavOverlay.addEventListener('click', closeProfileNavigation);
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && profileNavigation.classList.contains('active')) {
-            closeProfileNavigation();
+    async isMe() {
+        try {
+            const result = await api.get(`/api/v1/auth/me`);
+            return result.success && result.user && result.user.userid === this.targetUserId;
+        } catch (error) {
+            return false;
         }
-    });
-}
+    }
 
-function closeProfileNavigation() {
-    const profileNavigation = document.getElementById('profileNavigation');
-    const profileNavOverlay = document.getElementById('profileNavOverlay');
+    async loadUserProfileAndActivity() {
+        if (await this.isMe()) {
+            window.location.href = '/mypage';
+            return;
+        }
+
+        try {
+            const userResponse = await api.get(`/api/v1/users/${this.targetUserId}`);
+            if (!userResponse.success || !userResponse.user) {
+                throw new Error('사용자 정보를 찾을 수 없습니다.');
+            }
+            this.currentUser = userResponse.user;
+            this.renderUserHeader();
+            this.loadActivity('all');
+            this.showProfile();
+        } catch (error) {
+            this.showError(error.message);
+        }
+    }
     
-    profileNavigation.classList.remove('active');
-    profileNavOverlay.classList.remove('active');
-    document.body.style.overflow = '';
-}
+    renderUserHeader() {
+        const title = `${this.currentUser.nickname}님의 활동 내역`;
+        document.title = `${title} - 마법연구회`;
+        this.elements.userNicknameDisplay.textContent = title;
+        this.elements.mobileTitle.textContent = '활동 내역';
+        
+        this.elements.navLinks.profile.href = `/user/${this.currentUser.userid}`;
+        this.elements.navLinks.activity.href = `/user/${this.currentUser.userid}/activity`;
+        this.elements.navLinks.guestbook.href = `/user/${this.currentUser.userid}/guestbook`;
+    }
 
-async function loadActivityList(filter = 'all') {
-    const activityList = document.getElementById('activity-list');
-    if (!activityList) return;
+    async loadActivity(filter) {
+        this.elements.activityList.innerHTML = `<div class="loading-spinner"></div>`;
+        try {
+            const response = await api.get(`/api/v1/logs/users/${this.targetUserId}/activity`, { query: { filter } });
+            if (response.success && response.logs) {
+                this.renderActivityList(response.logs);
+            } else {
+                this.showActivityError('활동 내역을 불러오지 못했습니다.');
+            }
+        } catch (error) {
+            this.showActivityError(error.message || '활동 내역 로딩 중 오류 발생');
+        }
+    }
 
-    try {
-        activityList.innerHTML = '<div class="loading">활동 내역을 불러오는 중...</div>';
-        
-        // 활동 내역 API가 아직 구현되지 않음
-        // 임시로 준비 중 메시지 표시
-        activityList.innerHTML = `
-            <div class="empty-state">
-                <span class="material-symbols-outlined">construction</span>
-                <p>활동 내역 기능은 준비 중입니다.</p>
-                <small>게시글, 댓글 등의 활동 내역을 확인할 수 있는 기능을 개발 중입니다.</small>
-            </div>
-        `;
-        
-        // TODO: 실제 API가 구현되면 아래 코드 사용
-        /*
-        const query = { filter };
-        const response = await apiClient.get(`/api/v1/users/${targetUserId}/activity`, { query });
-        
-        if (!response.success || !response.data || response.data.length === 0) {
-            activityList.innerHTML = `
+    renderActivityList(logs) {
+        if (logs.length === 0) {
+            this.elements.activityList.innerHTML = `
                 <div class="empty-state">
                     <span class="material-symbols-outlined">history</span>
-                    <p>활동 내역이 없습니다.</p>
-                </div>
-            `;
+                    <p>아직 활동 내역이 없습니다.</p>
+                </div>`;
             return;
         }
         
-        activityList.innerHTML = response.data.map(activity => `
+        this.elements.activityList.innerHTML = logs.map(log => this.createActivityItemHTML(log)).join('');
+    }
+    
+    createActivityItemHTML(log) {
+        const icon = this.getActivityIcon(log.type);
+        const message = this.formatLogMessage(log);
+        return `
             <div class="activity-item">
-                <div class="activity-icon">
-                    <span class="material-symbols-outlined">${getActivityIcon(activity.type)}</span>
-                </div>
+                <div class="activity-icon"><span class="material-symbols-outlined">${icon}</span></div>
                 <div class="activity-content">
-                    <h4>${escape(activity.title || '제목 없음')}</h4>
-                    <p>${escape(activity.description || '설명 없음')}</p>
-                    <small>${new Date(activity.createdAt).toLocaleDateString('ko-KR')}</small>
+                    <p>${message}</p>
+                    <small>${new Date(log.createdAt).toLocaleString()}</small>
                 </div>
-            </div>
-        `).join('');
-        */
-        
-    } catch (error) {
-        console.error('활동 내역 로딩 실패:', error);
-        activityList.innerHTML = `
-            <div class="empty-state">
-                <span class="material-symbols-outlined">construction</span>
-                <p>활동 내역 기능은 준비 중입니다.</p>
             </div>
         `;
     }
-}
 
-function getActivityIcon(type) {
-    switch (type) {
-        case 'post':
-            return 'article';
-        case 'comment':
-            return 'comment';
-        case 'like':
-            return 'favorite';
-        default:
-            return 'circle';
+    getActivityIcon(type) {
+        if (type.startsWith('POST')) return 'add_circle';
+        if (type.startsWith('GET')) return 'visibility';
+        if (type.startsWith('PUT') || type.startsWith('PATCH')) return 'edit';
+        if (type.startsWith('DELETE')) return 'delete';
+        return 'history';
+    }
+    
+    formatLogMessage(log) {
+        const type = escape(log.type);
+        const endpoint = escape(log.endpoint);
+        const status = escape(String(log.status));
+        return `[${type}] ${endpoint} 경로에 접근했습니다. (상태: ${status})`;
+    }
+
+    showError(message) {
+        this.elements.loading.style.display = 'none';
+        this.elements.profileContainer.style.display = 'none';
+        this.elements.errorContainer.style.display = 'block';
+        this.elements.errorMessage.textContent = message;
+    }
+    
+    showProfile() {
+        this.elements.loading.style.display = 'none';
+        this.elements.errorContainer.style.display = 'none';
+        this.elements.profileContainer.style.display = 'block';
+    }
+
+    showActivityError(message) {
+        this.elements.activityList.innerHTML = `<div class="error-message">${message}</div>`;
+    }
+
+    toggleMobileNav(show) {
+        const { nav, overlay } = this.elements.mobileNav;
+        if (show) {
+            nav.classList.add('open');
+            overlay.classList.add('open');
+        } else {
+            nav.classList.remove('open');
+            overlay.classList.remove('open');
+        }
+    }
+
+    setupEventListeners() {
+        this.elements.filterButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.elements.filterButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.loadActivity(btn.dataset.filter);
+            });
+        });
+
+        const { toggle, nav, close, overlay } = this.elements.mobileNav;
+        if (toggle && nav) toggle.addEventListener('click', () => this.toggleMobileNav(true));
+        if (close && nav) close.addEventListener('click', () => this.toggleMobileNav(false));
+        if (overlay && nav) overlay.addEventListener('click', () => this.toggleMobileNav(false));
     }
 }
-
-const style = document.createElement('style');
-style.textContent = `
-    .activity-item {
-        display: flex;
-        gap: 1rem;
-        padding: 1rem;
-        margin-bottom: 1rem;
-        background: var(--background-color);
-        border-radius: 0.5rem;
-        border-left: 4px solid var(--primary-color);
-    }
-
-    .activity-icon {
-        width: 40px;
-        height: 40px;
-        background: var(--primary-color);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-    }
-
-    .activity-content h4 {
-        margin: 0 0 0.5rem 0;
-        color: var(--text-primary);
-    }
-
-    .activity-content p {
-        margin: 0 0 0.5rem 0;
-        color: var(--text-secondary);
-    }
-
-    .activity-content small {
-        color: var(--text-muted);
-    }
-
-    .loading {
-        text-align: center;
-        color: var(--text-secondary);
-        padding: 2rem;
-    }
-`;
-document.head.appendChild(style);
 
 document.addEventListener('DOMContentLoaded', () => {
-loadUserProfile(); 
+    new UserActivityManager();
 }); 

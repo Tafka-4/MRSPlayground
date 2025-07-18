@@ -316,3 +316,29 @@ export const getMyRequestLogs = async (req: Request, res: Response) => {
 export const getRouteErrorDetails = async (req: Request, res: Response) => {
     return getRouteErrors(req, res);
 };
+
+export const getUserLogs = async (req: Request, res: Response) => {
+    const { userid } = req.params;
+    const { page = 1, limit = 10, filter } = req.query;
+
+    const query: any = { userid };
+    if (filter && filter !== 'all') {
+        query.type = filter;
+    }
+
+    const logs = await Log.find(query, Number(limit), Number(page), { by: 'createdAt', order: 'DESC' });
+    const total = await Log.count(query);
+
+    const enrichedLogs = await enrichLogsWithUserInfo(logs);
+
+    res.status(200).json({
+        success: true,
+        logs: enrichedLogs,
+        pagination: {
+            page: Number(page),
+            limit: Number(limit),
+            total,
+            totalPages: Math.ceil(total / Number(limit))
+        }
+    });
+};

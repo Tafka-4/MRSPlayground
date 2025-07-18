@@ -1,4 +1,5 @@
 import api from '../module/api.js';
+import escape from '../module/escape.js';
 import Notice from '../module/notice.js';
 import { createConfirmCancelModal } from '../component/modals/index.js';
 
@@ -7,39 +8,109 @@ class MyGuestbookManager {
         this.entries = [];
         this.currentPage = 1;
         this.totalPages = 1;
+        this.cacheDOM();
+        this.init();
+    }
+    
+    cacheDOM() {
+        this.elements = {
+            stats: {
+                total: document.getElementById('totalMessages'),
+                unique: document.getElementById('uniqueSenders'),
+                recent: document.getElementById('recentMessages'),
+            },
+            containers: {
+                loading: document.getElementById('loading'),
+                error: document.getElementById('error-container'),
+                empty: document.getElementById('empty-container'),
+                entries: document.getElementById('guestbook-entries'),
+                pagination: document.getElementById('pagination'),
+            },
+            buttons: {
+                refresh: document.getElementById('refreshButton'),
+                retry: document.getElementById('retryButton'),
+            }
+        };
+    }
 
-        this.fetchGuestbookEntries();
+    init() {
+        this.showLoading();
+        this.fetchData();
         this.setupEventListeners();
+    }
+    
+    async fetchData() {
+        try {
+            await Promise.all([
+                this.fetchGuestbookStats(),
+                this.fetchGuestbookEntries(this.currentPage)
+            ]);
+        } catch (error) {
+            this.showError();
+        }
+    }
+
+    async fetchGuestbookStats() {
+        try {
+            const response = await api.get('/api/v1/guestbook/me/stats');
+            if (response.success) {
+                this.renderStats(response.stats);
+            }
+        } catch (error) {
+            console.error('Failed to fetch guestbook stats:', error);
+        }
     }
 
     async fetchGuestbookEntries(page = 1) {
+        this.showLoading();
         try {
-            const response = await api.get('/api/v1/guestbook/me', { query: { page, limit: 10 } });
-            if (response && response.success) {
+            const response = await api.get('/api/v1/guestbook/me', { query: { page, limit: 5 } });
+            if (response.success) {
                 this.entries = response.data;
                 this.currentPage = response.pagination.page;
                 this.totalPages = response.pagination.totalPages;
                 this.renderGuestbook();
                 this.renderPagination(response.pagination);
+                if (this.entries.length === 0) {
+                    this.showEmpty();
+                } else {
+                    this.showContent();
+                }
+            } else {
+                this.showError();
             }
         } catch (error) {
-            Notice.error('방명록을 불러오는 데 실패했습니다.');
+            this.showError();
         }
     }
 
+    renderStats(stats) {
+        this.elements.stats.total.textContent = stats.totalMessages;
+        this.elements.stats.unique.textContent = stats.uniqueSenders;
+        this.elements.stats.recent.textContent = stats.recentMessages;
+    }
+
     renderGuestbook() {
-        const list = document.getElementById('my-guestbook-list');
+        const list = this.elements.containers.entries;
         list.innerHTML = '';
-        if (this.entries.length === 0) {
-            list.innerHTML = '<li>받은 방명록이 없습니다.</li>';
-            return;
-        }
         this.entries.forEach(entry => {
-            const item = document.createElement('li');
+            const item = document.createElement('div');
+            item.className = 'card guestbook-entry';
             item.innerHTML = `
-                <p><strong>${entry.sender.nickname}</strong>: ${entry.message}</p>
-                <div>
-                    <button class="delete-btn" data-id="${entry.id}">삭제</button>
+                <div class="card-header">
+                    <a href="/user/${escape(entry.sender.userid)}" class="author-link">
+                        <img src="${entry.sender.profileImage || '/img/default-avatar.png'}" alt="${escape(entry.sender.nickname)}" class="author-avatar">
+                        <strong>${escape(entry.sender.nickname)}</strong>
+                    </a>
+                    <span class="entry-date">${new Date(entry.createdAt).toLocaleString()}</span>
+                </div>
+                <div class="card-body">
+                    <p>${escape(entry.message)}</p>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-danger delete-btn" data-id="${escape(entry.id)}">
+                        <span class="material-symbols-outlined">delete</span> 삭제
+                    </button>
                 </div>
             `;
             list.appendChild(item);
@@ -47,14 +118,15 @@ class MyGuestbookManager {
     }
     
     renderPagination(pagination) {
-        const container = document.getElementById('pagination-container');
+        const container = this.elements.containers.pagination;
         container.innerHTML = '';
-        if(pagination.totalPages <= 1) return;
+        if (pagination.totalPages <= 1) return;
         
         for (let i = 1; i <= pagination.totalPages; i++) {
             const button = document.createElement('button');
+            button.className = 'btn';
             button.textContent = i;
-            button.disabled = (i === this.currentPage);
+            if (i === this.currentPage) button.classList.add('btn-primary');
             button.addEventListener('click', () => this.fetchGuestbookEntries(i));
             container.appendChild(button);
         }
@@ -63,8 +135,8 @@ class MyGuestbookManager {
     async handleDelete(id) {
         const confirmed = await new Promise(resolve => {
             const modal = createConfirmCancelModal({
-                title: '삭제 확인',
-                message: '정말로 이 방명록을 삭제하시겠습니까?',
+                title: '방명록 삭제',
+                message: '정말로 이 방명록 메시지를 삭제하시겠습니까?',
                 variant: 'danger',
                 onConfirm: () => resolve(true),
                 onCancel: () => resolve(false),
@@ -75,23 +147,42 @@ class MyGuestbookManager {
         if (!confirmed) return;
 
         try {
-            const response = await api.delete(`/api/v1/guestbook/${id}`);
-            if(response && response.success) {
-                Notice.success('방명록이 삭제되었습니다.');
-                this.fetchGuestbookEntries(this.currentPage);
-            }
+            await api.delete(`/api/v1/guestbook/${id}`);
+            Notice.success('방명록이 삭제되었습니다.');
+            this.fetchGuestbookEntries(this.currentPage);
+            this.fetchGuestbookStats();
         } catch (error) {
-            Notice.error(error.message);
+            Notice.error(error.message || '삭제에 실패했습니다.');
         }
     }
 
+    showLoading() {
+        Object.values(this.elements.containers).forEach(c => c.style.display = 'none');
+        this.elements.containers.loading.style.display = 'flex';
+    }
+    showError() {
+        Object.values(this.elements.containers).forEach(c => c.style.display = 'none');
+        this.elements.containers.error.style.display = 'flex';
+    }
+    showEmpty() {
+        Object.values(this.elements.containers).forEach(c => c.style.display = 'none');
+        this.elements.containers.empty.style.display = 'flex';
+    }
+    showContent() {
+        Object.values(this.elements.containers).forEach(c => c.style.display = 'none');
+        this.elements.containers.entries.style.display = 'grid';
+        this.elements.containers.pagination.style.display = 'flex';
+    }
+
     setupEventListeners() {
-        document.getElementById('my-guestbook-list').addEventListener('click', (e) => {
-            const id = e.target.dataset.id;
-            if (e.target.classList.contains('delete-btn')) {
-                this.handleDelete(id);
+        this.elements.containers.entries.addEventListener('click', (e) => {
+            const deleteButton = e.target.closest('.delete-btn');
+            if (deleteButton) {
+                this.handleDelete(deleteButton.dataset.id);
             }
         });
+        this.elements.buttons.refresh.addEventListener('click', () => this.fetchData());
+        this.elements.buttons.retry.addEventListener('click', () => this.fetchData());
     }
 }
 
