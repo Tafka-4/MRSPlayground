@@ -143,8 +143,6 @@ function setupEventListeners(currentUser, targetUser) {
     const previewMessageEl = document.getElementById('preview-message');
     const cancelButton = document.getElementById('cancelButton');
     const guestbookForm = document.getElementById('guestbook-form');
-    
-    const maxLength = messageTextarea.maxLength;
 
     messageTextarea.addEventListener('input', () => {
         const currentLength = messageTextarea.value.length;
