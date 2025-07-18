@@ -1,10 +1,7 @@
 import api from '../module/api.js';
 import Notice from '../module/notice.js';
 import { createConfirmCancelModal } from '../component/modals/index.js';
-import {
-    createRoleBadge,
-    createVerificationBadge,
-} from '../component/badges/index.js';
+import { createRoleBadge, createVerificationBadge } from '../component/badges/index.js';
 
 class MyPageManager {
     constructor() {
@@ -16,12 +13,13 @@ class MyPageManager {
     cacheDOM() {
         this.elements = {
             username: document.getElementById('username'),
+            usernameContainer: document.getElementById('username-container'),
             email: document.getElementById('email'),
             description: document.getElementById('description'),
             createdAt: document.getElementById('created-at'),
             uid: document.getElementById('uid'),
             profileImage: document.getElementById('profile-image'),
-            usernameContainer: document.getElementById('username-container'),
+            profileImageActions: document.getElementById('profile-image-actions'),
             navDeleteAccount: document.getElementById('navDeleteAccount'),
             profileMenuToggle: document.getElementById('profileMenuToggle'),
             profileNavigation: document.getElementById('profileNavigation'),
@@ -53,22 +51,23 @@ class MyPageManager {
     renderUser() {
         if (!this.user) return;
 
-        // 기존 닉네임 텍스트 노드만 남기고 모두 제거
-        const textNode = Array.from(this.elements.username.childNodes).find(node => node.nodeType === Node.TEXT_NODE);
-        this.elements.username.innerHTML = '';
-        if(textNode) this.elements.username.appendChild(textNode);
-        this.elements.username.firstChild.textContent = this.user.nickname;
+        this.elements.username.textContent = this.user.nickname;
         
+        // 뱃지 렌더링
         const badgeContainer = document.createElement('div');
         badgeContainer.className = 'badge-container';
-        
         const badges = [
             createRoleBadge(this.user.role),
-            createVerificationBadge(this.user.isVerified),
+            createVerificationBadge(this.user.isVerified, () => window.location.href = '/auth/verify-internal-member'),
         ];
         badges.forEach(badge => {
             if (badge) badgeContainer.appendChild(badge);
         });
+        // 기존 뱃지 컨테이너가 있다면 제거 후 새로 추가
+        const existingBadgeContainer = this.elements.usernameContainer.querySelector('.badge-container');
+        if (existingBadgeContainer) {
+            this.elements.usernameContainer.removeChild(existingBadgeContainer);
+        }
         this.elements.usernameContainer.appendChild(badgeContainer);
 
         this.elements.email.textContent = this.user.email;
@@ -83,6 +82,25 @@ class MyPageManager {
             this.elements.profileImage.style.backgroundImage = 'none';
             this.elements.profileImage.innerHTML = '<span class="material-symbols-outlined">person</span>';
         }
+        
+        this.renderActionButtons();
+    }
+
+    renderActionButtons() {
+        this.elements.profileImageActions.innerHTML = '';
+        
+        const editButton = document.createElement('a');
+        editButton.href = '/mypage/edit';
+        editButton.className = 'btn btn-primary';
+        editButton.innerHTML = `<span class="material-symbols-outlined">edit</span> 프로필 수정`;
+        
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'btn btn-danger-outline';
+        deleteButton.innerHTML = `<span class="material-symbols-outlined">delete</span> 계정 삭제`;
+        deleteButton.addEventListener('click', () => this.deleteAccount());
+
+        this.elements.profileImageActions.appendChild(editButton);
+        this.elements.profileImageActions.appendChild(deleteButton);
     }
     
     async deleteAccount() {
@@ -121,9 +139,10 @@ class MyPageManager {
     }
 
     setupEventListeners() {
-        if (this.elements.navDeleteAccount) {
-            this.elements.navDeleteAccount.addEventListener('click', () => this.deleteAccount());
-        }
+        // navDeleteAccount는 이제 동적으로 생성된 버튼으로 대체됨
+        // if (this.elements.navDeleteAccount) {
+        //     this.elements.navDeleteAccount.addEventListener('click', () => this.deleteAccount());
+        // }
         if (this.elements.profileMenuToggle) {
             this.elements.profileMenuToggle.addEventListener('click', () => this.toggleMobileNav(true));
         }

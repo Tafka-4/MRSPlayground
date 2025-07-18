@@ -106,20 +106,28 @@ class UserGuestbookManager {
         }
 
         this.elements.guestbookList.innerHTML = entries.map(entry => {
-            const canDelete = this.currentUser && (this.currentUser.userid === entry.sender.userid || this.currentUser.authority === 'admin' || this.currentUser.userid === this.targetUserId);
+            const sender = entry.sender;
+            const canDelete = this.currentUser && sender && (this.currentUser.userid === sender.userid || this.currentUser.authority === 'admin' || this.currentUser.userid === this.targetUserId);
+            
+            const authorProfile = sender ? `/user/${escape(sender.userid)}` : '#';
+            const authorAvatar = sender?.profileImage 
+                ? `<img src="${escape(sender.profileImage)}" alt="${escape(sender.nickname)}" class="author-avatar">` 
+                : `<div class="author-avatar-placeholder"><span class="material-symbols-outlined">person</span></div>`;
+            const authorNickname = sender ? escape(sender.nickname) : '알 수 없는 사용자';
+
             return `
                 <div class="card guestbook-entry">
                     <div class="card-header">
-                        <a href="/user/${escape(entry.sender.userid)}" class="author-link">
-                            <img src="${entry.sender.profileImage || '/img/default-avatar.png'}" alt="${escape(entry.sender.nickname)}" class="author-avatar">
-                            <strong>${escape(entry.sender.nickname)}</strong>
+                        <a href="${authorProfile}" class="author-link">
+                            ${authorAvatar}
+                            <strong>${authorNickname}</strong>
                         </a>
                         <span class="entry-date">${new Date(entry.createdAt).toLocaleString()}</span>
                     </div>
                     <div class="card-body"><p>${escape(entry.message)}</p></div>
                     ${canDelete ? `
                     <div class="card-footer">
-                        <button class="btn btn-danger delete-btn" data-id="${escape(String(entry.id))}">
+                        <button class="btn btn-danger-outline delete-btn" data-id="${escape(String(entry.id))}">
                             <span class="material-symbols-outlined">delete</span> 삭제
                         </button>
                     </div>` : ''}
