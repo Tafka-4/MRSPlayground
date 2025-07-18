@@ -1,3 +1,23 @@
+.main-content {
+    display: flex;
+    align-items: flex-start;
+    min-height: 100vh;
+    padding: 2rem;
+    position: relative;
+    gap: 2rem;
+    width: fit-content;
+    margin: 0 auto;
+}
+
+.container {
+    width: 100%;
+    max-width: 720px;
+    background: var(--card-background);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
 .guestbook-content {
     display: flex;
     flex-direction: column;

@@ -23,7 +23,7 @@
     background: var(--card-background);
     border-bottom: 1px solid var(--border-color);
     position: fixed;
-    top: 0;
+    top: 64px;
     left: 0;
     right: 0;
     z-index: 999;
@@ -71,12 +71,13 @@
 /* Navigation & Main Content Layout */
 .main-content {
     display: flex;
-    justify-content: center;
-    align-items: flex-start; /* flex-start로 변경 */
+    align-items: flex-start;
     min-height: 100vh;
     padding: 2rem;
     position: relative;
     gap: 2rem;
+    width: fit-content; /* 너비를 내용물에 맞춤 */
+    margin: 0 auto;      /* 블록 자체를 중앙 정렬 */
 }
 
 .profile-navigation-container {
@@ -86,8 +87,8 @@
     padding: 1.5rem;
     box-shadow: var(--shadow);
     height: fit-content;
-    position: sticky; /* sticky로 변경 */
-    top: 2rem; /* 상단 간격 */
+    position: sticky;
+    top: 2rem;
 }
 
 .profile-nav-header {

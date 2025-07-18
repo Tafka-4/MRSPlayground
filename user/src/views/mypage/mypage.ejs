@@ -15,6 +15,24 @@
         <link rel="stylesheet" href="/component/style/buttons.css" />
         <link rel="stylesheet" href="/component/style/modals.css" />
         <link rel="stylesheet" href="/user/mypage.css" />
+        <style>
+            [data-theme='dark'] .profile-nav-item.active {
+                color: white !important;
+            }
+            #uid.info-value {
+                font-family: 'Courier New', Courier, monospace;
+                font-style: italic;
+                color: var(--text-secondary);
+            }
+            .profile-image-actions {
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+                width: 100%;
+                max-width: 200px;
+                margin-top: 1rem;
+            }
+        </style>
     </head>
     <body>
         <script>
@@ -119,6 +137,6 @@
         <%- include('../partials/footer') %>
 
         <div class="notice-container"></div>
-        <script type="module" src="/user/mypage.mjs"></script>
+        <script type="module" src="/user/mypage.mjs" data-cfasync="false"></script>
     </body>
 </html>
