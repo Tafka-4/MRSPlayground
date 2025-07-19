@@ -15,6 +15,26 @@
     max-width: 1440px;
 }
 
+.main-content {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* 기준을 flex-start로 변경 */
+    min-height: 80vh;
+    padding: 2rem;
+    position: relative;
+    gap: 4rem;
+}
+
+.container {
+    width: 100%;
+    max-width: 720px;
+    background: var(--card-background);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+}
+
+/* Mobile Header */
 .mobile-profile-header {
     display: none;
     align-items: center;
@@ -67,17 +87,7 @@
     color: var(--text-primary);
 }
 
-/* Main Content */
-.main-content {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 80vh;
-    padding: 2rem;
-    position: relative;
-    gap: 4rem;
-}
-
+/* Navigation */
 .profile-navigation-container {
     width: 280px;
     background: var(--card-background);
@@ -88,14 +98,7 @@
     position: sticky;
     top: 100px;
 }
-.container {
-    width: 100%;
-    max-width: 720px;
-    background: var(--card-background);
-    border-radius: 1rem;
-    padding: 2rem;
-    box-shadow: var(--shadow);
-}
+
 .profile-nav-header {
     display: flex;
     justify-content: space-between;
@@ -191,28 +194,12 @@
     z-index: 1050;
 }
 
-.mypage-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.mypage-header .title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-
-/* Media Queries */
+/* Common Media Queries */
 @media (max-width: 1000px) {
     .main-content {
         flex-direction: column;
         padding-top: 100px;
-        gap: 2rem;
-        align-items: center;
+        align-items: center; /* 모바일에서는 중앙 정렬 유지 */
     }
 
     .profile-navigation-container {
@@ -251,10 +238,11 @@
         max-width: none;
     }
 
-    .mypage-header {
+    .mypage-header .title, .user-profile-header {
         display: none;
     }
 }
+
 [data-theme='dark'] .profile-nav-item.active {
     background-color: var(--primary-color);
     color: var(--background-color);
