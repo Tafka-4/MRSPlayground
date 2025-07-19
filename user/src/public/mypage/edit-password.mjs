@@ -2,6 +2,7 @@ import api from '../module/api.js';
 import escape from '../module/escape.js';
 import Notice from '../module/notice.js';
 import { createButton } from '../component/buttons/index.js';
+import { setupMypage } from './mypage-common.mjs';
 
 class EditPasswordManager {
     constructor() {
@@ -148,4 +149,5 @@ class EditPasswordManager {
 
 document.addEventListener('DOMContentLoaded', () => {
     new EditPasswordManager();
+    setupMypage();
 });

@@ -2,12 +2,16 @@ import api from '../module/api.js';
 import Notice from '../module/notice.js';
 import { createConfirmCancelModal } from '../component/modals/index.js';
 import escape from '../module/escape.js';
+import { setupUserPage } from './user-common.mjs';
 
 class UserGuestbookManager {
     constructor() {
         this.targetUserId = window.location.pathname.split('/')[2];
         this.targetUser = null;
         this.currentUser = null;
+        this.currentPage = 1;
+        this.isLoading = false;
+        this.hasMore = true;
         this.cacheDOM();
         this.init();
     }
@@ -29,13 +33,8 @@ class UserGuestbookManager {
                 activity: document.getElementById('activity-nav-link'),
                 guestbook: document.getElementById('guestbook-nav-link'),
             },
-            mobileNav: {
-                toggle: document.getElementById('profileMenuToggle'),
-                nav: document.getElementById('profileNavigation'),
-                close: document.getElementById('profileNavClose'),
-                overlay: document.getElementById('profileNavOverlay'),
-            },
             guestbookStats: document.getElementById('guestbook-stats'),
+            paginationContainer: document.getElementById('pagination-container'),
         };
     }
 
@@ -46,6 +45,7 @@ class UserGuestbookManager {
         }
         await this.loadUsersAndGuestbook();
         this.setupEventListeners();
+        setupUserPage(this.targetUserId);
     }
 
     async loadUsersAndGuestbook() {
@@ -69,7 +69,7 @@ class UserGuestbookManager {
             this.renderUserHeader();
             this.showProfile();
             this.loadGuestbookEntries();
-            this.loadGuestbookStats(); // 통계 로딩 함수 호출
+            this.loadGuestbookStats();
         } catch (error) {
             this.showError(error.message);
         }
@@ -100,41 +100,55 @@ class UserGuestbookManager {
     renderStats(stats) {
         this.elements.guestbookStats.innerHTML = `
             <div class="stat-item">
-                <span class="stat-value">${stats.totalMessages}</span>
+                <span class="stat-value">${escape(stats.totalMessages)}</span>
                 <span class="stat-label">총 메시지</span>
             </div>
             <div class="stat-item">
-                <span class="stat-value">${stats.uniqueSenders}</span>
+                <span class="stat-value">${escape(stats.uniqueSenders)}</span>
                 <span class="stat-label">방문자 수</span>
             </div>
             <div class="stat-item">
-                <span class="stat-value">${stats.recentMessages}</span>
+                <span class="stat-value">${escape(stats.recentMessages)}</span>
                 <span class="stat-label">최근 7일</span>
             </div>
         `;
     }
 
-    async loadGuestbookEntries() {
-        this.elements.guestbookList.innerHTML = `<div class="loading-spinner"></div>`;
+    async loadGuestbookEntries(isInitialLoad = true) {
+        if (this.isLoading || !this.hasMore) return;
+
+        this.isLoading = true;
+        if (isInitialLoad) {
+            this.elements.guestbookList.innerHTML = `<div class="loading-spinner"></div>`;
+        }
+        
         try {
-            const response = await api.get(`/api/v1/guestbook/${this.targetUserId}`, { query: { limit: 100 } }); // 페이지네이션은 일단 생략
+            const response = await api.get(`/api/v1/guestbook/${this.targetUserId}`, { query: { page: this.currentPage, limit: 10 } });
+            
             if (response.success) {
+                if (isInitialLoad) this.elements.guestbookList.innerHTML = '';
                 this.renderGuestbookList(response.data);
+                this.hasMore = response.data.length === 10;
+                this.currentPage++;
+                this.renderPagination();
             } else {
                 this.showGuestbookError('방명록을 불러오지 못했습니다.');
             }
         } catch (error) {
             this.showGuestbookError(error.message || '방명록 로딩 중 오류 발생');
+        } finally {
+            this.isLoading = false;
         }
     }
 
     renderGuestbookList(entries) {
-        if (!entries || entries.length === 0) {
+        if (this.currentPage === 1 && entries.length === 0) {
             this.elements.guestbookList.innerHTML = `<div class="empty-state"><span class="material-symbols-outlined">book</span><p>아직 방명록이 없습니다.</p></div>`;
+            this.hasMore = false;
             return;
         }
 
-        this.elements.guestbookList.innerHTML = entries
+        const newEntriesHTML = entries
             .map(entry => {
                 if (!entry || !entry.sender) {
                     console.warn('Invalid guestbook entry data:', entry);
@@ -151,7 +165,7 @@ class UserGuestbookManager {
                 const authorNickname = escape(sender.nickname);
 
                 return `
-                    <div class="card guestbook-entry">
+                    <div class="card guestbook-entry" id="guestbook-${escape(String(entry.id))}">
                         <div class="card-header">
                             <a href="${authorProfile}" class="author-link">
                                 ${authorAvatar}
@@ -170,6 +184,19 @@ class UserGuestbookManager {
                 `;
             })
             .join('');
+        
+        this.elements.guestbookList.insertAdjacentHTML('beforeend', newEntriesHTML);
+    }
+
+    renderPagination() {
+        this.elements.paginationContainer.innerHTML = '';
+        if (this.hasMore) {
+            const loadMoreButton = document.createElement('button');
+            loadMoreButton.className = 'btn btn-primary';
+            loadMoreButton.textContent = '더보기';
+            loadMoreButton.addEventListener('click', () => this.loadGuestbookEntries(false));
+            this.elements.paginationContainer.appendChild(loadMoreButton);
+        }
     }
 
     async handleSubmit() {
@@ -192,7 +219,9 @@ class UserGuestbookManager {
             Notice.success('방명록을 성공적으로 남겼습니다.');
             this.elements.messageInput.value = '';
             this.elements.charCounter.textContent = '0/150';
-            this.loadGuestbookEntries();
+            this.currentPage = 1;
+            this.hasMore = true;
+            this.loadGuestbookEntries(true);
         } catch (error) {
             Notice.error(error.message || '방명록 작성에 실패했습니다.');
         } finally {
@@ -216,16 +245,27 @@ class UserGuestbookManager {
         try {
             await api.delete(`/api/v1/guestbook/${id}`);
             Notice.success('방명록이 삭제되었습니다.');
-            this.loadGuestbookEntries();
+            const entryElement = document.getElementById(`guestbook-${id}`);
+            if (entryElement) entryElement.remove();
         } catch (error) {
             Notice.error(error.message || '삭제에 실패했습니다.');
         }
     }
 
-    showError(message) { }
-    showProfile() { }
+    showError(message) {
+        this.elements.loading.style.display = 'none';
+        this.elements.profileContainer.style.display = 'none';
+        this.elements.errorMessage.textContent = message;
+        this.elements.errorContainer.style.display = 'block';
+    }
+
+    showProfile() {
+        this.elements.loading.style.display = 'none';
+        this.elements.errorContainer.style.display = 'none';
+        this.elements.profileContainer.style.display = 'block';
+    }
+    
     showGuestbookError(message) { this.elements.guestbookList.innerHTML = `<div class="error-message">${message}</div>`; }
-    toggleMobileNav(show) { }
     
     setupEventListeners() {
         this.elements.messageInput.addEventListener('input', () => {
@@ -237,11 +277,6 @@ class UserGuestbookManager {
             const deleteButton = e.target.closest('.delete-btn');
             if (deleteButton) this.handleDelete(deleteButton.dataset.id);
         });
-
-        const { toggle, nav, close, overlay } = this.elements.mobileNav;
-        if (toggle && nav) toggle.addEventListener('click', () => this.toggleMobileNav(true));
-        if (close && nav) close.addEventListener('click', () => this.toggleMobileNav(false));
-        if (overlay && nav) overlay.addEventListener('click', () => this.toggleMobileNav(false));
     }
 }
 

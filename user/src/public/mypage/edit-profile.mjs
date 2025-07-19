@@ -3,6 +3,7 @@ import escape from '../module/escape.js';
 import Notice from '../module/notice.js';
 import { createConfirmCancelModal } from '../component/modals/index.js';
 import { createButton } from '../component/buttons/index.js';
+import { setupMypage } from './mypage-common.mjs';
 
 class EditProfileManager {
     constructor() {
@@ -238,4 +239,5 @@ class EditProfileManager {
 
 document.addEventListener('DOMContentLoaded', () => {
     new EditProfileManager();
+    setupMypage();
 });

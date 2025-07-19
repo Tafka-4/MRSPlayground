@@ -272,7 +272,7 @@
     .profile-navigation-container {
         position: fixed;
         top: 0;
-        left: -320px;
+        left: -320px; /* Start off-screen */
         width: 300px;
         height: 100%;
         z-index: 200;

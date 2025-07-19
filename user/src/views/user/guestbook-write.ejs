@@ -41,7 +41,20 @@
                             <span class="material-symbols-outlined">close</span>
                         </button>
                     </div>
-                    <nav class="profile-nav" id="profile-nav-list"></nav>
+                    <nav class="profile-nav" id="profile-nav-list">
+                        <a href="#" class="profile-nav-item" data-page="profile">
+                            <span class="material-symbols-outlined">person</span>
+                            <span>프로필</span>
+                        </a>
+                        <a href="#" class="profile-nav-item" data-page="activity">
+                            <span class="material-symbols-outlined">history</span>
+                            <span>활동</span>
+                        </a>
+                        <a href="#" class="profile-nav-item" data-page="guestbook">
+                            <span class="material-symbols-outlined">book</span>
+                            <span>방명록</span>
+                        </a>
+                    </nav>
                 </div>
 
                 <div class="profile-nav-overlay" id="profileNavOverlay"></div>
@@ -122,6 +135,6 @@
 
         <div class="notice-container"></div>
 
-        <script type="module" src="/user/guestbook-write.mjs"></script>
+        <script type="module" src="/user/guestbook-write.mjs" data-cfasync="false"></script>
     </body>
 </html> 

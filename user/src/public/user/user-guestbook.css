@@ -299,3 +299,9 @@
     background: rgba(255, 193, 7, 0.1);
     color: #ffc107;
 } 
+
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0;
+} 

@@ -1,5 +1,6 @@
 import api from '../module/api.js';
 import Notice from '../module/notice.js';
+import { setupUserPage } from './user-common.mjs';
 
 class GuestbookWriteManager {
     constructor() {
@@ -42,6 +43,7 @@ class GuestbookWriteManager {
         
         await this.loadTargetUser();
         this.setupEventListeners();
+        setupUserPage(this.targetUserId);
     }
 
     async loadTargetUser() {

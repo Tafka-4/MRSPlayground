@@ -155,6 +155,7 @@ class MyPageManager {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Ensure the file input exists for the MyPageManager
     if (!document.getElementById('profile-image-input')) {
         const input = document.createElement('input');
         input.type = 'file';
@@ -164,7 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(input);
     }
     
+    // Initialize the main MyPage component logic
     new MyPageManager();
 
+    // Setup common mypage functionalities
     setupMypage();
 });

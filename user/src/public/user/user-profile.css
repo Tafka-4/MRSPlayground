@@ -523,7 +523,6 @@
         margin-left: 0;
         width: 100%;
         max-width: 100%;
-        border-radius: 0;
     }
 
     .tab-header {
@@ -700,7 +699,6 @@
 
 @media (max-width: 1399px) and (min-width: 1200px) {
     .container {
-        margin-left: 200px;
         max-width: 680px;
     }
 }
@@ -715,7 +713,6 @@
     .container {
         max-width: 580px;
         padding: 1.8rem;
-        margin-left: 180px;
     }
 }
 
@@ -727,9 +724,7 @@
     }
     
     .container {
-        max-width: 480px;
         padding: 1.5rem;
-        margin-left: 155px;
     }
     
     .profile-nav-item {
@@ -746,9 +741,7 @@
     }
     
     .container {
-        max-width: 420px;
         padding: 1.5rem;
-        margin-left: 140px;
     }
     
     .profile-nav-item {

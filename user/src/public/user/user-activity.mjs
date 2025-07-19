@@ -1,5 +1,6 @@
-import api from '/module/api.js';
-import escape from '/module/escape.js';
+import api from '../module/api.js';
+import escape from '../module/escape.js';
+import { setupUserPage } from './user-common.mjs';
 
 class UserActivityManager {
     constructor() {
@@ -24,12 +25,6 @@ class UserActivityManager {
                 activity: document.getElementById('activity-nav-link'),
                 guestbook: document.getElementById('guestbook-nav-link'),
             },
-            mobileNav: {
-                toggle: document.getElementById('profileMenuToggle'),
-                nav: document.getElementById('profileNavigation'),
-                close: document.getElementById('profileNavClose'),
-                overlay: document.getElementById('profileNavOverlay'),
-            }
         };
     }
 
@@ -40,6 +35,7 @@ class UserActivityManager {
         }
         this.loadUserProfileAndActivity();
         this.setupEventListeners();
+        setupUserPage(this.targetUserId);
     }
     
     async isMe() {
@@ -155,17 +151,6 @@ class UserActivityManager {
         this.elements.activityList.innerHTML = `<div class="error-message">${message}</div>`;
     }
 
-    toggleMobileNav(show) {
-        const { nav, overlay } = this.elements.mobileNav;
-        if (show) {
-            nav.classList.add('open');
-            overlay.classList.add('open');
-        } else {
-            nav.classList.remove('open');
-            overlay.classList.remove('open');
-        }
-    }
-
     setupEventListeners() {
         this.elements.filterButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -174,11 +159,6 @@ class UserActivityManager {
                 this.loadActivity(btn.dataset.filter);
             });
         });
-
-        const { toggle, nav, close, overlay } = this.elements.mobileNav;
-        if (toggle && nav) toggle.addEventListener('click', () => this.toggleMobileNav(true));
-        if (close && nav) close.addEventListener('click', () => this.toggleMobileNav(false));
-        if (overlay && nav) overlay.addEventListener('click', () => this.toggleMobileNav(false));
     }
 }
 

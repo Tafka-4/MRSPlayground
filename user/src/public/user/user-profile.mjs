@@ -1,6 +1,7 @@
-import api from '/module/api.js';
-import escape from '/module/escape.js';
-import { createRoleBadge, createVerificationBadge } from '/component/badges/index.js';
+import api from '../module/api.js';
+import escape from '../module/escape.js';
+import { createRoleBadge, createVerificationBadge } from '../component/badges/index.js';
+import { setupUserPage } from './user-common.mjs';
 
 class UserProfileManager {
     constructor() {
@@ -30,12 +31,6 @@ class UserProfileManager {
                 activity: document.getElementById('activity-nav-link'),
                 guestbook: document.getElementById('guestbook-nav-link'),
             },
-            mobileNav: {
-                toggle: document.getElementById('profileMenuToggle'),
-                nav: document.getElementById('profileNavigation'),
-                close: document.getElementById('profileNavClose'),
-                overlay: document.getElementById('profileNavOverlay'),
-            }
         };
     }
     
@@ -45,7 +40,7 @@ class UserProfileManager {
             return;
         }
         this.loadUserProfile();
-        this.setupEventListeners();
+        setupUserPage(this.targetUserId);
     }
 
     async isMe() {
@@ -83,7 +78,7 @@ class UserProfileManager {
         this.elements.pageTitle.textContent = title;
         this.elements.mobileTitle.textContent = '프로필';
 
-        this.elements.usernameContainer.innerHTML = ''; // Clear previous badges
+        this.elements.usernameContainer.innerHTML = '';
         this.elements.username.textContent = user.nickname;
         this.elements.usernameContainer.prepend(this.elements.username);
 
@@ -109,7 +104,6 @@ class UserProfileManager {
             this.elements.profileImage.innerHTML = '<span class="material-symbols-outlined">person</span>';
         }
         
-        // Update nav links
         this.elements.navLinks.profile.href = `/user/${escape(user.userid)}`;
         this.elements.navLinks.activity.href = `/user/${escape(user.userid)}/activity`;
         this.elements.navLinks.guestbook.href = `/user/${escape(user.userid)}/guestbook`;
@@ -132,30 +126,6 @@ class UserProfileManager {
         this.elements.loading.style.display = 'none';
         this.elements.errorContainer.style.display = 'none';
         this.elements.profileContainer.style.display = 'block';
-    }
-
-    toggleMobileNav(show) {
-        const { nav, overlay } = this.elements.mobileNav;
-        if (show) {
-            nav.classList.add('open');
-            overlay.classList.add('open');
-        } else {
-            nav.classList.remove('open');
-            overlay.classList.remove('open');
-        }
-    }
-
-    setupEventListeners() {
-        const { toggle, nav, close, overlay } = this.elements.mobileNav;
-        if (toggle && nav) {
-            toggle.addEventListener('click', () => this.toggleMobileNav(true));
-        }
-        if (close && nav) {
-            close.addEventListener('click', () => this.toggleMobileNav(false));
-        }
-        if (overlay && nav) {
-            overlay.addEventListener('click', () => this.toggleMobileNav(false));
-        }
     }
 }
 
