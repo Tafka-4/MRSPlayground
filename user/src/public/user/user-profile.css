@@ -509,10 +509,34 @@
 @media (max-width: 1000px) {
     .main-content {
         flex-direction: column;
+        padding-top: 140px;
+        gap: 2rem;
     }
 
     .profile-navigation-container {
-        display: none;
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 300px;
+        border-radius: 0;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        z-index: 1060;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .profile-navigation-container.open {
+        transform: translateX(0);
+    }
+
+    .profile-nav-overlay.open {
+        display: block;
+    }
+
+    .profile-nav-close {
+        display: block;
     }
 
     .mobile-profile-header {
@@ -520,17 +544,16 @@
     }
 
     .container {
-        margin-left: 0;
         width: 100%;
-        max-width: 100%;
+        max-width: none;
     }
 
-    .tab-header {
-        padding: 0 1.5rem;
+    .profile-section {
+        flex-direction: column;
     }
-    
-    .tab-title {
-        white-space: nowrap;
+
+    .user-profile-header {
+        display: none;
     }
 }
 

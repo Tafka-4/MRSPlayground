@@ -74,6 +74,8 @@ export function setupUserPage(targetUserId) {
             
             if (path === href) {
                 item.classList.add('active');
+            } else {
+                item.classList.remove('active');
             }
         }
     });

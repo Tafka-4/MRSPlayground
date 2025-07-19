@@ -2,6 +2,7 @@ import api from '../module/api.js';
 import escape from '../module/escape.js';
 import Notice from '../module/notice.js';
 import { createConfirmCancelModal } from '../component/modals/index.js';
+import { setupMypage } from './mypage-common.mjs';
 
 class MyGuestbookManager {
     constructor() {
@@ -196,4 +197,5 @@ class MyGuestbookManager {
 
 document.addEventListener('DOMContentLoaded', () => {
     new MyGuestbookManager();
+    setupMypage();
 }); 

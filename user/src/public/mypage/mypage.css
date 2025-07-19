@@ -26,7 +26,7 @@
     top: 64px;
     left: 0;
     right: 0;
-    z-index: 1000;
+    z-index: 1040;
     width: 100%;
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
@@ -187,7 +187,7 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    z-index: 150;
+    z-index: 1050;
 }
 
 .user-profile-header {
@@ -265,22 +265,28 @@
 @media (max-width: 1000px) {
     .main-content {
         flex-direction: column;
-        padding-top: 5rem;
-        padding-left: 1rem;
-        padding-right: 1rem;
+        padding-top: 140px;
+        gap: 2rem;
     }
+
     .profile-navigation-container {
-        left: -320px;
-        width: 50%;
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
         height: 100%;
-        z-index: 1000;
+        width: 300px;
+        border-radius: 0;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        z-index: 1060;
+        transform: translateX(-100%);
         transition: transform 0.3s ease-in-out;
-        transform: translateX(0);
-        overflow-y: auto;
     }
+
     .profile-navigation-container.open {
-        transform: translateX(320px);
+        transform: translateX(0);
     }
+
     .profile-nav-overlay.open {
         display: block;
     }
@@ -288,16 +294,27 @@
     .profile-nav-close {
         display: block;
     }
+
     .mobile-profile-header {
         display: flex;
     }
+
     .container {
-        margin-top: 0;
         width: 100%;
+        max-width: none;
+    }
+
+    .profile-section {
+        flex-direction: column;
+    }
+
+    .user-profile-header {
+        display: none;
     }
 }
 [data-theme='dark'] .profile-nav-item.active {
-    color: #1e1e1e !important;
+    background-color: var(--primary-color);
+    color: var(--background-color);
 }
 .profile-image-actions .btn.btn-danger-outline {
     --btn-bg: transparent;

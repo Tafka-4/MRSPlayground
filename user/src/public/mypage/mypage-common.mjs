@@ -66,7 +66,7 @@ export function setupMypage() {
     navItems.forEach((item) => item.classList.remove('active')); // init
     navItems.forEach((item) => {
         const href = item.getAttribute('href') || item.dataset.href;
-        if (href && path.includes(href)) {
+        if (href && path === href) {
             item.classList.add('active');
         }
     });
