@@ -563,7 +563,7 @@ textarea:focus {
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(-10px);
+        transform: translateY(10px);
     }
     to {
         opacity: 1;
@@ -572,39 +572,16 @@ textarea:focus {
 }
 
 @media (max-width: 1000px) {
-    .title {
-        text-align: center;
-        width: 100%;
-        margin-bottom: 1rem;
-    }
-}
-
-@media (max-width: 768px) {
     .mobile-profile-header {
         display: flex;
     }
 
-    body {
-        padding-top: 64px;
-    }
-
     .main-content {
-        padding-top: 2rem;
+        padding-top: 140px;
+        gap: 2rem;
     }
 
-    .container {
-        padding: 1.5rem;
-    }
-
-    .title {
-        text-align: center;
-    }
-
-    .edit-header {
-        justify-content: center;
-    }
-
-    .back-button {
+    .mypage-header {
         display: none;
     }
 
@@ -630,28 +607,11 @@ textarea:focus {
     .action-buttons .btn {
         width: 100%;
     }
-}
-
-@media (max-width: 480px) {
-    .main-content {
-        padding: 1rem;
-    }
 
     .container {
-        padding: 1rem;
-    }
-
-    .title {
-        font-size: 1.8rem;
-    }
-
-    .profile-image {
-        width: 100px;
-        height: 100px;
-    }
-
-    .profile-image .material-symbols-outlined {
-        font-size: 3rem;
+        width: 100%;
+        max-width: none;
+        padding: 1.5rem;
     }
 }
 
@@ -660,20 +620,10 @@ textarea:focus {
         max-width: 900px;
     }
 }
-
 @media (max-width: 1399px) and (min-width: 1200px) {
     .container {
         max-width: 800px;
     }
-}
-
-@media (max-width: 1199px) and (min-width: 1000px) {
-}
-
-@media (max-width: 999px) and (min-width: 900px) {
-}
-
-@media (max-width: 899px) and (min-width: 769px) {
 }
 
 [data-theme='dark'] .main-content {
@@ -681,31 +631,29 @@ textarea:focus {
 }
 
 [data-theme='dark'] .mobile-profile-header {
-    background: var(--card-background);
-    border-bottom-color: var(--border-color);
+    background-color: #1e1e1e;
+    border-bottom-color: #333;
 }
 
 [data-theme='dark'] .profile-navigation-container {
-    background: var(--card-background);
+    background-color: #1e1e1e;
+    border-right-color: #333;
 }
-
 [data-theme='dark'] .profile-nav-item.active {
-    background-color: var(--primary-color);
     color: #1e1e1e !important;
 }
 
 .input-with-icon {
     position: relative;
 }
-
 .input-with-icon .material-symbols-outlined {
     position: absolute;
-    left: 0.75rem;
-    top: 0.75rem;
-    color: var(--text-secondary);
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
 }
-
 .input-with-icon input,
 .input-with-icon textarea {
-    padding-left: 2.5rem;
+    padding-left: 3rem;
 }
