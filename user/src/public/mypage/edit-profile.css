@@ -282,7 +282,6 @@
     flex-direction: column;
     gap: 0.5rem;
     width: 100%;
-    max-width: 200px;
 }
 
 .profile-form {
@@ -495,14 +494,10 @@ textarea:focus {
 
 .action-buttons {
     display: flex;
-    justify-content: flex-end; /* 버튼을 오른쪽으로 정렬 */
-    gap: 1rem; /* 버튼 사이 간격 */
+    justify-content: flex-end;
+    gap: 1rem;
     margin-top: 2rem;
 }
-
-/* 기존의 모호한 버튼 스타일을 제거하고, 전역 .btn 스타일을 활용하도록 유도 */
-/* .action-buttons .btn { ... } 와 같은 규칙 대신, 
-   HTML에서 <button class="btn btn-primary"> 와 같이 사용 */
 
 .cancel-button {
     background-color: var(--background-secondary);
@@ -578,7 +573,6 @@ textarea:focus {
 
     .main-content {
         padding-top: 140px;
-        gap: 2rem;
     }
 
     .mypage-header {
@@ -594,24 +588,7 @@ textarea:focus {
         flex-direction: row;
         width: auto;
         justify-content: center;
-    }
-
-    .profile-form {
-        width: 100%;
-    }
-
-    .action-buttons {
-        flex-direction: column;
-    }
-
-    .action-buttons .btn {
-        width: 100%;
-    }
-
-    .container {
-        width: 100%;
-        max-width: none;
-        padding: 1.5rem;
+        gap: 1rem;
     }
 }
 

@@ -320,11 +320,7 @@
     }
 
     .user-profile-header,
-    .mypage-header {
-        display: none;
-    }
-
-    .guestbook-header h2 {
+    .mypage-header .title {
         display: none;
     }
 }
