@@ -15,7 +15,6 @@
     max-width: 1440px;
 }
 
-/* Mobile Header */
 .mobile-profile-header {
     display: none;
     align-items: center;
@@ -72,7 +71,7 @@
 .main-content {
     display: flex;
     justify-content: center;
-    align-items: flex-start;
+    align-items: center;
     min-height: 80vh;
     padding: 2rem;
     position: relative;
@@ -252,7 +251,7 @@
         max-width: none;
     }
 
-    .mypage-header .title {
+    .mypage-header {
         display: none;
     }
 }
