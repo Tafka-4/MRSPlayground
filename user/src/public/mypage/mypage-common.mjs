@@ -1,9 +1,7 @@
 export function setupMypage() {
-    // --- Mobile Header & Navigation Logic ---
     const mobileProfileHeader = document.querySelector('.mobile-profile-header');
     let lastScrollTop = 0;
 
-    // Throttle function to limit scroll event handling
     function throttle(func, limit) {
         let inThrottle;
         return function () {
@@ -17,7 +15,6 @@ export function setupMypage() {
         };
     }
 
-    // Hide/show header on scroll
     function handleScroll() {
         if (!mobileProfileHeader) return;
         let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -63,10 +60,10 @@ export function setupMypage() {
         navClose.addEventListener('click', closeNav);
     }
 
-
-    // --- Active Navigation Item Highlighting ---
+    // active nav item
     const path = window.location.pathname;
     const navItems = document.querySelectorAll('.profile-nav-item');
+    navItems.forEach((item) => item.classList.remove('active')); // init
     navItems.forEach((item) => {
         const href = item.getAttribute('href') || item.dataset.href;
         if (href && path.includes(href)) {
@@ -74,7 +71,6 @@ export function setupMypage() {
         }
     });
 
-    // Adjust container width for the guestbook page to be full-width
     const container = document.querySelector('.container');
     if (container && path.includes('guestbook')) {
         container.style.maxWidth = '100%';

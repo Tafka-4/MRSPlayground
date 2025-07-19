@@ -22,7 +22,7 @@
     background: var(--card-background);
     border-bottom: 1px solid var(--border-color);
     position: fixed;
-    top: 0px;
+    top: 64px;
     left: 0;
     right: 0;
     z-index: 999;
@@ -208,10 +208,12 @@
 
 .title {
     text-align: left;
+    justify-content: left;
     color: var(--text-primary);
     font-size: 2.5rem;
     font-weight: 500;
     margin: 0;
+    margin-bottom: 2rem;
 }
 
 .back-button {
@@ -327,7 +329,7 @@
 .profile-form .form-inputs .input-wrapper input,
 .form-inputs .input-wrapper input,
 .input-group .input-wrapper input {
-    padding: 0.75rem 1rem 0.75rem 3.5rem !important;
+    padding: 0.75rem 1rem 0.75rem 2.5rem !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 0.5rem !important;
     background: var(--background-secondary) !important;
@@ -345,7 +347,7 @@
 .profile-form .form-inputs .input-wrapper textarea,
 .form-inputs .input-wrapper textarea,
 .input-group .input-wrapper textarea {
-    padding: 1rem 1rem 1rem 3.5rem !important;
+    padding: 0.75rem 1rem 1rem 2.5rem !important;
     border: 1px solid var(--border-color) !important;
     border-radius: 0.5rem !important;
     background: var(--background-secondary) !important;
@@ -397,8 +399,7 @@
 .form-inputs .input-wrapper .material-symbols-outlined:not(.textarea-icon),
 .input-group .input-wrapper .material-symbols-outlined:not(.textarea-icon) {
     position: absolute !important;
-    left: 1rem !important;
-    top: 50% !important;
+    top: 1.25rem !important;
     transform: translateY(-50%) !important;
     color: var(--text-secondary) !important;
     z-index: 10 !important;
@@ -421,7 +422,7 @@
 input,
 textarea {
     width: 100%;
-    padding: 1rem 1rem 1rem 3.5rem;
+    padding: 0.75rem 1rem 1rem 2.5rem;
     border: 1px solid var(--border-color);
     border-radius: 0.5rem;
     background: var(--background-secondary);
@@ -571,16 +572,15 @@ textarea:focus {
 }
 
 @media (max-width: 1000px) {
-    .mypage-header {
-        display: inline !important;
+    .title {
+        text-align: center;
+        font-size: 2.5rem;
+        margin-bottom: 2rem;
+        font-weight: 500;
     }
 }
 
 @media (max-width: 768px) {
-    .main-header {
-        display: none;
-    }
-
     .mobile-profile-header {
         display: flex;
     }
@@ -599,8 +599,7 @@ textarea:focus {
 
     .profile-navigation-container {
         position: fixed;
-        left: -300px;
-        width: 300px;
+        width: 50%;
         height: 100vh;
         z-index: 1001;
         transition: left 0.3s ease;
@@ -700,7 +699,6 @@ textarea:focus {
 
 @media (max-width: 1399px) and (min-width: 1200px) {
     .container {
-        margin-left: 200px;
         max-width: 680px;
     }
 }
@@ -715,7 +713,6 @@ textarea:focus {
     .container {
         max-width: 580px;
         padding: 1.8rem;
-        margin-left: 180px;
     }
 }
 
@@ -727,9 +724,7 @@ textarea:focus {
     }
     
     .container {
-        max-width: 480px;
         padding: 1.5rem;
-        margin-left: 155px;
     }
     
     .profile-nav-item {
@@ -740,20 +735,16 @@ textarea:focus {
 
 @media (max-width: 899px) and (min-width: 769px) {
     .profile-navigation-container {
-        width: 200px;
         padding: 1rem;
         left: 1rem;
     }
     
     .container {
-        max-width: 420px;
         padding: 1.5rem;
-        margin-left: 140px;
     }
     
     .profile-nav-item {
         padding: 0.6rem 0.8rem;
-        font-size: 0.9rem;
     }
     
     .profile-nav-item .material-symbols-outlined {
@@ -776,7 +767,7 @@ textarea:focus {
 
 [data-theme='dark'] .profile-nav-item.active {
     background-color: var(--primary-color);
-    color: #1e1e1e !important; /* 흰색 배경에 어두운 글자색 */
+    color: #1e1e1e !important;
 }
 
 .input-with-icon {
@@ -792,5 +783,5 @@ textarea:focus {
 
 .input-with-icon input,
 .input-with-icon textarea {
-    padding-left: 2.5rem; /* 아이콘 너비만큼 패딩 추가 */
+    padding-left: 2.5rem;
 }
