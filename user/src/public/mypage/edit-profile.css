@@ -574,9 +574,8 @@ textarea:focus {
 @media (max-width: 1000px) {
     .title {
         text-align: center;
-        font-size: 2.5rem;
-        margin-bottom: 2rem;
-        font-weight: 500;
+        width: 100%;
+        margin-bottom: 1rem;
     }
 }
 
@@ -655,7 +654,7 @@ textarea:focus {
 
     .profile-image-actions {
         flex-direction: row;
-        max-width: none;
+        width: auto;
         justify-content: center;
     }
 
@@ -682,8 +681,8 @@ textarea:focus {
     }
 
     .profile-image {
-        width: 120px;
-        height: 120px;
+        width: 100px;
+        height: 100px;
     }
 
     .profile-image .material-symbols-outlined {
@@ -693,67 +692,27 @@ textarea:focus {
 
 @media (min-width: 1400px) {
     .container {
-        margin-left: 0;
+        max-width: 900px;
     }
 }
 
 @media (max-width: 1399px) and (min-width: 1200px) {
     .container {
-        max-width: 680px;
+        max-width: 800px;
     }
 }
 
 @media (max-width: 1199px) and (min-width: 1000px) {
-    .profile-navigation-container {
-        width: 240px;
-        padding: 1.2rem;
-        left: 1.5rem;
-    }
-    
-    .container {
-        max-width: 580px;
-        padding: 1.8rem;
-    }
 }
 
 @media (max-width: 999px) and (min-width: 900px) {
-    .profile-navigation-container {
-        width: 220px;
-        padding: 1rem;
-        left: 1rem;
-    }
-    
-    .container {
-        padding: 1.5rem;
-    }
-    
-    .profile-nav-item {
-        padding: 0.65rem 0.9rem;
-        font-size: 0.95rem;
-    }
 }
 
 @media (max-width: 899px) and (min-width: 769px) {
-    .profile-navigation-container {
-        padding: 1rem;
-        left: 1rem;
-    }
-    
-    .container {
-        padding: 1.5rem;
-    }
-    
-    .profile-nav-item {
-        padding: 0.6rem 0.8rem;
-    }
-    
-    .profile-nav-item .material-symbols-outlined {
-        font-size: 1.1rem;
-    }
 }
 
 [data-theme='dark'] .main-content {
-    background-color: var(--background-color);
+    background-color: #121212;
 }
 
 [data-theme='dark'] .mobile-profile-header {

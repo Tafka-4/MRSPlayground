@@ -283,6 +283,17 @@
         transition: transform 0.3s ease-in-out;
     }
 
+    .profile-image-container {
+        align-items: center;
+    }
+
+    .profile-image-actions {
+        flex-direction: row;
+        width: auto;
+        justify-content: center;
+        gap: 1rem;
+    }
+
     .profile-navigation-container.open {
         transform: translateX(0);
     }
