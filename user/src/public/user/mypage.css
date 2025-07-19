@@ -190,15 +190,14 @@
     z-index: 150;
 }
 
-/* Profile Section */
 .user-profile-header {
     display: flex;
-    justify-content: flex-start; /* 제목 왼쪽 정렬 */
+    justify-content: flex-start;
     align-items: center;
     margin-bottom: 2rem;
 }
 .title {
-    font-size: 2rem;
+    font-size: 2.5rem;
 }
 .profile-section {
     display: flex;
@@ -257,9 +256,8 @@
     gap: 0.5rem;
 }
 #uid {
-    /* 고유 폰트 스타일 제거하여 기본 폰트 상속 */
     font-family: inherit;
-    font-style: normal;
+    font-style: italic;
     color: var(--text-secondary);
 }
 
@@ -270,26 +268,17 @@
         padding: 1rem;
     }
     .profile-navigation-container {
-        position: fixed;
-        left: -100%;
         width: 300px;
-        height: 100%;
-        top: 0;
-        z-index: 200;
-        transition: left 0.3s ease;
-    }
-    .profile-navigation-container.open {
-        left: 0;
     }
     .mobile-profile-header {
         display: flex;
     }
     .container {
-        margin-top: 64px;
+        margin-top: 0;
     }
 }
 [data-theme='dark'] .profile-nav-item.active {
-    color: #1e1e1e !important; /* 흰색 배경에 어두운 글자색 적용 */
+    color: #1e1e1e !important;
 }
 .profile-image-actions .btn.btn-danger-outline {
     --btn-bg: transparent;
