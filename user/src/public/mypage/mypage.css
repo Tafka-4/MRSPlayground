@@ -319,7 +319,12 @@
         flex-direction: column;
     }
 
-    .user-profile-header {
+    .user-profile-header,
+    .mypage-header {
+        display: none;
+    }
+
+    .guestbook-header h2 {
         display: none;
     }
 }
