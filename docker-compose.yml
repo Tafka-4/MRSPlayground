@@ -4,8 +4,8 @@ services:
     image: nginx:alpine
     cpuset: "3"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx/ssl
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./nginx/logs:/var/log/nginx
     depends_on:
       api:
@@ -143,7 +143,7 @@ services:
 
   # MySQL Database for User Service
   userdb:
-    image: mysql:latest
+    image: mysql:8.0
     cpuset: "3"
     environment:
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD}
@@ -196,7 +196,7 @@ services:
 
   # MySQL Database for Request Tracking
   requestdb:
-    image: mysql:latest
+    image: mysql:8.0
     cpuset: "3"
     environment:
       - MYSQL_ROOT_PASSWORD=${REQDB_PASSWORD}
@@ -205,7 +205,7 @@ services:
       - '3306'
     volumes:
       - requestdb_data:/var/lib/mysql
-      - ./requestdb/init:/docker-entrypoint-initdb.d
+      - ./requestdb/init:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${REQDB_PASSWORD}"]
       timeout: 30s
@@ -226,8 +226,8 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
-      - ./redis/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./redis/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
     entrypoint: ["/usr/local/bin/docker-entrypoint.sh"]
     restart: unless-stopped
     networks:
