@@ -55,7 +55,7 @@ jobs:
 
       - name: Run deploy.sh remotely
         run: |
-          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "chmod +x ~/MRSPlayground/deploy.sh && cd ~/MRSPlayground && sudo ./deploy.sh"
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "chmod +x ~/MRSPlayground/deploy.sh && cd ~/MRSPlayground && ./deploy.sh"
 
       - name: Remove ssh key
         run: rm /tmp/key
