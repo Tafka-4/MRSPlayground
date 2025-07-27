@@ -205,7 +205,7 @@ services:
       - '3306'
     volumes:
       - requestdb_data:/var/lib/mysql
-      - ./requestdb/init:/docker-entrypoint-initdb.d:ro
+      - ./requestdb/init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${REQDB_PASSWORD}"]
       timeout: 30s
@@ -226,8 +226,8 @@ services:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     volumes:
       - redis_data:/data
-      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-      - ./redis/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
     entrypoint: ["/usr/local/bin/docker-entrypoint.sh"]
     restart: unless-stopped
     networks:
