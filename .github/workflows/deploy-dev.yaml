@@ -32,7 +32,7 @@ jobs:
         run: |
           ssh -T -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} 'bash -s' <<EOF
             set -e
-            
+            sudo chown -R deploy:deploy /opt/app/
             cd /opt/app/MRSPlayground
 
             sudo mkdir -p ./nginx/ssl/
