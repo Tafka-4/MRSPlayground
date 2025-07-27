@@ -32,7 +32,9 @@ jobs:
         run: |
           ssh -T -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} 'bash -s' <<EOF
             set -e
-            sudo chown -R ${{ secrets.DEV_TEST_USER }}:${{ secrets.DEV_TEST_USER }} /opt/app/
+            sudo chmod +x /opt
+            sudo chmod +x /opt/app
+            sudo chmod -R u+rwX /opt/app/MRSPlayground
             cd /opt/app/MRSPlayground
 
             sudo mkdir -p ./nginx/ssl/
