@@ -57,6 +57,7 @@ jobs:
 
       - name: Run deploy.sh remotely
         run: |
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "mkdir -p /opt/app/MRSPlayground/requestdb/init && mkdir -p /opt/app/MRSPlayground/userdb/init"
           ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "chmod +x /opt/app/MRSPlayground/deploy.sh && cd /opt/app/MRSPlayground && sudo ./deploy.sh"
 
       - name: Remove ssh key
