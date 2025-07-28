@@ -14,7 +14,8 @@ import {
     UserAlreadyVerifiedError,
     AuthUserAlreadyAdminError,
     UserNotAdminError,
-    UserNotVerifiedError
+    UserNotVerifiedError,
+    AuthEmailVerifyFailedError
 } from '../utils/errors.js';
 import jwt from 'jsonwebtoken';
 
@@ -365,20 +366,32 @@ export const sendVerificationEmail = async (req: Request, res: Response) => {
 };
 
 export const verifyEmail = async (req: Request, res: Response) => {
-    const { email, code } = req.body;
-    if (!email || !code) {
-        throw new UserError('Email and code are required');
+    const { email, pin } = req.body;
+    const verificationCode = pin || req.body.verificationCode;
+    
+    const isVerified = await redisClient.get(`${email}:isVerified`);
+    const isDuplicate = await User.findOne({ email });
+    if (isVerified || isDuplicate) {
+        res.status(200).json({
+            success: true,
+            alreadyVerified: true,
+            message: '이미 인증된 이메일입니다'
+        });
+        return;
     }
-
-    const storedCode = await redisClient.get(`${email}:verify`);
-    if (storedCode !== code) {
-        throw new AuthError('Invalid verification code');
+    
+    const verificationCodeFromRedis = await redisClient.get(
+        `${email}:verificationCode`
+    );
+    if (verificationCodeFromRedis !== verificationCode) {
+        throw new AuthEmailVerifyFailedError('인증 코드가 올바르지 않습니다');
     }
-
-    await redisClient.set(`${email}:isVerified`, 'true', { EX: 600 });
-    await redisClient.del(`${email}:verify`);
-
-    res.status(200).json({ success: true, message: 'Email verified successfully' });
+    await redisClient.del(`${email}:verificationCode`);
+    await redisClient.set(`${email}:isVerified`, 'true', { EX: 60 * 60 * 24 });
+    res.status(200).json({
+        success: true,
+        message: '이메일 인증이 성공적으로 완료되었습니다'
+    });
 };
 
 //login required
