@@ -13,7 +13,6 @@
 .input-wrapper {
     position: relative;
     width: 100%;
-    max-width: 400px;
     margin-bottom: 0.5rem;
     display: block;
 }
@@ -71,7 +70,6 @@
 .input-wrapper {
     position: relative;
     width: 100%;
-    max-width: 250px;
     margin-bottom: 0.5rem;
     display: block;
 }
@@ -94,7 +92,6 @@
     box-sizing: border-box;
     position: relative;
     width: 100%;
-    max-width: 250px;
     height: 2.15rem;
     margin: 0;
     padding: 0.5rem 3rem 0.5rem 2.5rem;
