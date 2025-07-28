@@ -2,7 +2,8 @@ import { Request, Response } from 'express';
 import { Guestbook, IGuestbook } from '../models/Guestbook.js';
 import { User } from '../models/User.js';
 import { validatePaginationParams } from '../utils/sqlSecurity.js';
-import { UserNotFoundError } from '../utils/errors.js';
+import { UserNotFoundError, AppError } from '../utils/errors.js';
+import { redisClient } from '../config/redis.js';
 
 export const createGuestbookEntry = async (req: Request, res: Response) => {
     try {
@@ -112,6 +113,25 @@ export const updateGuestbookEntry = async (req: Request, res: Response) => {
         console.error('Error updating guestbook entry:', error);
         res.status(500).json({ success: false, message: 'Internal Server Error' });
     }
+};
+
+export const resetGuestbookLimits = async (req: Request, res: Response) => {
+    const userid = req.user?.userid;
+    if (req.user?.authority !== 'admin') {
+        throw new AppError('Unauthorized', 403);
+    }
+    
+    const { targetUserid, apiName } = req.body;
+    if (!targetUserid || !apiName) {
+        throw new AppError('targetUserid and apiName are required', 400);
+    }
+
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const key = `ratelimit:${apiName}:${targetUserid}:${today}`;
+
+    await redisClient.del(key);
+
+    res.status(200).json({ success: true, message: `Rate limit for ${targetUserid} on ${apiName} has been reset.` });
 };
 
 export const deleteGuestbookEntry = async (req: Request, res: Response) => {

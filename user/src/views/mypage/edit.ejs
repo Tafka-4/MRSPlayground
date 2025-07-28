@@ -52,9 +52,9 @@
                             <span class="material-symbols-outlined">edit</span>
                             <span>프로필 수정</span>
                         </a>
-                        <a href="#activity" class="profile-nav-item">
+                        <a href="/mypage/activity" class="profile-nav-item">
                             <span class="material-symbols-outlined">history</span>
-                            <span>활동</span>
+                            <span>내 활동</span>
                         </a>
                         <a href="/mypage/guestbook" class="profile-nav-item">
                             <span class="material-symbols-outlined">book</span>
@@ -79,25 +79,56 @@
                         <h1 class="title">프로필 수정</h1>
                         <div id="admin-button-container"></div>
                     </div>
-
                     <div class="profile-section">
                         <div class="profile-image-container">
-                            <div id="profile-image" class="profile-image">
+                            <div class="profile-image" id="profile-image">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
                             <div class="profile-image-actions" id="profile-image-actions">
-                                <input
-                                    type="file"
-                                    id="profile-image-input"
-                                    hidden
-                                    accept="image/*"
-                                />
+                                <!-- Buttons will be rendered here by JS -->
                             </div>
                         </div>
 
-                        <div class="profile-info">
-                            <div class="form-inputs" id="profile-form-container"></div>
-                        </div>
+                        <form id="edit-profile-form" class="edit-profile-form">
+                            <div class="form-section">
+                                <div class="form-group">
+                                    <label for="profile-name">이름</label>
+                                    <input type="text" id="profile-name" name="name" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-email">이메일</label>
+                                    <input type="email" id="profile-email" name="email" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-bio">소개</label>
+                                    <textarea id="profile-bio" name="bio"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-website">웹사이트</label>
+                                    <input type="url" id="profile-website" name="website" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-location">위치</label>
+                                    <input type="text" id="profile-location" name="location" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-twitter">트위터</label>
+                                    <input type="url" id="profile-twitter" name="twitter" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-github">깃허브</label>
+                                    <input type="url" id="profile-github" name="github" />
+                                </div>
+                                <div class="form-group">
+                                    <label for="profile-linkedin">링크드인</label>
+                                    <input type="url" id="profile-linkedin" name="linkedin" />
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">저장</button>
+                                <button type="button" class="btn btn-secondary" id="cancel-edit">취소</button>
+                            </div>
+                        </form>
                     </div>
                     <div class="only-read-info">
                         <div class="readonly-info">

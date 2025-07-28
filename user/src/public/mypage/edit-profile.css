@@ -241,8 +241,6 @@
 .profile-section {
     display: flex;
     gap: 2rem;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
 }
 
 .profile-image-container {
@@ -250,20 +248,20 @@
     flex-direction: column;
     align-items: center;
     gap: 1rem;
-    flex: 0 0 auto;
 }
 
 .profile-image {
-    width: 150px;
-    height: 150px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
-    background-color: var(--background-secondary);
+    background-color: var(--background-color);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
     border: 3px solid var(--border-color);
-    transition: border-color 0.2s ease;
+    background-size: cover;
+    background-position: center;
 }
 
 .profile-image img {
@@ -581,6 +579,9 @@ textarea:focus {
 
     .profile-section {
         flex-direction: column;
+    }
+
+    .profile-image-container {
         align-items: center;
     }
 
