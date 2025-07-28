@@ -24,8 +24,8 @@
                 document.documentElement.setAttribute('data-theme', savedTheme);
             })();
         </script>
-        <div id="root">
-            <%- include('../partials/header') %>
+        <div id="root" class="mypage-root">
+            <%- include('../partials/header', { fixedHeader: false }) %>
 
             <main class="main-content">
                 <div class="mobile-profile-header">

@@ -1,11 +1,13 @@
 <% const headerData = { brandText: locals.brandText || '마법연구회', brandHref:
 locals.brandHref || '/', userName: locals.userName || 'User', userRole:
 locals.userRole || '사용자', notificationCount: locals.notificationCount || 0,
-...locals }; %>
+...locals };
+const fixedHeader = typeof locals.fixedHeader === 'undefined' ? true : locals.fixedHeader;
+%>
 
 <link rel="stylesheet" href="/partials/header.css" />
 
-<header class="main-header">
+<header class="main-header<%= fixedHeader ? ' fixed-header' : '' %>">
     <div class="header-container">
         <div class="header-brand">
             <a href="<%= headerData.brandHref %>" class="brand-link">
