@@ -209,8 +209,8 @@ class EditProfilePage {
 
     renderButtons() {
         this.actionsContainer.innerHTML = '';
-        const imageActionsContainer = document.createElement('div');
-        imageActionsContainer.className = 'profile-image-actions';
+        const imageActionsContainer = document.getElementById('profile-image-actions');
+        imageActionsContainer.innerHTML = '';
 
         const uploadButton = createButton({
             text: '사진 변경',
@@ -228,17 +228,14 @@ class EditProfilePage {
         });
 
         imageActionsContainer.append(uploadButton, deleteButton);
-        this.profileImage.parentElement.insertBefore(
-            imageActionsContainer,
-            this.profileImage.nextSibling
-        );
 
         const saveButton = createButton({
             id: 'save-changes',
             text: '변경사항 저장',
             style: 'primary',
             disabled: true,
-            onClick: () => this.handleSave()
+            onClick: () => this.handleSave(),
+            class: 'btn save-button'
         });
 
         const rightButtonsContainer = document.createElement('div');
@@ -247,7 +244,6 @@ class EditProfilePage {
 
         this.actionsContainer.appendChild(this.charCounter);
         this.actionsContainer.appendChild(rightButtonsContainer);
-        this.formContainer.appendChild(this.actionsContainer);
         this.saveButton = saveButton;
     }
 
