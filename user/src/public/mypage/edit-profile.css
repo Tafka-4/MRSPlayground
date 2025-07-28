@@ -10,21 +10,6 @@
     font-family: 'ONE-Mobile-POP';
 }
 
-#root {
-    margin: 0 auto;
-    max-width: 1440px;
-}
-
-.container {
-    width: 100%;
-    background: var(--card-background);
-    border-radius: 1rem;
-    padding: 2rem;
-    box-shadow: var(--shadow);
-    margin: 0 auto;
-    transition: margin-left 0.3s ease, max-width 0.3s ease;
-}
-
 .edit-header {
     display: flex;
     justify-content: space-between;
@@ -400,12 +385,6 @@ textarea:focus {
 }
 
 @media (max-width: 1000px) {
-    .container {
-        padding: 1.5rem;
-        border-radius: 0;
-        box-shadow: none;
-    }
-
     .title {
         font-size: 1.5rem;
     }
