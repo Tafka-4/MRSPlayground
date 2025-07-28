@@ -164,14 +164,6 @@
     color: rgb(10, 10, 10);
 }
 
-/* 스타일 확장: style1 (ex-mypage) */
-.input-style1 {
-    position: relative;
-    width: 100%;
-    max-width: 400px;
-    margin-bottom: 0.5rem;
-    display: block;
-}
 .input-style1 .material-symbols-outlined {
     position: absolute;
     left: 1rem;
@@ -180,6 +172,10 @@
     color: var(--text-secondary);
     z-index: 1;
     font-size: 1.2rem;
+}
+.input-style1 input {
+    width: 100%;
+    padding-right: 3rem;
 }
 .input-style1 input,
 .input-style1 textarea {
@@ -211,4 +207,23 @@
     color: var(--text-secondary);
     font-size: 1rem;
     font-weight: 300;
+}
+.input-style1 .visibility-container {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 10;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+}
+.input-style1 .visibility-container .material-symbols-outlined {
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    transition: color 0.2s ease;
+}
+.input-style1 .visibility-container .material-symbols-outlined:hover {
+    color: var(--text-primary);
 }
