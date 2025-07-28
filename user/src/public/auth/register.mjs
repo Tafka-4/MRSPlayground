@@ -1,195 +1,535 @@
-import api from '../module/api.js';
-import Notice from '../module/notice.js';
+import NoticeBox from '/module/notice.js';
+import apiClient from '/module/api.js';
 
-class RegisterManager {
-    constructor() {
-        this.isEmailVerified = false;
-        this.pinTimer = null;
-        this.cacheDOM();
-        this.init();
+const registerInput = {
+    id: document.querySelector('input[name="id"]'),
+    password: document.querySelector('input[name="password"]'),
+    passwordConfirm: document.querySelector('input[name="passwordConfirm"]'),
+    nickname: document.querySelector('input[name="nickname"]'),
+    email: document.querySelector('input[name="email"]'),
+    pin: document.querySelector('input[name="pin"]')
+};
+
+const registerButton = document.querySelector('#register-form-body-button');
+const sendPinButton = document.querySelector('#send-pin-button');
+const verifyPinButton = document.querySelector('#verify-pin-button');
+const pinInputContainer = document.querySelector('#pin-input-container');
+const pinTimerMessage = document.querySelector('#pin-timer-message');
+
+let isEmailVerified = false;
+let pinTimerInterval;
+let timeLeft = 300;
+let isRegistering = false;
+let isSendingPin = false;
+let isVerifyingPin = false;
+
+registerButton.addEventListener('click', (event) => {
+    event.preventDefault();
+    register();
+});
+
+registerButton.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        register();
     }
+});
 
-    cacheDOM() {
-        this.form = document.getElementById('registerForm');
-        this.inputs = {
-            id: this.form.querySelector('input[name="id"]'),
-            nickname: this.form.querySelector('input[name="nickname"]'),
-            email: this.form.querySelector('input[name="email"]'),
-            pin: this.form.querySelector('input[name="pin"]'),
-            password: this.form.querySelector('input[name="password"]'),
-            passwordConfirm: this.form.querySelector('input[name="passwordConfirm"]'),
-        };
-        this.buttons = {
-            sendPin: document.getElementById('send-pin-button'),
-            verifyPin: document.getElementById('verify-pin-button'),
-            submit: document.getElementById('register-form-body-button'),
-        };
-        this.visibility = {
-            passOn: document.getElementById('visibility-on'),
-            passOff: document.getElementById('visibility-off'),
-            passConfirmOn: document.getElementById('visibility-on-confirm'),
-            passConfirmOff: document.getElementById('visibility-off-confirm'),
-        };
-        this.containers = {
-            pinInput: document.getElementById('pin-input-container'),
-            passwordMessage: this.form.querySelector('.password-message-container-message'),
-        };
-        this.messages = {
-            pinTimer: document.getElementById('pin-timer-message'),
-        };
+for (const input of Object.values(registerInput)) {
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            register();
+        }
+    });
+}
+
+document
+    .querySelector('input[name="password"]')
+    .addEventListener('input', checkPassword);
+document
+    .querySelector('input[name="passwordConfirm"]')
+    .addEventListener('input', checkPassword);
+registerInput.email.addEventListener('input', () => {
+    if (registerInput.email.disabled) return;
+
+    isEmailVerified = false;
+    pinInputContainer.classList.remove('show');
+    clearInterval(pinTimerInterval);
+    pinTimerMessage.textContent = '';
+    checkEmail();
+});
+
+registerInput.id.addEventListener('input', checkId);
+
+setupPasswordToggle();
+
+checkEmailVerificationStatus();
+
+function setupPasswordToggle() {
+    const toggleContainer = document.querySelector('#visibility-on').parentElement;
+    const visibilityOn = document.getElementById('visibility-on');
+    const visibilityOff = document.getElementById('visibility-off');
+    const passwordInput = document.querySelector('input[name="password"]');
+    
+    if (toggleContainer && visibilityOn && visibilityOff && passwordInput) {
+        toggleContainer.addEventListener('click', () => {
+            togglePasswordVisibility(passwordInput, visibilityOn, visibilityOff);
+        });
     }
-
-    init() {
-        this.setupEventListeners();
-    }
-
-    validatePassword() {
-        const { password, passwordConfirm } = this.inputs;
-        const messageContainer = this.containers.passwordMessage;
-        
-        messageContainer.textContent = '';
-        messageContainer.classList.remove('success', 'error');
-
-        if (!password.value && !passwordConfirm.value) return;
-
-        if (password.value.length < 8) {
-            messageContainer.textContent = '비밀번호는 8자 이상이어야 합니다.';
-            messageContainer.classList.add('error');
-            return false;
-        }
-        
-        if (password.value !== passwordConfirm.value) {
-            messageContainer.textContent = '비밀번호가 일치하지 않습니다.';
-            messageContainer.classList.add('error');
-            return false;
-        }
-        
-        messageContainer.textContent = '비밀번호가 일치합니다.';
-        messageContainer.classList.add('success');
-        return true;
-    }
-
-    startPinTimer() {
-        clearInterval(this.pinTimer);
-        let timeLeft = 180;
-        this.messages.pinTimer.textContent = `유효 시간 3:00`;
-        this.buttons.sendPin.disabled = true;
-
-        this.pinTimer = setInterval(() => {
-            timeLeft--;
-            const minutes = Math.floor(timeLeft / 60);
-            const seconds = timeLeft % 60;
-            this.messages.pinTimer.textContent = `유효 시간 ${minutes}:${seconds.toString().padStart(2, '0')}`;
-            if (timeLeft <= 0) {
-                clearInterval(this.pinTimer);
-                this.messages.pinTimer.textContent = '인증번호 유효 시간이 만료되었습니다.';
-                this.buttons.sendPin.disabled = false;
-                this.buttons.sendPin.textContent = '재전송';
-            }
-        }, 1000);
-    }
-
-    async sendVerification() {
-        if (!this.inputs.email.value) {
-            new Notice('이메일을 입력해주세요.', 'warning').show();
-            return;
-        }
-        const originalButtonText = this.buttons.sendPin.innerHTML;
-        this.buttons.sendPin.disabled = true;
-        this.buttons.sendPin.innerHTML = '<span class="spinner"></span>';
-        
-        try {
-            await api.post('/api/v1/auth/send-pin', { email: this.inputs.email.value });
-            new Notice('인증번호를 발송했습니다. 이메일을 확인해주세요.', 'success').show();
-            this.containers.pinInput.style.display = 'block';
-            this.startPinTimer();
-        } catch (error) {
-            new Notice(error.message, 'error').show();
-            this.buttons.sendPin.disabled = false;
-        } finally {
-            this.buttons.sendPin.innerHTML = originalButtonText;
-        }
-    }
-
-    async verifyPin() {
-        if (!this.inputs.pin.value) {
-            new Notice('인증번호를 입력해주세요.', 'warning').show();
-            return;
-        }
-        try {
-            const response = await api.post('/api/v1/auth/verify-pin', { email: this.inputs.email.value, code: this.inputs.pin.value });
-            if (response.success) {
-                new Notice('이메일 인증이 완료되었습니다.', 'success').show();
-                this.isEmailVerified = true;
-                this.inputs.email.disabled = true;
-                this.inputs.pin.disabled = true;
-                this.buttons.sendPin.disabled = true;
-                this.buttons.verifyPin.disabled = true;
-                this.buttons.verifyPin.textContent = '인증 완료';
-                clearInterval(this.pinTimer);
-                this.messages.pinTimer.textContent = '';
-            }
-        } catch (error) {
-            new Notice(error.message, 'error').show();
-        }
-    }
-
-    togglePasswordVisibility(input, onIcon, offIcon) {
-        if (input.type === 'password') {
-            input.type = 'text';
-            onIcon.style.display = 'none';
-            offIcon.style.display = 'inline';
-        } else {
-            input.type = 'password';
-            onIcon.style.display = 'inline';
-            offIcon.style.display = 'none';
-        }
-    }
-
-    async handleSubmit(e) {
-        e.preventDefault();
-        if (!this.isEmailVerified) {
-            new Notice('이메일 인증을 먼저 완료해주세요.', 'error').show();
-            return;
-        }
-        if (!this.validatePassword()) {
-            new Notice('비밀번호를 확인해주세요.', 'error').show();
-            return;
-        }
-
-        const formData = new FormData(this.form);
-        const data = Object.fromEntries(formData.entries());
-
-        const originalButtonText = this.buttons.submit.innerHTML;
-        this.buttons.submit.disabled = true;
-        this.buttons.submit.innerHTML = '<span class="spinner"></span> 가입 진행 중...';
-
-        try {
-            await api.post('/api/v1/auth/register', data);
-            new Notice('회원가입이 완료되었습니다. 로그인 페이지로 이동합니다.', 'success').show();
-            setTimeout(() => { window.location.href = '/login'; }, 1500);
-        } catch (error) {
-            new Notice(error.message, 'error').show();
-            this.buttons.submit.disabled = false;
-            this.buttons.submit.innerHTML = originalButtonText;
-        }
-    }
-
-    setupEventListeners() {
-        this.buttons.sendPin.addEventListener('click', () => this.sendVerification());
-        this.buttons.verifyPin.addEventListener('click', () => this.verifyPin());
-        this.form.addEventListener('submit', (e) => this.handleSubmit(e));
-        
-        this.inputs.password.addEventListener('input', () => this.validatePassword());
-        this.inputs.passwordConfirm.addEventListener('input', () => this.validatePassword());
-        
-        this.visibility.passOn.addEventListener('click', () => this.togglePasswordVisibility(this.inputs.password, this.visibility.passOn, this.visibility.passOff));
-        this.visibility.passOff.addEventListener('click', () => this.togglePasswordVisibility(this.inputs.password, this.visibility.passOn, this.visibility.passOff));
-        this.visibility.passConfirmOn.addEventListener('click', () => this.togglePasswordVisibility(this.inputs.passwordConfirm, this.visibility.passConfirmOn, this.visibility.passConfirmOff));
-        this.visibility.passConfirmOff.addEventListener('click', () => this.togglePasswordVisibility(this.inputs.passwordConfirm, this.visibility.passConfirmOn, this.visibility.passConfirmOff));
+    
+    const toggleContainerConfirm = document.querySelector('#visibility-on-confirm').parentElement;
+    const visibilityOnConfirm = document.getElementById('visibility-on-confirm');
+    const visibilityOffConfirm = document.getElementById('visibility-off-confirm');
+    const passwordConfirmInput = document.querySelector('input[name="passwordConfirm"]');
+    
+    if (toggleContainerConfirm && visibilityOnConfirm && visibilityOffConfirm && passwordConfirmInput) {
+        toggleContainerConfirm.addEventListener('click', () => {
+            togglePasswordVisibility(passwordConfirmInput, visibilityOnConfirm, visibilityOffConfirm);
+        });
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    new RegisterManager();
+function togglePasswordVisibility(passwordInput, visibilityOn, visibilityOff) {
+    if (!passwordInput || !visibilityOn || !visibilityOff) return;
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordInput.style.fontFamily = 'ONE-Mobile-POP';
+        visibilityOn.style.display = 'none';
+        visibilityOff.style.display = 'block';
+    } else {
+        passwordInput.type = 'password';
+        visibilityOn.style.display = 'block';
+        visibilityOff.style.display = 'none';
+        if (passwordInput.value.length > 0) {
+            passwordInput.style.fontFamily = 'Courier New';
+        }
+    }
+}
+
+async function checkEmailVerificationStatus() {
+    const email = registerInput.email.value;
+    if (!email) return;
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return;
+    
+    try {
+        const data = await apiClient.post('/api/v1/auth/check-email-verification', {
+            email
+        });
+        
+        if (data.success && data.isVerified) {
+            isEmailVerified = true;
+            pinTimerMessage.textContent = '이미 인증된 이메일입니다.';
+            pinTimerMessage.style.color = '#4bb92c';
+            registerInput.email.disabled = true;
+            sendPinButton.disabled = true;
+            sendPinButton.textContent = '인증 완료';
+        }
+    } catch (error) {
+        console.log('이메일 인증 상태 확인 중 에러:', error);
+    }
+}
+
+function checkId() {
+    const id = registerInput.id.value;
+    let messageElement = document.querySelector(
+        '.password-message-container-message'
+    );
+
+    if (!messageElement) {
+        messageElement = document.createElement('div');
+        messageElement.classList.add('password-message-container-message');
+        const container = document.querySelector('.password-message-container');
+        if (container) {
+            container.appendChild(messageElement);
+        } else {
+            console.error("'.password-message-container' not found.");
+            return;
+        }
+    }
+
+    if (id === '') {
+        messageElement.textContent = '';
+        return;
+    }
+
+    const idRegex = /^[a-zA-Z0-9!@#$%^&*()_]+$/;
+
+    if (idRegex.test(id)) {
+        messageElement.textContent = '사용 가능한 아이디입니다.';
+        messageElement.style.color = '#4bb92c';
+    } else {
+        messageElement.textContent = '영문, 숫자, 특수문자만 사용 가능합니다.';
+        messageElement.style.color = '#f47c7c';
+    }
+}
+
+function checkEmail() {
+    const email = registerInput.email.value;
+    let messageElement = document.querySelector(
+        '.password-message-container-message'
+    );
+
+    if (!messageElement) {
+        messageElement = document.createElement('div');
+        messageElement.classList.add('password-message-container-message');
+        const container = document.querySelector('.password-message-container');
+        if (container) {
+            container.appendChild(messageElement);
+        } else {
+            console.error("'.password-message-container' not found.");
+            return;
+        }
+    }
+
+    if (email === '') {
+        messageElement.textContent = '';
+        return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (emailRegex.test(email)) {
+        messageElement.textContent = '올바른 이메일 형식입니다.';
+        messageElement.style.color = '#4bb92c';
+    } else {
+        messageElement.textContent = '이메일 형식이 올바르지 않습니다.';
+        messageElement.style.color = '#f47c7c';
+    }
+}
+
+function checkPassword() {
+    const password = registerInput.password.value;
+    const passwordConfirm = registerInput.passwordConfirm.value;
+
+    let messageElement = document.querySelector(
+        '.password-message-container-message'
+    );
+
+    if (!messageElement) {
+        messageElement = document.createElement('div');
+        messageElement.classList.add('password-message-container-message');
+        document
+            .querySelector('.password-message-container')
+            .appendChild(messageElement);
+    }
+
+    if (password === '' && passwordConfirm === '') {
+        messageElement.textContent = '';
+        return;
+    }
+
+    if (password !== passwordConfirm) {
+        messageElement.textContent = '비밀번호가 일치하지 않습니다.';
+        messageElement.style.color = '#f47c7c';
+    } else {
+        if (password.length > 0 && password.length < 8) {
+            messageElement.textContent = '비밀번호는 8자 이상이어야 합니다.';
+            messageElement.style.color = '#f47c7c';
+        } else if (password.length > 16) {
+            messageElement.textContent = '비밀번호는 16자 이하여야 합니다.';
+            messageElement.style.color = '#f47c7c';
+        } else if (
+            password.length > 0 &&
+            (!password.match(/[a-zA-Z]/g) ||
+                !password.match(/[0-9]/g) ||
+                !password.match(/[!@#$%^&*()_{}]/g))
+        ) {
+            messageElement.textContent =
+                '영문, 숫자, 특수문자(!@#$%^&*()_{})를 모두 포함해야 합니다.';
+            messageElement.style.color = '#f47c7c';
+        } else if (password.length > 0) {
+            messageElement.textContent = '비밀번호가 일치합니다!!!';
+            messageElement.style.color = '#4bb92c';
+        } else {
+            messageElement.textContent = '';
+        }
+    }
+}
+
+async function register() {
+    if (isRegistering) {
+        console.log('회원가입이 이미 진행 중입니다.');
+        return;
+    }
+
+    const id = registerInput.id.value;
+    const password = registerInput.password.value;
+    const passwordConfirm = registerInput.passwordConfirm.value;
+    const nickname = registerInput.nickname.value;
+    const email = registerInput.email.value;
+
+    if (
+        id === '' ||
+        password === '' ||
+        passwordConfirm === '' ||
+        nickname === '' ||
+        email === ''
+    ) {
+        let notice = new NoticeBox('모든 필드를 입력해주세요.', 'error');
+        notice.show();
+        return;
+    }
+
+    if (password !== passwordConfirm) {
+        let notice = new NoticeBox('비밀번호가 일치하지 않습니다.', 'error');
+        notice.show();
+        return;
+    }
+
+    if (password.length < 8) {
+        let notice = new NoticeBox(
+            '비밀번호는 8자 이상이어야 합니다.',
+            'error'
+        );
+        notice.show();
+        return;
+    }
+    if (password.length > 16) {
+        let notice = new NoticeBox('비밀번호는 16자 이하여야 합니다.', 'error');
+        notice.show();
+        return;
+    }
+    const idRegex = /^[a-zA-Z0-9!@#$%^&*()_]+$/;
+    if (!idRegex.test(id)) {
+        let notice = new NoticeBox(
+            '영문, 숫자, 특수문자만 사용 가능합니다.',
+            'error'
+        );
+        notice.show();
+        return;
+    }
+    if (
+        !password.match(/[a-zA-Z]/g) ||
+        !password.match(/[0-9]/g) ||
+        !password.match(/[!@#$%^&*()_{}]/g)
+    ) {
+        let notice = new NoticeBox(
+            '영문, 숫자, 특수문자(!@#$%^&*()_{})를 모두 포함해야 합니다.',
+            'error'
+        );
+        notice.show();
+        return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        let notice = new NoticeBox('이메일 형식이 올바르지 않습니다.', 'error');
+        notice.show();
+        return;
+    }
+
+    if (!isEmailVerified) {
+        let notice = new NoticeBox('이메일 인증을 완료해주세요.', 'error');
+        notice.show();
+        return;
+    }
+
+    isRegistering = true;
+    registerButton.disabled = true;
+
+    const originalButtonText = registerButton.textContent;
+    registerButton.textContent = '처리 중...';
+
+    try {
+        const data = await apiClient.post('/api/v1/auth/register', {
+            id,
+            password,
+            nickname,
+            email
+        });
+        
+        if (data.success) {
+            new NoticeBox('회원가입 성공!', 'success').show();
+            location.href = '/login';
+        } else {
+            new NoticeBox(data.message || '회원가입 실패', 'error').show();
+        }
+    } catch (error) {
+        let errorMessage = '요청 처리 중 오류 발생';
+        if (error.message) {
+            errorMessage = error.message;
+        }
+        new NoticeBox(errorMessage, 'error').show();
+    } finally {
+        isRegistering = false;
+        registerButton.disabled = false;
+        registerButton.textContent = originalButtonText;
+    }
+}
+
+sendPinButton.addEventListener('click', async () => {
+    if (isSendingPin) {
+        console.log('PIN 전송이 이미 진행 중입니다.');
+        return;
+    }
+
+    const email = registerInput.email.value;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailRegex.test(email)) {
+        let notice = new NoticeBox('이메일 형식이 올바르지 않습니다.', 'error');
+        notice.show();
+        return;
+    }
+
+    isSendingPin = true;
+    sendPinButton.disabled = true;
+    sendPinButton.textContent = '전송 중...';
+    pinTimerMessage.textContent = '';
+
+    try {
+        const data = await apiClient.post('/api/v1/auth/send-pin', {
+            email
+        });
+
+        if (data.success) {
+            if (data.alreadyVerified) {
+                isEmailVerified = true;
+                pinTimerMessage.textContent = '이미 인증된 이메일입니다.';
+                pinTimerMessage.style.color = '#4bb92c';
+                registerInput.email.disabled = true;
+                sendPinButton.disabled = true;
+                sendPinButton.textContent = '인증 완료';
+                let notice = new NoticeBox(
+                    '이미 인증된 이메일입니다.',
+                    'success'
+                );
+                notice.show();
+            } else {
+                pinInputContainer.classList.add('show');
+                registerInput.pin.value = '';
+                startPinTimer();
+                sendPinButton.textContent = '재전송';
+                let notice = new NoticeBox(
+                    data.message ||
+                        '인증번호가 발송되었습니다. 이메일을 확인해주세요.',
+                    'info'
+                );
+                notice.show();
+            }
+        } else {
+            let notice = new NoticeBox(
+                data.message || '인증번호 발송에 실패했습니다.',
+                'error'
+            );
+            notice.show();
+            sendPinButton.textContent = '인증번호 받기';
+        }
+    } catch (error) {
+        let notice = new NoticeBox(
+            '인증번호 발송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+            'error'
+        );
+        notice.show();
+        sendPinButton.textContent = '인증번호 받기';
+    } finally {
+        isSendingPin = false;
+        sendPinButton.disabled = false;
+    }
 });
+
+verifyPinButton.addEventListener('click', async () => {
+    if (isVerifyingPin) {
+        console.log('PIN 검증이 이미 진행 중입니다.');
+        return;
+    }
+
+    const email = registerInput.email.value;
+    const pin = registerInput.pin.value;
+
+    if (!pin || pin.length !== 6) {
+        let notice = new NoticeBox(
+            '인증번호 6자리를 정확히 입력해주세요.',
+            'error'
+        );
+        notice.show();
+        pinTimerMessage.textContent = '인증번호 6자리를 정확히 입력해주세요.';
+        pinTimerMessage.style.color = '#f47c7c';
+        return;
+    }
+
+    isVerifyingPin = true;
+    verifyPinButton.disabled = true;
+    verifyPinButton.textContent = '확인 중...';
+
+    try {
+        const data = await apiClient.post('/api/v1/auth/verify-pin', {
+            email,
+            pin
+        });
+
+        if (data.success) {
+            isEmailVerified = true;
+            clearInterval(pinTimerInterval);
+            
+            if (data.alreadyVerified) {
+                pinTimerMessage.textContent = '이미 인증된 이메일입니다.';
+            } else {
+                pinTimerMessage.textContent =
+                    data.message || '이메일 인증이 완료되었습니다.';
+            }
+            
+            pinTimerMessage.style.color = '#4bb92c';
+            pinInputContainer.classList.remove('show');
+            registerInput.email.disabled = true;
+            sendPinButton.disabled = true;
+            sendPinButton.textContent = '인증 완료';
+            let notice = new NoticeBox(
+                data.alreadyVerified ? '이미 인증된 이메일입니다.' : 
+                (data.message || '이메일 인증이 완료되었습니다.'),
+                'success'
+            );
+            notice.show();
+        } else {
+            isEmailVerified = false;
+            pinTimerMessage.textContent =
+                data.message || '인증번호가 올바르지 않습니다.';
+            pinTimerMessage.style.color = '#f47c7c';
+            let notice = new NoticeBox(
+                data.message || '인증번호가 올바르지 않습니다.',
+                'error'
+            );
+            notice.show();
+        }
+    } catch (error) {
+        pinTimerMessage.textContent =
+            '인증번호 확인 중 오류가 발생했습니다. 다시 시도해주세요.';
+        pinTimerMessage.style.color = '#f47c7c';
+        let notice = new NoticeBox(
+            '인증번호 확인 중 오류가 발생했습니다.',
+            'error'
+        );
+        notice.show();
+    } finally {
+        isVerifyingPin = false;
+        verifyPinButton.disabled = false;
+        verifyPinButton.textContent = '인증 확인';
+    }
+});
+
+function startPinTimer() {
+    clearInterval(pinTimerInterval);
+    timeLeft = 300;
+    pinTimerMessage.style.color = 'rgb(100,100,100)';
+
+    pinTimerInterval = setInterval(() => {
+        const minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        seconds = seconds < 10 ? '0' + seconds : seconds;
+
+        pinTimerMessage.textContent = `남은 시간: ${minutes}:${seconds}`;
+
+        if (timeLeft <= 0) {
+            clearInterval(pinTimerInterval);
+            pinTimerMessage.textContent =
+                '인증 시간이 만료되었습니다. 다시 시도해주세요.';
+            pinTimerMessage.style.color = '#f47c7c';
+            sendPinButton.textContent = '인증번호 받기';
+        }
+        timeLeft--;
+    }, 1000);
+}

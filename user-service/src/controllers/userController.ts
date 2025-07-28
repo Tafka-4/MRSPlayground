@@ -1,7 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { User } from '../models/User.js';
 import { sanitizeString, validatePaginationParams } from '../utils/sqlSecurity.js';
-import { UserNotFoundError, UserForbiddenError } from '../utils/errors.js';
+import { UserNotFoundError } from '../utils/errors.js';
 import { redisClient } from '../config/redis.js';
 
 export const getUser = async (req: Request, res: Response) => {

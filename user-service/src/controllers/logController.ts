@@ -3,11 +3,6 @@ import { User } from '../models/User.js';
 import { Log } from '../models/Log.js';
 import { validatePaginationParams, sanitizeString } from '../utils/sqlSecurity.js';
 
-const safeNumber = (value: any, defaultValue: number = 0): number => {
-    const num = Number(value);
-    return isNaN(num) ? defaultValue : num;
-};
-
 const validatePagination = (page: any, limit: any) => {
     return validatePaginationParams(page, limit);
 };

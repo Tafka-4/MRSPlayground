@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { randomBytes } from 'crypto';
 import { User } from '../models/User.js';
 import { redisClient } from '../config/redis.js';
@@ -326,17 +326,42 @@ export const getCurrentUser = async (req: Request, res: Response) => {
 // email verification methods
 export const sendVerificationEmail = async (req: Request, res: Response) => {
     const { email } = req.body;
-    if (!email) {
-        throw new UserError('Email is required');
+    const isVerified = await redisClient.get(`${email}:isVerified`);
+    const isDuplicate = await User.findOne({ email });
+    if (isVerified || isDuplicate) {
+        res.status(200).json({
+            success: true,
+            alreadyVerified: true,
+            message: '이미 인증된 이메일입니다'
+        });
+        return;
     }
-
-    const verificationCode = randomBytes(3).toString('hex').toUpperCase();
-    await redisClient.set(`${email}:verify`, verificationCode, { EX: 180 });
-
-    const mailHtml = `<h1>이메일 인증 코드</h1><p>코드: <strong>${verificationCode}</strong></p><p>이 코드는 3분 동안 유효합니다.</p>`;
-    await sendMail(email, '이메일 인증 코드', mailHtml);
-
-    res.status(200).json({ success: true, message: 'Verification email sent' });
+    const verificationCode = Math.floor(
+        100000 + Math.random() * 900000
+    ).toString();
+    await redisClient.set(`${email}:verificationCode`, verificationCode, {
+        EX: 60 * 10
+    });
+    const subject = '이메일 인증';
+    const content = `
+        <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+            <h2 style="color: #333;">이메일 인증</h2>
+            <p style="font-size: 16px; color: #555;">
+                회원가입을 완료하려면 다음 인증 코드를 입력해주세요:
+            </p>
+            <div style="background-color: #f4f4f4; padding: 10px; display: inline-block; border-radius: 5px; margin: 10px 0;">
+                <strong style="font-size: 24px; color: #222;">${verificationCode}</strong>
+            </div>
+            <p style="font-size: 14px; color: #777;">
+                본인이 요청하지 않았다면 이 이메일을 무시하세요.
+            </p>
+        </div>
+    `;
+    await sendMail(email, subject, content);
+    res.status(200).json({
+        success: true,
+        message: '인증 이메일이 발송되었습니다'
+    });
 };
 
 export const verifyEmail = async (req: Request, res: Response) => {
