@@ -49,7 +49,7 @@ class EditPasswordManager {
 
     createInputHTML(id, type, placeholder, icon) {
         return `
-            <div class="input-wrapper icon-left">
+            <div class="input-wrapper input-style1 icon-left">
                 <span class="material-symbols-outlined">${icon}</span>
                 <input type="${type}" id="${escape(id)}" placeholder="${escape(placeholder)}" required style="font-family: 'Courier New';">
                 <div class="visibility-container">

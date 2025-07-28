@@ -12,8 +12,10 @@
 
 .input-wrapper {
     position: relative;
-    display: flex;
-    align-items: center;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 0.5rem;
+    display: block;
 }
 
 .input-group input {
@@ -160,4 +162,53 @@
 
 .visibility-container .material-symbols-outlined:hover {
     color: rgb(10, 10, 10);
+}
+
+/* 스타일 확장: style1 (ex-mypage) */
+.input-style1 {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+.input-style1 .material-symbols-outlined {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    z-index: 1;
+    font-size: 1.2rem;
+}
+.input-style1 input,
+.input-style1 textarea {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--background-secondary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 400;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    font-family: 'ONE-Mobile-POP';
+}
+.input-style1 textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+.input-style1 input:focus,
+.input-style1 textarea:focus {
+    background: var(--background-tertiary);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+}
+.input-style1 input::placeholder,
+.input-style1 textarea::placeholder {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 300;
 }

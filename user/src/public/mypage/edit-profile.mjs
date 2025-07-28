@@ -7,6 +7,7 @@ import {
     createInput
 } from '/component/index.js';
 import { createConfirmCancelModal } from '/component/modals/index.js';
+import { setupMypage } from '/mypage/mypage-common.mjs';
 
 class EditProfilePage {
     constructor() {
@@ -25,57 +26,16 @@ class EditProfilePage {
     }
 
     attachEventListeners() {
-        this.setupProfileNavigation();
-        
         this.profileImageInput.addEventListener('change', (e) =>
             this.handleImageUpload(e.target.files[0])
         );
-    }
 
-    setupProfileNavigation() {
-        const profileMenuToggle = document.getElementById('profileMenuToggle');
-        const profileNavigation = document.getElementById('profileNavigation');
-        const profileNavClose = document.getElementById('profileNavClose');
-        const profileNavOverlay = document.getElementById('profileNavOverlay');
         const navDeleteBtn = document.getElementById('navDeleteAccount');
-
-        if (profileMenuToggle) {
-            profileMenuToggle.addEventListener('click', () => {
-                profileNavigation.classList.add('active');
-                profileNavOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
-        }
-
-        if (profileNavClose) {
-            profileNavClose.addEventListener('click', this.closeProfileNavigation);
-        }
-
-        if (profileNavOverlay) {
-            profileNavOverlay.addEventListener('click', this.closeProfileNavigation);
-        }
-
         if (navDeleteBtn) {
             navDeleteBtn.addEventListener('click', () => {
-                this.closeProfileNavigation();
                 this.showAccountDeleteModal();
             });
         }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && profileNavigation.classList.contains('active')) {
-                this.closeProfileNavigation();
-            }
-        });
-    }
-
-    closeProfileNavigation() {
-        const profileNavigation = document.getElementById('profileNavigation');
-        const profileNavOverlay = document.getElementById('profileNavOverlay');
-        
-        profileNavigation.classList.remove('active');
-        profileNavOverlay.classList.remove('active');
-        document.body.style.overflow = '';
     }
 
     async fetchUserData() {
@@ -127,7 +87,8 @@ class EditProfilePage {
             label: '닉네임',
             type: 'text',
             placeholder: '사용자 닉네임을 입력하세요',
-            icon: 'person'
+            icon: 'person',
+            wrapperClass: 'input-style1'
         });
 
         const descriptionInputEl = createInput({
@@ -136,7 +97,8 @@ class EditProfilePage {
             type: 'text',
             placeholder: '자기소개를 입력하세요',
             icon: 'notes',
-            isTextarea: true
+            isTextarea: true,
+            wrapperClass: 'input-style1'
         });
 
         this.formContainer.append(usernameInputEl, descriptionInputEl);
@@ -417,5 +379,6 @@ class EditProfilePage {
 document.addEventListener('DOMContentLoaded', () => {
     initializeComponents();
     loadSavedTheme();
+    setupMypage();
     new EditProfilePage();
 });
