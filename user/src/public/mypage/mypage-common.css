@@ -240,11 +240,6 @@
     .mypage-header {
       padding: 0 1rem;
     }
-
-    .user-profile-header .title,
-    .mypage-header .title {
-        display: none;
-    }
 }
 
 [data-theme='dark'] .profile-nav-item.active {
