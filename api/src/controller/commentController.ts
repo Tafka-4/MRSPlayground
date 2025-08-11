@@ -1,14 +1,22 @@
 import { Request, Response } from "express";
 import Comment from "../model/commentModel.js";
 import commentError from "../utils/error/commentError.js";
-import Episode from "../model/episodeModel.js";
-import Novel from "../model/novelModel.js";
 import Post from "../model/postModel.js";
 import Gallery from "../model/galleryModel.js";
 import postError from "../utils/error/postError.js";
-import episodeError from "../utils/error/episodeError.js";
 import galleryError from "../utils/error/galleryError.js";
-import novelError from "../utils/error/novelError.js";
+
+const callNovelApi = async (endpoint: string, options: RequestInit = {}) => {
+    const base = process.env.NOVEL_API_URL || 'http://novel-api:5002';
+    const response = await fetch(`${base}${endpoint}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            ...(options.headers || {})
+        },
+        ...options
+    });
+    return response;
+};
 
 // login required
 export const createComment = async (req: Request, res: Response) => {
@@ -161,9 +169,12 @@ export const deleteComment = async (req: Request, res: Response) => {
 
     let isNovelAuthor = false;
     if (comment.novelId) {
-        const novel = await Novel.findOne({ novelId: comment.novelId });
-        if (novel && novel.author === userid) {
-            isNovelAuthor = true;
+        const resp = await callNovelApi(`/novel/v1/${comment.novelId}`);
+        if (resp.ok) {
+            const novel = await resp.json();
+            if (novel && novel.author === userid) {
+                isNovelAuthor = true;
+            }
         }
     }
 
@@ -299,10 +310,12 @@ const findTargetById = async (targetId: string, targetType: string) => {
             target = await Post.findOne({ postId: targetId });
             if (!target) throw new postError.PostNotFoundError("Post not found");
             break;
-        case "episode":
-            target = await Episode.findOne({ episodeId: targetId });
-            if (!target) throw new episodeError.EpisodeNotFoundError("Episode not found");
+        case "episode": {
+            const resp = await callNovelApi(`/episode/v1/${targetId}`);
+            if (!resp.ok) throw new commentError.CommentNotFoundError("Episode not found");
+            target = await resp.json();
             break;
+        }
         default:
             throw new commentError.CommentError("Invalid target type");
     }
@@ -316,9 +329,9 @@ const findGalleryById = async (galleryId: string) => {
 };
 
 const findNovelById = async (novelId: string) => {
-    const novel = await Novel.findOne({ novelId });
-    if (!novel) throw new novelError.NovelNotFoundError("Novel not found");
-    return novel;
+    const resp = await callNovelApi(`/novel/v1/${novelId}`);
+    if (!resp.ok) throw new commentError.CommentNotFoundError("Novel not found");
+    return resp.json();
 };
 
 // login required

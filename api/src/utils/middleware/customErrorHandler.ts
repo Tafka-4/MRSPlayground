@@ -1,8 +1,6 @@
 import { Request, Response, NextFunction, ErrorRequestHandler } from "express";
 import authError from "../error/authError.js";
 import userError from "../error/userError.js";
-import novelError from "../error/novelError.js";
-import episodeError from "../error/episodeError.js";
 import commentError from "../error/commentError.js";
 import postError from "../error/postError.js";
 import galleryError from "../error/galleryError.js";
@@ -54,38 +52,7 @@ const customErrorHandler: ErrorRequestHandler = (err: Error, req: Request, res: 
         res.status(400).json({ message: err.message });
         return;
     }
-    if (err instanceof novelError.NovelError) {
-        if (err instanceof novelError.NovelNotFoundError) {
-            res.status(404).json({ message: err.message });
-            return;
-        }
-        if (err instanceof novelError.NovelNotAuthorError) {
-            res.status(403).json({ message: err.message });
-            return;
-        }
-        if (err instanceof novelError.NovelInteractionFailedError ||
-            err instanceof novelError.NovelImageUploadFailedError ||
-            err instanceof novelError.NovelImageDeleteFailedError) {
-            res.status(418).json({ message: err.message });
-            return;
-        }
-        res.status(400).json({ message: err.message });
-        return;
-    }
-    if (err instanceof episodeError.EpisodeError) {
-        if (err instanceof episodeError.EpisodeNotFoundError) {
-            res.status(404).json({ message: err.message });
-            return;
-        }
-        if (err instanceof episodeError.EpisodeInteractionFailedError ||
-            err instanceof episodeError.EpisodeUploadFailedError ||
-            err instanceof episodeError.EpisodeDeleteFailedError) {
-            res.status(418).json({ message: err.message });
-            return;
-        }
-        res.status(400).json({ message: err.message });
-        return;
-    }
+    
     if (err instanceof commentError.CommentError) {
         if (err instanceof commentError.CommentNotFoundError) {
             res.status(404).json({ message: err.message });

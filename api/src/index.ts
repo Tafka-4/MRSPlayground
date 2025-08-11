@@ -1,11 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { connectMongo, connectRedis, checkRedisConnection, mongoose } from './utils/dbconnect/dbconnect.js';
-import novelRouter from './router/novelRouter.js';
 import galleryRouter from './router/galleryRouter.js';
 import postRouter from './router/postRouter.js';
 import commentRouter from './router/commentRouter.js';
-import episodeRouter from './router/episodeRouter.js';
 import emojiRouter from './router/emojiRouter.js';
 import customErrorHandler from './utils/middleware/customErrorHandler.js';
 import rateLimit from './utils/middleware/rateLimit.js';
@@ -61,11 +59,9 @@ app.use((req, res, next) => {
 
 app.use(rateLimit);
 
-app.use('/novel/v1', novelRouter);
 app.use('/gallery/v1', galleryRouter);
 app.use('/post/v1', postRouter);
 app.use('/comment/v1', commentRouter);
-app.use('/episode/v1', episodeRouter);
 app.use('/emoji/v1', emojiRouter);
 
 // Health check with dependency status
@@ -113,11 +109,11 @@ app.get('/', (req, res) => {
         service: 'MRS Playground API Gateway',
         version: '1.0.0',
         endpoints: {
-            novel: '/novel/v1',
+            novel: 'moved to novel-api',
+            episode: 'moved to novel-api',
             gallery: '/gallery/v1',
             post: '/post/v1',
             comment: '/comment/v1',
-            episode: '/episode/v1',
             emoji: '/emoji/v1'
         },
         health: '/health'
