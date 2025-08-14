@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { connectMongo, connectRedis, checkRedisConnection, mongoose } from './utils/dbconnect/dbconnect.js';
+import { connectRedis, checkRedisConnection } from './utils/dbconnect/dbconnect.js';
 import { initDatabase as initNovelDb } from './config/database.js';
 import novelRouter from './router/novelRouter.js';
 import episodeRouter from './router/episodeRouter.js';
@@ -14,12 +14,6 @@ const app = express();
 const initializeConnections = async () => {
     if (process.env.NOVEL_USE_MYSQL === 'true') {
         await initNovelDb();
-    } else {
-        try {
-            await connectMongo();
-        } catch (error) {
-            process.exit(1);
-        }
     }
     try {
         await connectRedis();
@@ -50,7 +44,7 @@ app.use('/episode/v1', episodeRouter);
 
 app.get('/health', async (req: express.Request, res: express.Response) => {
     try {
-        const mongoStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+        const mongoStatus = 'removed';
         let redisStatus = 'disconnected';
         try {
             redisStatus = await checkRedisConnection() ? 'connected' : 'disconnected';
@@ -65,7 +59,7 @@ app.get('/health', async (req: express.Request, res: express.Response) => {
             service: 'Novel API',
             timestamp: new Date().toISOString(),
             uptime: process.uptime(),
-            dependencies: { mongodb: mongoStatus, redis: redisStatus }
+            dependencies: { mysql: 'novel-db', redis: redisStatus }
         });
     } catch (error) {
         res.status(503).json({

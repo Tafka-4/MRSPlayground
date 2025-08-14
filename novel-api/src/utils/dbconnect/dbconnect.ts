@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
 import redis from 'redis';
-import mongoose from 'mongoose';
 
 dotenv.config();
 
@@ -16,7 +15,6 @@ if (process.env.REDIS_PASSWORD) {
   redisConfig.password = process.env.REDIS_PASSWORD;
 }
 
-const mongoConfigOptions: mongoose.ConnectOptions = { serverSelectionTimeoutMS: 10000, socketTimeoutMS: 45000 };
 
 const redisClient = redis.createClient(redisConfig);
 
@@ -68,21 +66,10 @@ const waitForRedis = async (maxRetries: number = 30, retryInterval: number = 200
 
 const connectRedis = async () => { await waitForRedis(); };
 
-const connectMongo = async () => {
-  let mongoUri = process.env.MONGO_URI;
-  if (!mongoUri) {
-    if (process.env.MONGO_USER && process.env.MONGO_PW) {
-      mongoUri = `mongodb://${process.env.MONGO_USER}:${process.env.MONGO_PW}@mongodb:27017/mrsplayground?authSource=admin`;
-    } else {
-      mongoUri = `mongodb://mongodb:27017/mrsplayground?authSource=admin`;
-    }
-  }
-  await mongoose.connect(mongoUri, mongoConfigOptions);
-};
 
 process.on('SIGINT', async () => { if (redisClient.isOpen) await redisClient.disconnect(); process.exit(0); });
 process.on('SIGTERM', async () => { if (redisClient.isOpen) await redisClient.disconnect(); process.exit(0); });
 
-export { redisClient, mongoose, connectRedis, connectMongo, checkRedisConnection };
+export { redisClient, connectRedis, checkRedisConnection };
 
 
