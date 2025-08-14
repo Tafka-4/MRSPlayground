@@ -1,7 +1,7 @@
 import Novel, { INovel } from '../model/novelModel.js';
-import { PrismaClient } from '@prisma/client';
+import { NovelSqlRepo } from './sql/novelSqlRepo.js';
 
-const prisma = new PrismaClient();
+const novelSql = new NovelSqlRepo();
 
 export interface NovelRecord {
 	novelId: string;
@@ -53,35 +53,24 @@ class MongooseNovelRepo implements NovelRepo {
 
 class PrismaNovelRepo implements NovelRepo {
 	async create(data: any): Promise<NovelRecord> {
-		const created = await prisma.novel.create({ data });
-		return created as unknown as NovelRecord;
+		return (await novelSql.create(data)) as any;
 	}
 	async findById(novelId: string): Promise<NovelRecord | null> {
-		return (await prisma.novel.findUnique({ where: { novelId } })) as any;
+		return (await novelSql.findById(novelId)) as any;
 	}
 	async increaseView(novelId: string): Promise<void> {
-		await prisma.novel.update({ where: { novelId }, data: { viewCount: { increment: 1 } } });
+		await novelSql.increaseView(novelId);
 	}
 	async updateIfAuthor(novelId: string, author: string, data: any): Promise<NovelRecord | null> {
-		try {
-			const updated = await prisma.novel.update({ where: { novelId_author: { novelId, author } }, data: { ...data, updatedAt: new Date() } });
-			return updated as any;
-		} catch {
-			return null;
-		}
+		return (await novelSql.updateIfAuthor(novelId, author, data)) as any;
 	}
 	async deleteIfAuthor(novelId: string, author: string): Promise<boolean> {
-		try {
-			await prisma.novel.delete({ where: { novelId_author: { novelId, author } } });
-			return true;
-		} catch {
-			return false;
-		}
+		return await novelSql.deleteIfAuthor(novelId, author);
 	}
 }
 
 export const useNovelRepo = (): NovelRepo => {
-	return process.env.NOVEL_USE_MYSQL === 'true' ? new PrismaNovelRepo() : new MongooseNovelRepo();
+    return process.env.NOVEL_USE_MYSQL === 'true' ? new PrismaNovelRepo() : new MongooseNovelRepo();
 };
 
 

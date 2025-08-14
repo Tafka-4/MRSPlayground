@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import { connectMongo, connectRedis, checkRedisConnection, mongoose } from './utils/dbconnect/dbconnect.js';
+import { initDatabase as initNovelDb } from './config/database.js';
 import novelRouter from './router/novelRouter.js';
 import episodeRouter from './router/episodeRouter.js';
 import customErrorHandler from './utils/middleware/customErrorHandler.js';
@@ -11,13 +12,12 @@ dotenv.config();
 const app = express();
 
 const initializeConnections = async () => {
-    try {
-        // If using MySQL (Prisma) only, Mongo is optional; keep it for fallback or skip by env
-        if (process.env.NOVEL_USE_MYSQL !== 'true') {
+    if (process.env.NOVEL_USE_MYSQL === 'true') {
+        await initNovelDb();
+    } else {
+        try {
             await connectMongo();
-        }
-    } catch (error) {
-        if (process.env.NOVEL_USE_MYSQL !== 'true') {
+        } catch (error) {
             process.exit(1);
         }
     }
