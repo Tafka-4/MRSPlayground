@@ -12,9 +12,14 @@ const app = express();
 
 const initializeConnections = async () => {
     try {
-        await connectMongo();
+        // If using MySQL (Prisma) only, Mongo is optional; keep it for fallback or skip by env
+        if (process.env.NOVEL_USE_MYSQL !== 'true') {
+            await connectMongo();
+        }
     } catch (error) {
-        process.exit(1);
+        if (process.env.NOVEL_USE_MYSQL !== 'true') {
+            process.exit(1);
+        }
     }
     try {
         await connectRedis();
