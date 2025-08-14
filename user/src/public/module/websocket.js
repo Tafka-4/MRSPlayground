@@ -17,10 +17,11 @@ class WebSocketClient {
             this.endpoint = endpoint;
             this.token = token;
 
-            const protocol =
-                window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const host = window.location.host;
-            const url = `${protocol}//${host}${endpoint}`;
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const base = (typeof window !== 'undefined' && window.__WS_ORIGIN)
+                ? window.__WS_ORIGIN
+                : `${protocol}//api.${window.location.hostname}`;
+            const url = `${base}${endpoint}`;
 
             this.cleanup();
             this.ws = new WebSocket(url);

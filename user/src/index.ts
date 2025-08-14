@@ -62,6 +62,15 @@ app.use(express.static(path.join(__dirname, 'public'), {
     }
 }));
 
+// Public runtime config for client scripts
+app.get('/config.js', (req: express.Request, res: express.Response) => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.magicresearches.com';
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || apiUrl.replace(/^http/, 'ws');
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-store');
+    res.send(`window.__API_ORIGIN = '${apiUrl}'; window.__WS_ORIGIN = '${wsUrl}';`);
+});
+
 app.get('/health', (req: express.Request, res: express.Response) => {
     res.status(200).json({
         status: 'healthy',

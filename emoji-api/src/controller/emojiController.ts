@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import EmojiPackage from '../model/emojiModel.js';
+import EmojiFavorite from '../model/emojiFavoriteModel.js';
 import emojiError from '../utils/error/emojiError.js';
 
 export const createEmojiPackage = async (req: Request, res: Response) => {
@@ -66,4 +67,121 @@ export const deleteEmojiPackage = async (req: Request, res: Response) => {
 	res.status(200).json({ message: 'Emoji package deleted successfully' });
 };
 
+// login required
+export const getFavoriteEmojiPackages = async (req: Request, res: Response) => {
+    const userId = req.user?.userid;
+    if (!userId) throw new emojiError.EmojiError('Unauthorized');
 
+    const {
+        page = '1',
+        limit = '10',
+        sort = 'createdAt',
+        order = 'desc',
+        q = '',
+        ids = ''
+    } = req.query as Record<string, string>;
+
+    const limitNumber = Math.min(Math.max(parseInt(limit) || 10, 1), 50);
+    const pageNumber = Math.max(parseInt(page) || 1, 1);
+    const allowedSortFields = ['createdAt', 'useCount', 'packageName'];
+    const sortField = allowedSortFields.includes(sort) ? sort : 'createdAt';
+    const sortOrder: 'asc' | 'desc' = order === 'asc' ? 'asc' : 'desc';
+
+    const query: any = {};
+    if (ids) {
+        const idList = (Array.isArray(ids) ? ids : String(ids))
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter(Boolean);
+        if (idList.length > 0) query.packageId = { $in: idList };
+    } else {
+        query.author = userId;
+    }
+    if (q) query.packageName = { $regex: q, $options: 'i' };
+
+    const [items, total] = await Promise.all([
+        EmojiPackage.find(query)
+            .sort({ [sortField]: sortOrder })
+            .skip((pageNumber - 1) * limitNumber)
+            .limit(limitNumber)
+            .lean(),
+        EmojiPackage.countDocuments(query)
+    ]);
+
+    res.status(200).json({
+        items,
+        meta: {
+            page: pageNumber,
+            limit: limitNumber,
+            total,
+            pages: Math.ceil(total / limitNumber)
+        }
+    });
+};
+
+// login required
+export const markFavorite = async (req: Request, res: Response) => {
+    const userId = req.user?.userid;
+    const { packageId } = req.body as { packageId: string };
+    if (!userId) throw new emojiError.EmojiError('Unauthorized');
+    if (!packageId) throw new emojiError.EmojiError('packageId is required');
+
+    const exists = await EmojiPackage.findOne({ packageId }).lean();
+    if (!exists) throw new emojiError.EmojiPackageNotFoundError('Emoji package not found');
+
+    await EmojiFavorite.updateOne(
+        { userId, packageId },
+        { $set: { userId, packageId } },
+        { upsert: true }
+    );
+
+    res.status(200).json({ ok: true });
+};
+
+// login required
+export const unmarkFavorite = async (req: Request, res: Response) => {
+    const userId = req.user?.userid;
+    const { packageId } = req.params as { packageId: string };
+    if (!userId) throw new emojiError.EmojiError('Unauthorized');
+    if (!packageId) throw new emojiError.EmojiError('packageId is required');
+
+    await EmojiFavorite.deleteOne({ userId, packageId });
+    res.status(200).json({ ok: true });
+};
+
+// login required
+export const listFavoriteEmojiPackages = async (req: Request, res: Response) => {
+    const userId = req.user?.userid;
+    if (!userId) throw new emojiError.EmojiError('Unauthorized');
+
+    const { page = '1', limit = '10' } = req.query as Record<string, string>;
+    const limitNumber = Math.min(Math.max(parseInt(limit) || 10, 1), 50);
+    const pageNumber = Math.max(parseInt(page) || 1, 1);
+
+    const [favDocs, total] = await Promise.all([
+        EmojiFavorite.find({ userId })
+            .sort({ createdAt: 'desc' })
+            .skip((pageNumber - 1) * limitNumber)
+            .limit(limitNumber)
+            .lean(),
+        EmojiFavorite.countDocuments({ userId })
+    ]);
+
+    const packageIds = favDocs.map((d) => d.packageId);
+    const packages = packageIds.length
+        ? await EmojiPackage.find({ packageId: { $in: packageIds } }).lean()
+        : [];
+
+    const byId = new Map(packages.map((p: any) => [p.packageId, p]));
+    const items = favDocs.map((f) => byId.get(f.packageId)).filter(Boolean);
+
+    res.status(200).json({
+        items,
+        meta: {
+            page: pageNumber,
+            limit: limitNumber,
+            total,
+            pages: Math.ceil(total / limitNumber)
+        }
+    });
+};
