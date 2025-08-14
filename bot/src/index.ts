@@ -22,7 +22,7 @@ async function waitForUserService(
     retryInterval = 5000
 ): Promise<void> {
     const userServiceUrl =
-        process.env.USER_SERVICE_URL || 'http://user-service:3001';
+        process.env.USER_SERVICE_URL || 'http://user-api:3001';
     const healthCheckUrl = `${userServiceUrl}/health` || `${userServiceUrl}/`;
 
     console.log(`User-service 연결을 확인 중입니다... (${userServiceUrl})`);

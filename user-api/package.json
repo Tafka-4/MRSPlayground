@@ -1,5 +1,5 @@
 {
-    "name": "user-service",
+    "name": "user-api",
     "version": "1.0.0",
     "description": "User and Authentication Microservice",
     "type": "module",

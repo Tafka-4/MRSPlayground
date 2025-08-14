@@ -18,7 +18,7 @@ services:
         condition: service_started
       novel-api:
         condition: service_started
-      user-service:
+      user-api:
         condition: service_started
       user:
         condition: service_started
@@ -53,7 +53,7 @@ services:
       - REDIS_URL=${REDIS_URL}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
-      user-service:
+      user-api:
         condition: service_started
       redis:
         condition: service_started
@@ -152,7 +152,7 @@ services:
       - REDIS_URL=${REDIS_URL}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
-      user-service:
+      user-api:
         condition: service_started
       redis:
         condition: service_started
@@ -183,7 +183,7 @@ services:
       - REDIS_URL=${REDIS_URL}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
-      user-service:
+      user-api:
         condition: service_started
       redis:
         condition: service_started
@@ -220,9 +220,9 @@ services:
       - app-network
 
   # User & Auth Microservice
-  user-service:
+  user-api:
     build:
-      context: ./user-service
+      context: ./user-api
       dockerfile: Dockerfile
     expose:
       - '3001'
@@ -340,7 +340,7 @@ services:
       - BOT_PW=${BOT_PW}
       - BOT_NICKNAME=${BOT_NICKNAME}
     depends_on:
-      user-service:
+      user-api:
         condition: service_healthy
     restart: unless-stopped
     networks:

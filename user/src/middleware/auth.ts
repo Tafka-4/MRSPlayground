@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const AUTH_SERVER_URL =
     process.env.AUTH_SERVER_URL ||
-    'http://user-service:3001/api/v1/auth/check-token';
+    'http://user-api:3001/api/v1/auth/check-token';
 
 interface UserPayload {
     userid: string;

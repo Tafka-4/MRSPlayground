@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
+import path from 'path';
 import { mongoose, redisClient } from '../utils/dbconnect/dbconnect.js';
 import postError from '../utils/error/postError.js';
 
@@ -56,13 +57,17 @@ postSchema.pre('save', async function (this: any, next: any) {
 		if (!typeMatch) continue;
 		const imageType = typeMatch[1];
 		const base64Data = file.replace(/^<img src=\"data:image\/(png|jpeg|webp|gif);base64,/, '').replace(/\"$/, '');
-		const filePath = `./uploads/post/${(this as any).galleryId}/${(this as any).postId}/${uuidv4()}.${imageType}`;
+		const diskPath = path.resolve(process.cwd(), 'uploads', 'post', String((this as any).galleryId), String((this as any).postId));
+		try { fs.mkdirSync(diskPath, { recursive: true }); } catch {}
+		const filename = `${uuidv4()}.${imageType}`;
+		const filePath = path.join(diskPath, filename);
 		try {
 			const fileBuffer = Buffer.from(base64Data, 'base64');
 			if (fileBuffer.length > 10 * 1024 * 1024) throw new postError.PostUploadFailedError('Image size is too large');
 			fs.writeFile(filePath, fileBuffer, (err: any) => {
 				if (err) throw new postError.PostUploadFailedError('Failed to upload image');
-				(this as any).content = (this as any).content.replace(file, `<img src="${filePath}">`);
+				const publicPath = `/uploads/post/${(this as any).galleryId}/${(this as any).postId}/${filename}`;
+				(this as any).content = (this as any).content.replace(file, `<img src="${publicPath}">`);
 			});
 		} catch (error) {
 			throw new postError.PostUploadFailedError('Failed to upload image');

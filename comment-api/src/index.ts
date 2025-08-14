@@ -4,6 +4,7 @@ import { connectMongo, connectRedis, checkRedisConnection, mongoose } from './ut
 import commentRouter from './router/commentRouter.js';
 import customErrorHandler from './utils/middleware/customErrorHandler.js';
 import rateLimit from './utils/middleware/rateLimit.js';
+import { sanitizeTargetValidation } from './utils/middleware/targetValidation.js';
 
 dotenv.config();
 
@@ -29,6 +30,7 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 });
 
 app.use(rateLimit);
+app.use(sanitizeTargetValidation);
 
 app.use('/comment/v1', commentRouter);
 

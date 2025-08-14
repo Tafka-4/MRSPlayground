@@ -88,8 +88,8 @@ export const broadcastKeygen = async (client: Client) => {
     const requestClient: RequestClient = client.requestClient;
 
     try {
-        const url = 'user-service:3001/ws/keygen';
-        console.log(`🔌 user-service 웹소켓 연결을 시도합니다... (${url})`);
+        const url = 'user-api:3001/ws/keygen';
+        console.log(`🔌 user-api 웹소켓 연결을 시도합니다... (${url})`);
         
         let connected = false;
         try {

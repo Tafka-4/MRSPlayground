@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
+import path from 'path';
 import sharp from 'sharp';
 import { createHmac } from 'crypto';
 import emojiError from '../utils/error/emojiError.js';
@@ -14,8 +15,8 @@ interface IEmojiPackage extends mongoose.Document {
 	author: string;
 	createdAt: Date;
 	updatedAt: Date;
-	uploadEmojis(emojis: Express.Multer.File[]): Promise<void>;
-	addEmojis(emojis: Express.Multer.File[]): Promise<void>;
+    uploadEmojis(emojis: any[]): Promise<void>;
+    addEmojis(emojis: any[]): Promise<void>;
 	deleteEmojis(emojis: string[]): Promise<void>;
 	getEmojis(): string[];
 	getEmoji(emojiId: string): string;
@@ -43,7 +44,7 @@ emojiPackageSchema.pre('deleteOne', { document: true, query: false }, async func
 	next();
 });
 
-emojiPackageSchema.methods.uploadEmojis = async function (emojis: Express.Multer.File[]) {
+emojiPackageSchema.methods.uploadEmojis = async function (emojis: any[]) {
 	const emojiPaths: Record<string, string> = {};
 	for (const emoji of emojis) {
 		const extension = emoji.originalname.split('.').pop();
@@ -52,15 +53,18 @@ emojiPackageSchema.methods.uploadEmojis = async function (emojis: Express.Multer
 		if (emoji.size > 1024 * 1024 * 10) throw new emojiError.EmojiUploadFailedError('Emoji is too large');
 		const resizedEmojiBuffer = await sharp(emoji.buffer).resize({ width: 200, height: 200 }).withMetadata().toBuffer();
 		const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(uuidv4()).digest('hex')}.${extension}`;
-		const emojiPath = `./uploads/emojis/${(this as any).packageId}/${filename}`;
-		fs.writeFileSync(emojiPath, resizedEmojiBuffer);
-		emojiPaths[uuidv4()] = emojiPath;
+        const dir = path.resolve(process.cwd(), 'uploads', 'emojis', String((this as any).packageId));
+        try { fs.mkdirSync(dir, { recursive: true }); } catch {}
+        const diskPath = path.join(dir, filename);
+        fs.writeFileSync(diskPath, resizedEmojiBuffer);
+        const publicPath = `/uploads/emojis/${(this as any).packageId}/${filename}`;
+        emojiPaths[uuidv4()] = publicPath;
 	}
 	(this as any).packageEmojis = emojiPaths;
 	await (this as any).save();
 };
 
-emojiPackageSchema.methods.addEmojis = async function (emojis: Express.Multer.File[]) {
+emojiPackageSchema.methods.addEmojis = async function (emojis: any[]) {
 	const emojiPaths: Record<string, string> = {};
 	for (const emoji of emojis) {
 		const extension = emoji.originalname.split('.').pop();
@@ -69,9 +73,12 @@ emojiPackageSchema.methods.addEmojis = async function (emojis: Express.Multer.Fi
 		if (emoji.size > 1024 * 1024 * 10) throw new emojiError.EmojiUploadFailedError('Emoji is too large');
 		const resizedEmojiBuffer = await sharp(emoji.buffer).resize({ width: 200, height: 200 }).withMetadata().toBuffer();
 		const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(uuidv4()).digest('hex')}.${extension}`;
-		const emojiPath = `./uploads/emojis/${(this as any).packageId}/${filename}`;
-		fs.writeFileSync(emojiPath, resizedEmojiBuffer);
-		emojiPaths[uuidv4()] = emojiPath;
+        const dir = path.resolve(process.cwd(), 'uploads', 'emojis', String((this as any).packageId));
+        try { fs.mkdirSync(dir, { recursive: true }); } catch {}
+        const diskPath = path.join(dir, filename);
+        fs.writeFileSync(diskPath, resizedEmojiBuffer);
+        const publicPath = `/uploads/emojis/${(this as any).packageId}/${filename}`;
+        emojiPaths[uuidv4()] = publicPath;
 	}
 	(this as any).packageEmojis = { ...(this as any).packageEmojis, ...emojiPaths };
 	await (this as any).save();
@@ -81,7 +88,11 @@ emojiPackageSchema.methods.deleteEmojis = async function (emojis: string[]) {
 	const objectKeys = Object.keys((this as any).packageEmojis);
 	for (const emoji of emojis) {
 		if (!objectKeys.includes(emoji)) throw new emojiError.EmojiNotFoundError('Emoji not found');
-		try { fs.unlinkSync((this as any).packageEmojis[objectKeys.findIndex((key: string) => key === emoji)]); } catch {}
+        try {
+            const p = (this as any).packageEmojis[objectKeys.findIndex((key: string) => key === emoji)];
+            const disk = p.startsWith('/uploads/') ? path.resolve(process.cwd(), p.slice(1)) : p;
+            fs.unlinkSync(disk);
+        } catch {}
 		delete (this as any).packageEmojis[objectKeys.findIndex((key: string) => key === emoji)];
 	}
 	await (this as any).save();

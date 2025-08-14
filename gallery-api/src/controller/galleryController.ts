@@ -116,7 +116,7 @@ export const addGalleryBlockUser = async (req: Request, res: Response) => {
 	const { userid, time } = req.body;
 	const gallery = await Gallery.findOne({ galleryId });
 	if (!gallery) throw new galleryError.GalleryNotFoundError('Gallery not found');
-	if (gallery.galleryAdmin !== req.user?.userid || !gallery.galleryManager.includes(req.user?.userid as string)) throw new galleryError.GalleryIsNotManagerError('You are not the manager of this gallery');
+    if (gallery.galleryAdmin !== req.user?.userid && !gallery.galleryManager.includes(req.user?.userid as string)) throw new galleryError.GalleryIsNotManagerError('You are not the manager of this gallery');
 	const blockUsers = await gallery.getGalleryBlockUsers();
 	if (blockUsers.includes(userid)) throw new galleryError.GalleryInteractionFailedError('You are already blocking this user');
 	if (time < 0) throw new galleryError.GalleryInteractionFailedError('Time cannot be negative');
@@ -129,7 +129,7 @@ export const deleteGalleryBlockUser = async (req: Request, res: Response) => {
 	const { userid } = req.body;
 	const gallery = await Gallery.findOne({ galleryId });
 	if (!gallery) throw new galleryError.GalleryNotFoundError('Gallery not found');
-	if (gallery.galleryAdmin !== req.user?.userid || !gallery.galleryManager.includes(req.user?.userid as string)) throw new galleryError.GalleryIsNotManagerError('You are not the manager of this gallery');
+    if (gallery.galleryAdmin !== req.user?.userid && !gallery.galleryManager.includes(req.user?.userid as string)) throw new galleryError.GalleryIsNotManagerError('You are not the manager of this gallery');
 	const blockUsers = await gallery.getGalleryBlockUsers();
 	if (!blockUsers.includes(userid)) throw new galleryError.GalleryInteractionFailedError('You are not blocking this user');
 	await gallery.deleteGalleryBlockUser(userid);
@@ -141,7 +141,7 @@ export const addGalleryBlockIP = async (req: Request, res: Response) => {
 	const { ip, time } = req.body;
 	const gallery = await Gallery.findOne({ galleryId });
 	if (!gallery) throw new galleryError.GalleryNotFoundError('Gallery not found');
-	if (gallery.galleryAdmin !== req.user?.userid || !gallery.galleryManager.includes(req.user?.userid as string)) throw new galleryError.GalleryIsNotManagerError('You are not the manager of this gallery');
+    if (gallery.galleryAdmin !== req.user?.userid && !gallery.galleryManager.includes(req.user?.userid as string)) throw new galleryError.GalleryIsNotManagerError('You are not the manager of this gallery');
 	const blockIPs = await gallery.getGalleryBlockIPs();
 	if (blockIPs.includes(ip)) throw new galleryError.GalleryInteractionFailedError('You are already blocking this IP');
 	if (time < 0) throw new galleryError.GalleryInteractionFailedError('Time cannot be negative');
@@ -154,7 +154,7 @@ export const deleteGalleryBlockIP = async (req: Request, res: Response) => {
 	const { ip } = req.body;
 	const gallery = await Gallery.findOne({ galleryId });
 	if (!gallery) throw new galleryError.GalleryNotFoundError('Gallery not found');
-	if (gallery.galleryAdmin !== req.user?.userid || !gallery.galleryManager.includes(req.user?.userid as string)) throw new galleryError.GalleryIsNotManagerError('You are not the manager of this gallery');
+    if (gallery.galleryAdmin !== req.user?.userid && !gallery.galleryManager.includes(req.user?.userid as string)) throw new galleryError.GalleryIsNotManagerError('You are not the manager of this gallery');
 	const blockIPs = await gallery.getGalleryBlockIPs();
 	if (!blockIPs.includes(ip)) throw new galleryError.GalleryInteractionFailedError('You are not blocking this IP');
 	await gallery.deleteGalleryBlockIP(ip);

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import fs from 'fs';
+import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { redisClient } from '../utils/dbconnect/dbconnect.js';
 import galleryError from '../utils/error/galleryError.js';
@@ -21,7 +22,7 @@ interface IGallery extends mongoose.Document {
 	galleryAdminChange(admin: string): Promise<void>;
 	galleryManagerAdd(manager: string): Promise<void>;
 	galleryManagerDelete(manager: string): Promise<void>;
-	galleryThumbnailUpload(thumbnail: Express.Multer.File): Promise<string>;
+    galleryThumbnailUpload(thumbnail: any): Promise<string>;
 	galleryThumbnailDelete(): Promise<void>;
 	getGalleryBlockUsers(): Promise<string[]>;
 	getGalleryBlockIPs(): Promise<string[]>;
@@ -94,27 +95,34 @@ gallerySchema.methods.galleryManagerDelete = async function (manager: string) {
 	await this.save();
 };
 
-gallerySchema.methods.galleryThumbnailUpload = async function (thumbnail: Express.Multer.File) {
-	if (this.thumbnail) {
-		try { fs.unlinkSync(`./uploads/gallery/${this.thumbnail}`); } catch {}
-	}
-	const extension = thumbnail.originalname.split('.').pop();
-	if (!extension) throw new galleryError.GalleryImageUploadFailedError('Invalid file extension');
-	if (extension !== 'png' && extension !== 'jpg' && extension !== 'jpeg') throw new galleryError.GalleryImageUploadFailedError('Invalid file extension');
-	const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(this.galleryId).digest('hex')}.${extension}`;
-	const filePath = `./uploads/gallery/${filename}`;
-	fs.writeFileSync(filePath, thumbnail.buffer);
-	this.thumbnail = filePath;
-	await this.save();
-	return filePath;
+gallerySchema.methods.galleryThumbnailUpload = async function (thumbnail: any) {
+    if (this.thumbnail) {
+        try {
+            const prev = this.thumbnail.startsWith('/uploads/') ? path.resolve(process.cwd(), this.thumbnail.slice(1)) : this.thumbnail;
+            fs.unlinkSync(prev);
+        } catch {}
+    }
+    const extension = thumbnail.originalname.split('.').pop();
+    if (!extension) throw new galleryError.GalleryImageUploadFailedError('Invalid file extension');
+    if (!['png', 'jpg', 'jpeg'].includes(extension)) throw new galleryError.GalleryImageUploadFailedError('Invalid file extension');
+    const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(this.galleryId).digest('hex')}.${extension}`;
+    const diskPath = path.resolve(process.cwd(), 'uploads', 'gallery', filename);
+    fs.writeFileSync(diskPath, thumbnail.buffer);
+    const publicPath = `/uploads/gallery/${filename}`;
+    this.thumbnail = publicPath;
+    await this.save();
+    return publicPath;
 };
 
 gallerySchema.methods.galleryThumbnailDelete = async function () {
-	if (this.thumbnail) {
-		try { fs.unlinkSync(`./uploads/gallery/${this.thumbnail}`); } catch {}
-	}
-	this.thumbnail = '';
-	await this.save();
+    if (this.thumbnail) {
+        try {
+            const abs = this.thumbnail.startsWith('/uploads/') ? path.resolve(process.cwd(), this.thumbnail.slice(1)) : this.thumbnail;
+            fs.unlinkSync(abs);
+        } catch {}
+    }
+    this.thumbnail = '';
+    await this.save();
 };
 
 gallerySchema.methods.getGalleryBlockUsers = async function () {

@@ -19,7 +19,7 @@ router.get('/login', loginLimiter, async (req: Request, res: Response) => {
         const refreshToken = req.cookies.refreshToken;
         if (refreshToken) {
             const response = await fetch(
-                'http://user-service:3001/api/v1/auth/check-token',
+                'http://user-api:3001/api/v1/auth/check-token',
                 {
                     method: 'POST',
                     headers: {

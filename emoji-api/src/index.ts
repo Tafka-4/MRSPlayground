@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import dotenv from 'dotenv';
 import { connectMongo, connectRedis, checkRedisConnection, mongoose } from './utils/dbconnect/dbconnect.js';
 import emojiRouter from './router/emojiRouter.js';
@@ -19,7 +20,14 @@ initializeConnections().catch(() => process.exit(1));
 app.set('trust proxy', true);
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: 104857600 }));
-app.use('/uploads', express.static('./uploads'));
+const uploadsEmojis = path.resolve(process.cwd(), 'uploads', 'emojis');
+app.use('/uploads/emojis', (req, res, next) => {
+  const reqPath = req.path;
+  if (reqPath.includes('..')) return res.status(400).end();
+  const abs = path.resolve(uploadsEmojis, '.' + reqPath);
+  if (!abs.startsWith(uploadsEmojis)) return res.status(400).end();
+  express.static(uploadsEmojis)(req, res, next);
+});
 
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
 	res.header('Access-Control-Allow-Credentials', 'true');

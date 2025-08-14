@@ -4,7 +4,7 @@ import userError from '../error/userError.js';
 import authError from '../error/authError.js';
 
 const callUserService = async (endpoint: string, options: RequestInit = {}) => {
-  const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-service:3001';
+  const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-api:3001';
   const response = await fetch(`${userServiceUrl}${endpoint}`, {
     headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
     ...options

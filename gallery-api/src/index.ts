@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import dotenv from 'dotenv';
 import { connectMongo, connectRedis, checkRedisConnection, mongoose } from './utils/dbconnect/dbconnect.js';
 import galleryRouter from './router/galleryRouter.js';
@@ -37,6 +38,15 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 });
 
 app.use(rateLimit);
+
+const uploadsDir = path.resolve(process.cwd(), 'uploads', 'gallery');
+app.use('/uploads/gallery', (req, res, next) => {
+    const reqPath = req.path;
+    if (reqPath.includes('..')) return res.status(400).end();
+    const abs = path.resolve(uploadsDir, '.' + reqPath);
+    if (!abs.startsWith(uploadsDir)) return res.status(400).end();
+    express.static(uploadsDir)(req, res, next);
+});
 
 app.use('/gallery/v1', galleryRouter);
 
