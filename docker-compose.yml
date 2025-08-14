@@ -174,17 +174,12 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
-      - NOVEL_DATABASE_URL=${NOVEL_DATABASE_URL}
-      - NOVEL_USE_MYSQL=${NOVEL_USE_MYSQL}
-      - NOVEL_DB_HOST=${DB_HOST}
-      - NOVEL_DB_USER=${DB_USER}
-      - NOVEL_DB_PASSWORD=${DB_PASSWORD}
-      - NOVEL_DB_NAME=novelapi
-      - NOVEL_DB_PORT=${DB_PORT}
+      - NOVEL_DB_HOST=${NOVEL_DB_HOST}
+      - NOVEL_DB_USER=${NOVEL_DB_USER}
+      - NOVEL_DB_PASSWORD=${NOVEL_DB_PASSWORD}
+      - NOVEL_DB_NAME=${NOVEL_DB_NAME}
+      - NOVEL_DB_PORT=${NOVEL_DB_PORT}
       - JWT_SECRET=${JWT_SECRET}
-      - MONGO_URI=${MONGO_URI}
-      - MONGO_USER=${MONGO_USER}
-      - MONGO_PW=${MONGO_PW}
       - REDIS_URL=${REDIS_URL}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
@@ -192,7 +187,7 @@ services:
         condition: service_started
       redis:
         condition: service_started
-      mongodb:
+      noveldb:
         condition: service_healthy
     restart: unless-stopped
     networks:
@@ -201,6 +196,28 @@ services:
       test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://127.0.0.1:5002/health || exit 1"]
     volumes:
       - novel_uploads:/app/uploads
+
+  # MySQL Database for Novel/Episode Service
+  noveldb:
+    image: mysql:8.0
+    cpuset: "3"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${NOVEL_DB_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${NOVEL_DB_NAME}
+    expose:
+      - '3306'
+    volumes:
+      - noveldb_data:/var/lib/mysql
+      - ./noveldb/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${NOVEL_DB_ROOT_PASSWORD}"]
+      timeout: 30s
+      retries: 15
+      interval: 10s
+      start_period: 60s
+    restart: unless-stopped
+    networks:
+      - app-network
 
   # User & Auth Microservice
   user-service:
