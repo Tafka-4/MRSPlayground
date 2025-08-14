@@ -56,6 +56,8 @@ services:
         condition: service_healthy
     volumes:
       - novel_uploads:/app/uploads
+    networks:
+      - app-network
   # Novel/Episode Microservice
   novel-api:
     build:
