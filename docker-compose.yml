@@ -8,7 +8,13 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./nginx/logs:/var/log/nginx
     depends_on:
-      api:
+      gallery-api:
+        condition: service_started
+      post-api:
+        condition: service_started
+      comment-api:
+        condition: service_started
+      emoji-api:
         condition: service_started
       novel-api:
         condition: service_started
@@ -29,18 +35,17 @@ services:
       retries: 5
       start_period: 90s
 
-  # API Gateway / Main API Service
-  api:
+  # Gallery Microservice
+  gallery-api:
     build:
-      context: ./api
+      context: ./gallery-api
       dockerfile: Dockerfile
     expose:
-      - '5000'
+      - '5001'
     cpuset: "1"
     environment:
       - NODE_ENV=${NODE_ENV}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
-      - NOVEL_API_URL=${NOVEL_API_URL}
       - JWT_SECRET=${JWT_SECRET}
       - MONGO_URI=${MONGO_URI}
       - MONGO_USER=${MONGO_USER}
@@ -54,10 +59,110 @@ services:
         condition: service_started
       mongodb:
         condition: service_healthy
-    volumes:
-      - novel_uploads:/app/uploads
+    restart: unless-stopped
     networks:
       - app-network
+    volumes:
+      - novel_uploads:/app/uploads
+
+  # Post Microservice
+  post-api:
+    build:
+      context: ./post-api
+      dockerfile: Dockerfile
+    expose:
+      - '5003'
+    cpuset: "1"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - GALLERY_API_URL=http://gallery-api:5001
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PW=${MONGO_PW}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      gallery-api:
+        condition: service_started
+      redis:
+        condition: service_started
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    volumes:
+      - novel_uploads:/app/uploads
+
+  # Comment Microservice
+  comment-api:
+    build:
+      context: ./comment-api
+      dockerfile: Dockerfile
+    expose:
+      - '5004'
+    cpuset: "1"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - GALLERY_API_URL=http://gallery-api:5001
+      - POST_API_URL=http://post-api:5003
+      - NOVEL_API_URL=http://novel-api:5002
+      - EMOJI_API_URL=http://emoji-api:5005
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PW=${MONGO_PW}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      gallery-api:
+        condition: service_started
+      post-api:
+        condition: service_started
+      novel-api:
+        condition: service_started
+      emoji-api:
+        condition: service_started
+      redis:
+        condition: service_started
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Emoji Microservice
+  emoji-api:
+    build:
+      context: ./emoji-api
+      dockerfile: Dockerfile
+    expose:
+      - '5005'
+    cpuset: "1"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PW=${MONGO_PW}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      user-service:
+        condition: service_started
+      redis:
+        condition: service_started
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    volumes:
+      - novel_uploads:/app/uploads
   # Novel/Episode Microservice
   novel-api:
     build:

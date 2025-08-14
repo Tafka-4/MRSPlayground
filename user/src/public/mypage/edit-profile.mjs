@@ -292,10 +292,10 @@ class EditProfilePage {
 
         try {
             const result = await apiClient.post(
-                '/api/v1/users/upload-profile',
+                '/api/v1/users/me/profile-image',
                 formData
             );
-            this.userData.profileImage = result.profileImage;
+            this.userData.profileImage = result.path;
             this.updateProfileImage();
             this.profileImageInput.value = '';
             new NoticeBox('프로필 이미지가 변경되었습니다.', 'success').show();
@@ -307,15 +307,11 @@ class EditProfilePage {
 
     async handleImageDelete() {
         try {
-            const response = await apiClient.delete('/api/v1/users/delete-profile');
-            if (response.ok) {
-                this.userData.profileImage = null;
-                this.updateProfileImage();
-                this.profileImageInput.value = '';
-                new NoticeBox('프로필 이미지가 삭제되었습니다.', 'success').show();
-            } else {
-                throw new Error('삭제 요청 실패');
-            }
+            await apiClient.delete('/api/v1/users/me/profile-image');
+            this.userData.profileImage = null;
+            this.updateProfileImage();
+            this.profileImageInput.value = '';
+            new NoticeBox('프로필 이미지가 삭제되었습니다.', 'success').show();
         } catch (error) {
             console.error('프로필 이미지 삭제 실패:', error);
             new NoticeBox('이미지 삭제에 실패했습니다.', 'error').show();
@@ -329,9 +325,9 @@ class EditProfilePage {
         };
 
         try {
-            const result = await apiClient.put('/api/v1/users/update', payload);
-            this.userData.nickname = result.nickname;
-            this.userData.description = result.description;
+            const result = await apiClient.put('/api/v1/users/me', payload);
+            this.userData.nickname = result.user.nickname;
+            this.userData.description = result.user.description;
             this.hasChanges = false;
             this.saveButton.disabled = true;
             new NoticeBox(
@@ -360,7 +356,7 @@ class EditProfilePage {
 
     async handleAccountDelete() {
         try {
-            await apiClient.delete('/api/v1/users/delete');
+            await apiClient.delete('/api/v1/users/me');
             new NoticeBox(
                 '회원 탈퇴가 완료되었습니다.',
                 'success'
