@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { escape } from 'html-escaper';
 import Novel from '../model/novelModel.js';
+import { useNovelRepo } from '../repo/novelRepo.js';
 import novelError from '../utils/error/novelError.js';
 import userError from '../utils/error/userError.js';
 
@@ -20,13 +21,15 @@ export const createNovel = async (req: Request, res: Response) => {
   if (!userId) throw new userError.UserNotLoginError('Login required to create novel');
   if (!title || !description) throw new novelError.NovelError('Title and description are required');
 
-  const novel = await Novel.create({
+  const repo = useNovelRepo();
+  const novel = await repo.create({
+    novelId: crypto.randomUUID(),
     title: escape(title),
     description: escape(description),
     thumbnailImage: escape(thumbnailImage || ''),
     author: userId,
     status: 'ongoing'
-  });
+  } as any);
 
   try {
     await callUserService(`/api/users/add-novel`, { method: 'PUT', body: JSON.stringify({ userid: userId, novelId: novel.novelId }) });
@@ -37,9 +40,10 @@ export const createNovel = async (req: Request, res: Response) => {
 
 export const getNovel = async (req: Request, res: Response) => {
   const { novelId } = req.params as { novelId: string };
-  const novel = await Novel.findOne({ novelId });
+  const repo = useNovelRepo();
+  const novel = await repo.findById(novelId);
   if (!novel) throw new novelError.NovelNotFoundError('Novel not found');
-  await novel.increaseViewCount();
+  await repo.increaseView(novelId);
   res.status(200).json(novel);
 };
 
@@ -55,12 +59,9 @@ export const updateNovel = async (req: Request, res: Response) => {
   if (Object.keys(updateData).length === 0) throw new novelError.NovelError('No fields provided for update');
   updateData.updatedAt = new Date();
 
-  const updatedNovel = await Novel.findOneAndUpdate({ novelId, author: userId }, { $set: updateData }, { new: true });
-  if (!updatedNovel) {
-    const exists = await Novel.exists({ novelId });
-    if (!exists) throw new novelError.NovelNotFoundError('Novel not found');
-    throw new userError.UserForbiddenError('You are not allowed to update this novel');
-  }
+  const repo = useNovelRepo();
+  const updatedNovel = await repo.updateIfAuthor(novelId, userId!, updateData);
+  if (!updatedNovel) throw new userError.UserForbiddenError('You are not allowed to update this novel');
   res.status(200).json(updatedNovel);
 };
 
@@ -69,15 +70,10 @@ export const deleteNovel = async (req: Request, res: Response) => {
   const userId = req.user?.userid;
   if (!userId) throw new userError.UserNotLoginError('Login required');
 
-  const novel = await Novel.findOne({ novelId }).select('author');
-  if (!novel) throw new novelError.NovelNotFoundError('Novel not found');
-  if (userId !== novel.author) throw new userError.UserForbiddenError('You are not allowed to delete this novel');
-
-  const [deleteResult] = await Promise.all([
-    Novel.deleteOne({ novelId }),
-    callUserService(`/api/users/remove-novel`, { method: 'PUT', body: JSON.stringify({ userid: userId, novelId }) }).catch(() => null)
-  ]);
-  if (deleteResult.deletedCount === 0) throw new novelError.NovelError('Failed to delete novel');
+  const repo = useNovelRepo();
+  const ok = await repo.deleteIfAuthor(novelId, userId!);
+  if (!ok) throw new userError.UserForbiddenError('You are not allowed to delete this novel');
+  await callUserService(`/api/users/remove-novel`, { method: 'PUT', body: JSON.stringify({ userid: userId, novelId }) }).catch(() => null);
   res.status(200).json({ message: 'Novel deleted successfully' });
 };
 

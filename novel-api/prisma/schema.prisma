@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("NOVEL_DATABASE_URL")
+}
+
+model Novel {
+  id             Int       @id @default(autoincrement())
+  novelId        String    @unique
+  title          String
+  description    String
+  thumbnailImage String
+  episodeCount   Int       @default(0)
+  viewCount      Int       @default(0)
+  likeCount      Int       @default(0)
+  dislikeCount   Int       @default(0)
+  favoriteCount  Int       @default(0)
+  author         String
+  status         String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  episodes       Episode[] @relation("NovelEpisodes", fields: [novelId], references: [novelId])
+
+  @@index([author])
+  @@index([createdAt])
+  @@unique([novelId, author], name: "novelId_author")
+}
+
+model Episode {
+  id            Int      @id @default(autoincrement())
+  episodeId     String   @unique
+  episodeNumber Int
+  novelId       String
+  title         String
+  content       String
+  author        String
+  authorComment String?
+  viewCount     Int      @default(0)
+  likeCount     Int      @default(0)
+  dislikeCount  Int      @default(0)
+  imageUploaded Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  novel         Novel    @relation("NovelEpisodes", fields: [novelId], references: [novelId])
+
+  @@index([novelId])
+  @@index([createdAt])
+}
+
+
