@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import redis from 'redis';
+import mongoose from 'mongoose';
 
 dotenv.config();
 
@@ -70,6 +71,6 @@ const connectRedis = async () => { await waitForRedis(); };
 process.on('SIGINT', async () => { if (redisClient.isOpen) await redisClient.disconnect(); process.exit(0); });
 process.on('SIGTERM', async () => { if (redisClient.isOpen) await redisClient.disconnect(); process.exit(0); });
 
-export { redisClient, connectRedis, checkRedisConnection };
+export { redisClient, mongoose, connectRedis, checkRedisConnection };
 
 

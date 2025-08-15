@@ -44,7 +44,7 @@ const episodeSchema = new mongoose.Schema({
 
 const Episode = mongoose.model<IEpisode>('Episode', episodeSchema);
 
-episodeSchema.pre('save', async function (next) {
+episodeSchema.pre('save', async function (this: IEpisode, next: (err?: any) => void) {
   if (this.authorComment) {
     this.authorComment = await parseEmojiToImgTag(this.authorComment, true);
   }
@@ -82,7 +82,7 @@ episodeSchema.pre('save', async function (next) {
   next();
 });
 
-episodeSchema.pre('deleteOne', { document: true, query: false }, async function (next) {
+episodeSchema.pre('deleteOne', { document: true, query: false }, async function (this: IEpisode, next: (err?: any) => void) {
   try {
     if (this.imageUploaded) {
       fs.rmSync(`./uploads/episode/${this.novelId}/${this.episodeId}`, { recursive: true, force: true });
@@ -95,7 +95,7 @@ episodeSchema.pre('deleteOne', { document: true, query: false }, async function 
   next();
 });
 
-episodeSchema.methods.like = async function (userId: string): Promise<void> {
+episodeSchema.methods.like = async function (this: IEpisode, userId: string): Promise<void> {
   const resultLike = await redisClient.sAdd(`${this.novelId}:${this.episodeId}:likes`, userId);
   const resultDislike = await redisClient.sRem(`${this.novelId}:${this.episodeId}:dislikes`, userId);
   if (resultDislike) {
@@ -107,7 +107,7 @@ episodeSchema.methods.like = async function (userId: string): Promise<void> {
   this.likeCount++;
 };
 
-episodeSchema.methods.dislike = async function (userId: string): Promise<void> {
+episodeSchema.methods.dislike = async function (this: IEpisode, userId: string): Promise<void> {
   const resultDislike = await redisClient.sAdd(`${this.novelId}:${this.episodeId}:dislikes`, userId);
   const resultLike = await redisClient.sRem(`${this.novelId}:${this.episodeId}:likes`, userId);
   if (resultLike) {
