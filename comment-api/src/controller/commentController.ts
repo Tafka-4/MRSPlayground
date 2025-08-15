@@ -34,7 +34,7 @@ export const createComment = async (req: Request, res: Response) => {
 	if (isHidden && !tempPassword) throw new commentError.CommentError('Temporary password is required for hidden comments');
 	if (tempPassword && !/^[a-zA-Z0-9]{8,}$/.test(tempPassword)) throw new commentError.CommentError('Invalid temporary password format (must be at least 8 alphanumeric characters)');
 	if (!isHidden && tempPassword) throw new commentError.CommentError('Temporary password is not allowed for public comments');
-	const commentData = { galleryId, novelId, commentTargetId: targetId, commentTargetType: targetType, commentParentId: parentId, content, isHidden, author: isHidden ? `익명(${ip?.split('.').slice(0, 1).join('.')})` : userid, clientInfo: { ip, userAgent }, ...(isHidden && { tempPassword }) };
+	const commentData = { galleryId, novelId, commentTargetId: targetId, commentTargetType: targetType, commentParentId: parentId, content, isHidden, author: isHidden ? `익명(${ip?.split('.').slice(0, 1).join('.')})` : userid, clientInfo: { ip, userAgent }, ...(isHidden ? { tempPassword } : {}) };
 	const comment = new Comment(commentData as any);
 	const savedComment = await saveAndReturnComment(comment);
 	res.status(201).json({ success: true, comment: savedComment });

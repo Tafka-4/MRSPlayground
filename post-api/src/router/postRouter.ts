@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createPost, getPosts, getPost, updatePost, deletePost, likePost, dislikePost } from '../controller/postController.js';
+import { createPost, getPosts, getPost, updatePost, deletePost, likePost, dislikePost, getPostById } from '../controller/postController.js';
 import { loginRequired } from '../utils/middleware/login.js';
 import asyncWrapper from '../utils/middleware/asyncWrapper.js';
 
