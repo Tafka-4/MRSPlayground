@@ -91,8 +91,9 @@ export const deletePost = async (req: Request, res: Response) => {
 	if (!post) throw new postError.PostNotFoundError('Post not found');
 	const galleryResp = await callGalleryApi(`/gallery/v1/${galleryId}`);
 	if (!galleryResp.ok) throw new postError.PostError('Gallery not found');
-	const { gallery } = await galleryResp.json();
-	if (gallery.galleryAdmin === userid || (gallery.galleryManager || []).includes(userid as string)) {
+	const data = await galleryResp.json() as any;
+	const gallery = data.gallery || data;
+	if (gallery && (gallery.galleryAdmin === userid || (gallery.galleryManager || []).includes(userid as string))) {
 		await post.deleteOne();
 		res.status(200).json({ success: true, message: 'Post deleted' });
 		return;
@@ -110,7 +111,7 @@ export const likePost = async (req: Request, res: Response) => {
 	if (!galleryResp.ok) throw new postError.PostError('Gallery not found');
 	const post = await Post.findOne({ postId, galleryId });
 	if (!post) throw new postError.PostNotFoundError('Post not found');
-	await post.like(userid as string);
+	await (post as any).like(userid as string);
 	res.status(200).json({ success: true, message: 'Post liked' });
 };
 
@@ -121,7 +122,7 @@ export const dislikePost = async (req: Request, res: Response) => {
 	if (!galleryResp.ok) throw new postError.PostError('Gallery not found');
 	const post = await Post.findOne({ postId, galleryId });
 	if (!post) throw new postError.PostNotFoundError('Post not found');
-	await post.dislike(userid as string);
+	await (post as any).dislike(userid as string);
 	res.status(200).json({ success: true, message: 'Post disliked' });
 };
 
