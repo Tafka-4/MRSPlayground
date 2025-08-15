@@ -13,7 +13,7 @@ RUN npm install -g typescript
 
 COPY package*.json ./
 
-RUN npm ci
+RUN npm install
 
 COPY . .
 
@@ -31,7 +31,7 @@ RUN apk add --no-cache \
 
 COPY package*.json ./
 
-RUN npm ci --only=production && \
+RUN npm install --omit=dev && \
     npm uninstall sharp && \
     npm install --platform=linuxmusl --arch=x64 sharp && \
     npm cache clean --force
