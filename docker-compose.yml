@@ -470,6 +470,8 @@ volumes:
     driver: local
   requestdb_data:
     driver: local
+  noveldb_data:
+    driver: local
   redis_data:
     driver: local
   mongodb_data:
