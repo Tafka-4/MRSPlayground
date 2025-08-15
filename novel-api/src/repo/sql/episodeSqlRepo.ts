@@ -1,8 +1,9 @@
 import { pool } from '../../config/database.js';
 import crypto from 'crypto';
+import type { EpisodeRecord } from '../episodeRepo.js';
 
 export class EpisodeSqlRepo {
-	async createEpisode(novelId: string, author: string, title: string, content: string, authorComment?: string | null) {
+	async createEpisode(novelId: string, author: string, title: string, content: string, authorComment?: string | null): Promise<EpisodeRecord> {
 		const conn = await pool.getConnection();
 		try {
 			await conn.beginTransaction();
@@ -15,7 +16,7 @@ export class EpisodeSqlRepo {
 				, [episodeId, nextNo, novelId, title, content, author, authorComment ?? null]);
 			await conn.commit();
 			const [rows]: any = await pool.query(`SELECT * FROM episodes WHERE episodeId = ?`, [episodeId]);
-			return rows[0];
+			return rows[0] as EpisodeRecord;
 		} catch (e) {
 			await conn.rollback();
 			throw e;
@@ -24,16 +25,16 @@ export class EpisodeSqlRepo {
 		}
 	}
 
-	async findById(episodeId: string) {
-		const [rows] = await pool.execute(`SELECT * FROM episodes WHERE episodeId = ?`, [episodeId]);
-		return Array.isArray(rows) && rows.length ? rows[0] : null;
+	async findById(episodeId: string): Promise<EpisodeRecord | null> {
+		const [rows]: any = await pool.execute(`SELECT * FROM episodes WHERE episodeId = ?`, [episodeId]);
+		return Array.isArray(rows) && rows.length ? (rows[0] as EpisodeRecord) : null;
 	}
 
 	async increaseView(episodeId: string) {
 		await pool.execute(`UPDATE episodes SET viewCount = viewCount + 1 WHERE episodeId = ?`, [episodeId]);
 	}
 
-	async updateIfAuthor(episodeId: string, author: string, data: any) {
+	async updateIfAuthor(episodeId: string, author: string, data: any): Promise<EpisodeRecord | null> {
 		const [[ep]]: any = await pool.query(`SELECT novelId FROM episodes WHERE episodeId = ?`, [episodeId]);
 		if (!ep) return null;
 		const [[novel]]: any = await pool.query(`SELECT author FROM novels WHERE novelId = ?`, [ep.novelId]);
