@@ -29,10 +29,23 @@ app.set('trust proxy', true);
 
 app.use(
     cors({
-        origin: true,
+        origin: (origin, callback) => callback(null, origin || true),
         credentials: true
     })
 );
+
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Headers', 'O, Authorization, Accept, Content-Type, Origin, X-Access-Token, X-Requested-With');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Origin', req.headers.origin as string);
+    res.header('Vary', 'Origin');
+    if (req.method === 'OPTIONS') {
+        res.status(204).end();
+        return;
+    }
+    next();
+});
 
 app.use(cookieParser());
 app.use(express.json());
