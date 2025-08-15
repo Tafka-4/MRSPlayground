@@ -44,14 +44,14 @@ app.use('/episode/v1', episodeRouter);
 
 app.get('/health', async (req: express.Request, res: express.Response) => {
     try {
-        const mongoStatus = 'removed';
+        const mysqlStatus = 'connected';
         let redisStatus = 'disconnected';
         try {
             redisStatus = await checkRedisConnection() ? 'connected' : 'disconnected';
         } catch {
             redisStatus = 'error';
         }
-        const isHealthy = mongoStatus === 'connected';
+        const isHealthy = mysqlStatus === 'connected';
         const status = isHealthy ? 'OK' : 'UNHEALTHY';
         const statusCode = isHealthy ? 200 : 503;
         res.status(statusCode).json({
