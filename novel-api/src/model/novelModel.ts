@@ -60,12 +60,12 @@ const novelSchema = new mongoose.Schema({
 
 const Novel = mongoose.model<INovel>('Novel', novelSchema);
 
-novelSchema.pre('save', async function (this: INovel, next: (err?: any) => void) {
+novelSchema.pre('save', async function (this: mongoose.HydratedDocument<INovel>, next: (err?: any) => void) {
   this.updatedAt = new Date();
   next();
 });
 
-novelSchema.pre('deleteOne', { document: true, query: false }, async function (this: INovel, next: (err?: any) => void) {
+novelSchema.pre('deleteOne', { document: true, query: false }, async function (this: mongoose.HydratedDocument<INovel>, next: (err?: any) => void) {
   if (this.thumbnailImage) {
     fs.unlinkSync(this.thumbnailImage);
   }
@@ -75,7 +75,7 @@ novelSchema.pre('deleteOne', { document: true, query: false }, async function (t
   next();
 });
 
-novelSchema.methods.like = async function (this: INovel, userId: string): Promise<void> {
+novelSchema.methods.like = async function (this: mongoose.HydratedDocument<INovel>, userId: string): Promise<void> {
   const resultLike = await redisClient.sAdd(`${this.novelId}:likes`, userId);
   const resultDislike = await redisClient.sRem(`${this.novelId}:dislikes`, userId);
   if (resultDislike) this.dislikeCount--;
@@ -84,7 +84,7 @@ novelSchema.methods.like = async function (this: INovel, userId: string): Promis
   await this.save();
 };
 
-novelSchema.methods.dislike = async function (this: INovel, userId: string): Promise<void> {
+novelSchema.methods.dislike = async function (this: mongoose.HydratedDocument<INovel>, userId: string): Promise<void> {
   const resultDislike = await redisClient.sAdd(`${this.novelId}:dislikes`, userId);
   const resultLike = await redisClient.sRem(`${this.novelId}:likes`, userId);
   if (resultLike) this.likeCount--;
@@ -93,7 +93,7 @@ novelSchema.methods.dislike = async function (this: INovel, userId: string): Pro
   await this.save();
 };
 
-novelSchema.methods.favorite = async function (this: INovel, userId: string): Promise<void> {
+novelSchema.methods.favorite = async function (this: mongoose.HydratedDocument<INovel>, userId: string): Promise<void> {
   const resultFavorite = await redisClient.sAdd(`${this.novelId}:favorites`, userId);
   if (!resultFavorite) throw new novelError.NovelInteractionFailedError('Already favorited');
   this.favoriteCount++;
@@ -105,22 +105,22 @@ novelSchema.methods.favorite = async function (this: INovel, userId: string): Pr
   await this.save();
 };
 
-novelSchema.methods.increaseViewCount = async function (this: INovel): Promise<void> {
+novelSchema.methods.increaseViewCount = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
   this.viewCount++;
   await this.save();
 };
 
-novelSchema.methods.increaseEpisode = async function (this: INovel): Promise<void> {
+novelSchema.methods.increaseEpisode = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
   this.episodeCount++;
   await this.save();
 };
 
-novelSchema.methods.decreaseEpisode = async function (this: INovel): Promise<void> {
+novelSchema.methods.decreaseEpisode = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
   this.episodeCount--;
   await this.save();
 };
 
-novelSchema.methods.uploadThumbnailImage = async function (this: INovel, file: Express.Multer.File): Promise<string> {
+novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>, file: Express.Multer.File): Promise<string> {
   const extension = file.originalname.split('.').pop();
   if (!extension) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
   if (!['png', 'jpg', 'jpeg'].includes(extension)) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
@@ -132,7 +132,7 @@ novelSchema.methods.uploadThumbnailImage = async function (this: INovel, file: E
   return filePath;
 };
 
-novelSchema.methods.deleteThumbnailImage = async function (this: INovel): Promise<void> {
+novelSchema.methods.deleteThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
   if (!this.thumbnailImage) throw new novelError.NovelImageDeleteFailedError('Thumbnail image not found');
   fs.unlinkSync(this.thumbnailImage);
   this.thumbnailImage = '';

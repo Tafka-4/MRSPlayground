@@ -33,11 +33,11 @@ const emojiPackageSchema = new mongoose.Schema({
   updatedAt: { type: Date, default: Date.now }
 });
 
-emojiPackageSchema.pre('save', async function (next) { this.updatedAt = new Date(); next(); });
+emojiPackageSchema.pre('save', async function (this: mongoose.HydratedDocument<IEmojiPackage>, next: (err?: any) => void) { this.updatedAt = new Date(); next(); });
 
-emojiPackageSchema.pre('deleteOne', { document: true, query: false }, async function (next) { fs.rmSync(`./uploads/emojis/${this.packageId}`, { recursive: true, force: true }); next(); });
+emojiPackageSchema.pre('deleteOne', { document: true, query: false }, async function (this: mongoose.HydratedDocument<IEmojiPackage>, next: (err?: any) => void) { fs.rmSync(`./uploads/emojis/${this.packageId}`, { recursive: true, force: true }); next(); });
 
-emojiPackageSchema.methods.uploadEmojis = async function (emojis: Express.Multer.File[]) {
+emojiPackageSchema.methods.uploadEmojis = async function (this: mongoose.HydratedDocument<IEmojiPackage>, emojis: Express.Multer.File[]) {
   const emojiPaths: Record<string, string> = {};
   for (const emoji of emojis) {
     const extension = emoji.originalname.split('.').pop();
@@ -54,7 +54,7 @@ emojiPackageSchema.methods.uploadEmojis = async function (emojis: Express.Multer
   await this.save();
 };
 
-emojiPackageSchema.methods.addEmojis = async function (emojis: Express.Multer.File[]) {
+emojiPackageSchema.methods.addEmojis = async function (this: mongoose.HydratedDocument<IEmojiPackage>, emojis: Express.Multer.File[]) {
   const emojiPaths: Record<string, string> = {};
   for (const emoji of emojis) {
     const extension = emoji.originalname.split('.').pop();
@@ -71,7 +71,7 @@ emojiPackageSchema.methods.addEmojis = async function (emojis: Express.Multer.Fi
   await this.save();
 };
 
-emojiPackageSchema.methods.deleteEmojis = async function (emojis: string[]) {
+emojiPackageSchema.methods.deleteEmojis = async function (this: mongoose.HydratedDocument<IEmojiPackage>, emojis: string[]) {
   const objectKeys = Object.keys(this.packageEmojis);
   for (const emoji of emojis) {
     if (!objectKeys.includes(emoji)) throw new emojiError.EmojiNotFoundError('Emoji not found');
@@ -81,13 +81,13 @@ emojiPackageSchema.methods.deleteEmojis = async function (emojis: string[]) {
   await this.save();
 };
 
-emojiPackageSchema.methods.getEmojis = function () { return Object.keys(this.packageEmojis); };
-emojiPackageSchema.methods.getEmoji = function (emojiId: string) {
+emojiPackageSchema.methods.getEmojis = function (this: mongoose.HydratedDocument<IEmojiPackage>) { return Object.keys(this.packageEmojis); };
+emojiPackageSchema.methods.getEmoji = function (this: mongoose.HydratedDocument<IEmojiPackage>, emojiId: string) {
   const objectKeys = Object.keys(this.packageEmojis);
   if (!objectKeys.includes(emojiId)) throw new emojiError.EmojiNotFoundError('Emoji not found');
   return this.packageEmojis[objectKeys.findIndex((key) => key === emojiId)];
 };
-emojiPackageSchema.methods.increaseUseCount = async function () { this.useCount++; await this.save(); };
+emojiPackageSchema.methods.increaseUseCount = async function (this: mongoose.HydratedDocument<IEmojiPackage>) { this.useCount++; await this.save(); };
 
 const EmojiPackage = mongoose.model<IEmojiPackage>('EmojiPackage', emojiPackageSchema);
 
