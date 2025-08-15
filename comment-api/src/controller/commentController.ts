@@ -85,8 +85,8 @@ export const deleteComment = async (req: Request, res: Response) => {
 	if ((comment as any).galleryId) {
 		const resp = await callGalleryApi(`/gallery/v1/${(comment as any).galleryId}`);
 		if (resp.ok) {
-			const data = await resp.json();
-			const gallery = data.gallery || data;
+			const data: any = await resp.json();
+			const gallery: any = data.gallery || data;
 			if (gallery && (gallery.galleryAdmin === userid || (gallery.galleryManager || []).includes(userid as string))) isGalleryManager = true;
 		}
 	}
@@ -94,7 +94,7 @@ export const deleteComment = async (req: Request, res: Response) => {
 	if ((comment as any).novelId) {
 		const resp = await callNovelApi(`/novel/v1/${(comment as any).novelId}`);
 		if (resp.ok) {
-			const novel = await resp.json();
+			const novel: any = await resp.json();
 			if (novel && novel.author === userid) isNovelAuthor = true;
 		}
 	}

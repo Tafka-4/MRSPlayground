@@ -19,10 +19,10 @@ export const parseEmojiToImgTag = async (content: string, isComment: boolean = f
 		const [packageId, emojiId, size] = normalized.split(':');
 		const resp = await callEmojiApi(`/emoji/v1/${packageId}`);
 		if (!resp.ok) continue;
-		const pkg = await resp.json();
-		const objectKeys: string[] = Object.keys(pkg.packageEmojis || {});
+		const pkg: any = await resp.json();
+		const objectKeys: string[] = Object.keys((pkg as any).packageEmojis || {});
 		if (!objectKeys.includes(emojiId)) continue;
-		const location = pkg.packageEmojis[objectKeys.findIndex((key: string) => key === emojiId)];
+		const location = (pkg as any).packageEmojis[objectKeys.findIndex((key: string) => key === emojiId)];
 		if (size === 'small') content = content.replace(match, `<img src="${location}" alt="${emojiId}" width="200" height="200" />`);
 		else if (size === 'large') content = content.replace(match, `<img src="${location}" alt="${emojiId}" width="400" height="400" />`);
 	}
