@@ -112,13 +112,19 @@ export const loginUser = async (req: Request, res: Response) => {
 
     const tokens = await user.generateTokens();
 
-    res.cookie('refreshToken', tokens.refreshToken, {
+    const isProd = process.env.NODE_ENV === 'production';
+    const cookieOptions: any = {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        secure: isProd,
+        sameSite: isProd ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/'
-    });
+    };
+    if (isProd && process.env.COOKIE_DOMAIN) {
+        cookieOptions.domain = process.env.COOKIE_DOMAIN;
+    }
+
+    res.cookie('refreshToken', tokens.refreshToken, cookieOptions);
     
     await redisClient.del(`user:${user.userid}`);
 
@@ -143,12 +149,19 @@ export const deleteCurrentUser = async (req: Request, res: Response) => {
 
     await User.deleteOne({ userid: userData.userid });
 
-    res.clearCookie('refreshToken', {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path: '/'
-    });
+    {
+        const isProd = process.env.NODE_ENV === 'production';
+        const clearOptions: any = {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: isProd ? 'none' : 'lax',
+            path: '/'
+        };
+        if (isProd && process.env.COOKIE_DOMAIN) {
+            clearOptions.domain = process.env.COOKIE_DOMAIN;
+        }
+        res.clearCookie('refreshToken', clearOptions);
+    }
     
     res.status(200).json({
         success: true,
@@ -181,7 +194,19 @@ export const logoutUser = async (req: Request, res: Response) => {
         throw new UserNotLoginError('로그인 상태가 아닙니다');
     }
 
-    res.clearCookie('refreshToken', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/' });
+    {
+        const isProd = process.env.NODE_ENV === 'production';
+        const clearOptions: any = {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: isProd ? 'none' : 'lax',
+            path: '/'
+        };
+        if (isProd && process.env.COOKIE_DOMAIN) {
+            clearOptions.domain = process.env.COOKIE_DOMAIN;
+        }
+        res.clearCookie('refreshToken', clearOptions);
+    }
     res.status(200).json({ success: true, message: '로그아웃이 성공적으로 완료되었습니다' });
 };
 
@@ -668,14 +693,21 @@ export const revokeAllOtherTokens = async (req: Request, res: Response) => {
     await user.revokeAllRefreshTokens();
     const tokens = await user.generateTokens();
 
-    res.cookie('refreshToken', tokens.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        path: '/'
-    });
+    {
+        const isProd = process.env.NODE_ENV === 'production';
+        const cookieOptions: any = {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: isProd ? 'none' : 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            path: '/'
+        };
+        if (isProd && process.env.COOKIE_DOMAIN) {
+            cookieOptions.domain = process.env.COOKIE_DOMAIN;
+        }
+        res.cookie('refreshToken', tokens.refreshToken, cookieOptions);
+    }
 
     res.status(200).json({
         success: true,

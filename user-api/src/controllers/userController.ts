@@ -107,7 +107,19 @@ export const deleteUser = async (req: Request, res: Response) => {
         throw new UserNotFoundError('User not found');
     }
     await User.deleteOne({ userid: user.userid });
-    res.clearCookie('refreshToken', { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', path: '/' });
+    {
+        const isProd = process.env.NODE_ENV === 'production';
+        const clearOptions: any = {
+            httpOnly: true,
+            secure: isProd,
+            sameSite: isProd ? 'none' : 'lax',
+            path: '/'
+        };
+        if (isProd && process.env.COOKIE_DOMAIN) {
+            clearOptions.domain = process.env.COOKIE_DOMAIN;
+        }
+        res.clearCookie('refreshToken', clearOptions);
+    }
     res.status(200).json({ success: true, message: 'User deleted successfully' });
 };
 

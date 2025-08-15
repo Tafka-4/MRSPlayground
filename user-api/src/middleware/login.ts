@@ -30,7 +30,19 @@ export const loginRequired = asyncWrapper(
             const decoded = await verifyToken(token);
             const user = await getUserFromToken(decoded);
             if (!user) {
-                res.clearCookie('refreshToken');
+                {
+                    const isProd = process.env.NODE_ENV === 'production';
+                    const clearOptions: any = {
+                        httpOnly: true,
+                        secure: isProd,
+                        sameSite: isProd ? 'none' : 'lax',
+                        path: '/'
+                    };
+                    if (isProd && (process as any).env.COOKIE_DOMAIN) {
+                        clearOptions.domain = (process as any).env.COOKIE_DOMAIN;
+                    }
+                    res.clearCookie('refreshToken', clearOptions);
+                }
                 return next(new UserNotFoundError('User not found'));
             }
             req.user = user;
