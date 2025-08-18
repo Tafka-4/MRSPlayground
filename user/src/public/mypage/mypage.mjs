@@ -33,7 +33,7 @@ class MyPageManager {
 
     async fetchUser() {
         try {
-            const response = await api.get('/api/user/v1/auth/me');
+            const response = await api.get('/api/v1/auth/me');
             if (response.success && response.user) {
                 this.user = response.user;
                 this.renderUser();

@@ -9,7 +9,7 @@
             import api from '/public/module/api.js';
             window.testCommunity = async () => {
             try {
-                const res = await api.get('/api/post/v1/health');
+                const res = await api.get('/api/v1/health');
                 alert('OK: ' + JSON.stringify(res));
             } catch (e) {
                 alert('ERR: ' + (e?.message || 'unknown'));
@@ -17,10 +17,20 @@
             };
             window.testAuth = async () => {
             try {
-                const res = await api.get('/api/user/v1/auth/me');
+                const res = await api.get('/api/v1/auth/me');
                 alert('AUTH OK: ' + JSON.stringify(res));
             } catch (e) {
                 alert('AUTH ERR: ' + (e?.message || 'unauthorized'));
+            }
+            };
+            window.testPosts = async () => {
+            try {
+                const gid = prompt('갤러리 ID 입력');
+                if (!gid) return;
+                const res = await api.get(`/api/posts/v1/${gid}`);
+                alert('POSTS OK: ' + JSON.stringify(res));
+            } catch (e) {
+                alert('POSTS ERR: ' + (e?.message || 'unknown'));
             }
             };
         </script>
@@ -28,7 +38,8 @@
     <body>
         <h1>Community Frontend</h1>
         <p>CONSTRUCTION: Community Frontend</p>
-        <button onclick="testCommunity()">/api/post/v1/health 호출 테스트</button>
+        <button onclick="testCommunity()">/api/v1/health (user-api) 호출 테스트</button>
+        <button onclick="testPosts()">/api/posts/v1 (post-api) 테스트</button>
         <button onclick="testAuth()">/api/v1/auth/me 인증 테스트</button>
     </body>
 </html>

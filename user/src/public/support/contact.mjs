@@ -26,7 +26,7 @@ class ContactManager {
     async fetchUserEmail() {
         try {
             if (localStorage.getItem('accessToken')) {
-                const response = await api.get('/api/user/v1/auth/me');
+                const response = await api.get('/api/v1/auth/me');
                 if (response.success && response.user) {
                     this.inputs.email.value = response.user.email;
                     this.inputs.email.disabled = true;
@@ -67,7 +67,7 @@ class ContactManager {
         this.button.innerHTML = '<span class="spinner"></span> 제출 중...';
 
         try {
-            await api.post('/api/user/v1/contacts', data);
+            await api.post('/api/contacts/v1', data);
             Notice.success('문의가 성공적으로 접수되었습니다. 검토 후 입력하신 이메일로 답변드리겠습니다.');
             this.form.reset();
             this.fetchUserEmail(); 

@@ -520,7 +520,7 @@ function updateCurrentKeyDisplay(key, timestamp) {
 
 async function loadCurrentKey() {
     try {
-        const data = await apiClient.get('/api/user/v1/auth/current-key');
+        const data = await apiClient.get('/api/v1/auth/current-key');
         updateCurrentKeyDisplay(data.key);
     } catch (error) {
         console.error('현재 키 로딩 실패:', error);

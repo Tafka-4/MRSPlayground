@@ -230,4 +230,8 @@ router.get('/license', generalLimiter, (req: Request, res: Response) => {
     res.render('./legal/license');
 });
 
+router.get('/dev/api-test', generalLimiter, (req: Request, res: Response) => {
+    res.render('./dev/api-test');
+});
+
 export default router;

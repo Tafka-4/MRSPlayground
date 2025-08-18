@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = Object.fromEntries(formData.entries());
 
             try {
-                await api.post('/api/user/v1/auth/reset-password-send', data);
+                await api.post('/api/v1/auth/reset-password-send', data);
                 
                 findPasswordForm.style.display = 'none';
                 successMessage.style.display = 'block';

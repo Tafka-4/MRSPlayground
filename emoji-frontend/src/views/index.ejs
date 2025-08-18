@@ -17,10 +17,18 @@
             };
             window.testAuth = async () => {
             try {
-                const res = await api.get('/api/user/v1/auth/me');
+                const res = await api.get('/api/v1/auth/me');
                 alert('AUTH OK: ' + JSON.stringify(res));
             } catch (e) {
                 alert('AUTH ERR: ' + (e?.message || 'unauthorized'));
+            }
+            };
+            window.testEmojiHealth = async () => {
+            try {
+                const res = await api.get('/api/v1/health');
+                alert('HEALTH OK: ' + JSON.stringify(res));
+            } catch (e) {
+                alert('HEALTH ERR: ' + (e?.message || 'unknown'));
             }
             };
         </script>
@@ -28,7 +36,8 @@
     <body>
         <h1>Emoji Frontend</h1>
         <p>CONSTRUCTION: Emoji Frontend</p>
-        <button onclick="testEmoji()">/api/emoji/v1 호출 테스트</button>
+        <button onclick="testEmoji()">/api/emoji/v1 (emoji-api) 호출 테스트</button>
+        <button onclick="testEmojiHealth()">/api/v1/health (user-api) 호출 테스트</button>
         <button onclick="testAuth()">/api/v1/auth/me 인증 테스트</button>
     </body>
 </html>

@@ -118,7 +118,7 @@ class EditPasswordManager {
         this.buttons.save.innerHTML = '<span class="spinner"></span> 변경 중...';
 
         try {
-            await api.put('/api/user/v1/auth/change-password', { 
+            await api.put('/api/v1/auth/change-password', { 
                 currentPassword: this.inputs.currentPassword.value,
                 newPassword: this.inputs.newPassword.value 
             });

@@ -40,7 +40,7 @@ class EditProfilePage {
 
     async fetchUserData() {
         try {
-            const userData = await apiClient.get('/api/user/v1/auth/me');
+            const userData = await apiClient.get('/api/v1/auth/me');
             if (!userData) {
                 throw new Error(
                     'User data is null or undefined in API response.'

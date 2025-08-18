@@ -53,7 +53,7 @@ class MyGuestbookManager {
 
     async fetchGuestbookStats() {
         try {
-            const response = await api.get('/api/user/v1/guestbook/me/stats');
+            const response = await api.get('/api/guestbook/v1/me/stats');
             if (response.success) {
                 this.renderStats(response.stats);
             }
@@ -65,7 +65,7 @@ class MyGuestbookManager {
     async fetchGuestbookEntries(page = 1) {
         this.showLoading();
         try {
-            const response = await api.get('/api/user/v1/guestbook/me', { query: { page, limit: 5 } });
+            const response = await api.get('/api/guestbook/v1/me', { query: { page, limit: 5 } });
             if (response.success) {
                 this.entries = response.data;
                 this.currentPage = response.pagination.page;
@@ -156,7 +156,7 @@ class MyGuestbookManager {
         if (!confirmed) return;
 
         try {
-            await api.delete(`/api/user/v1/guestbook/${id}`);
+            await api.delete(`/api/guestbook/v1/${id}`);
             Notice.success('방명록이 삭제되었습니다.');
             this.fetchGuestbookEntries(this.currentPage);
             this.fetchGuestbookStats();

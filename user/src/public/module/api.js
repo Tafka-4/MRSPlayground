@@ -171,7 +171,7 @@ class ApiClient {
 
     async refreshToken() {
         try {
-            const response = await fetch(this._buildUrl('/api/user/v1/auth/refresh'), {
+            const response = await fetch(this._buildUrl('/api/v1/auth/refresh'), {
                 method: 'POST',
                 credentials: 'include',
                 headers: {

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>API 테스트</title>
+        <script src="/config.js"></script>
+        <style>
+            body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; padding: 24px; }
+            h1 { margin-bottom: 8px; }
+            .desc { color: #666; margin-bottom: 16px; }
+            .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+            button { padding: 10px 12px; border: 1px solid #ccc; background: #fff; border-radius: 8px; cursor: pointer; text-align: left; }
+            button:hover { background: #f8f8f8; }
+            .result { margin-top: 20px; white-space: pre-wrap; background: #111; color: #e5e7eb; padding: 12px; border-radius: 6px; max-height: 380px; overflow: auto; }
+            .ok { color: #16a34a; }
+            .err { color: #dc2626; }
+        </style>
+        <script type="module">
+            import api from '/module/api.js';
+
+            const show = (title, data, ok = true) => {
+                const out = document.getElementById('out');
+                const ts = new Date().toLocaleTimeString();
+                out.textContent = `[${ts}] ${title} -> ${ok ? 'OK' : 'ERR'}\n` + JSON.stringify(data, null, 2);
+                out.className = 'result ' + (ok ? 'ok' : 'err');
+            };
+
+            window.testAuthMe = async () => {
+                try { const res = await api.get('/api/v1/auth/me'); show('/api/v1/auth/me', res, true); }
+                catch (e) { show('/api/v1/auth/me', e.data || { message: e.message }, false); }
+            };
+
+            window.testUsersMe = async () => {
+                try { const res = await api.get('/api/user/v1/users/me'); show('/api/user/v1/users/me', res, true); }
+                catch (e) { show('/api/user/v1/users/me', e.data || { message: e.message }, false); }
+            };
+
+            window.testLogsActivity = async () => {
+                try { const userId = prompt('유저 UUID 입력'); if(!userId) return; const res = await api.get(`/api/logs/v1/users/${userId}/activity`); show(`/api/logs/v1/users/${userId}/activity`, res, true); }
+                catch (e) { show('logs activity', e.data || { message: e.message }, false); }
+            };
+
+            window.testContactsList = async () => {
+                try { const res = await api.get('/api/contacts/v1', { query: { page: 1, limit: 5 } }); show('/api/contacts/v1', res, true); }
+                catch (e) { show('/api/contacts/v1', e.data || { message: e.message }, false); }
+            };
+
+            window.testFeedbackList = async () => {
+                try { const res = await api.get('/api/feedback/v1', { query: { page: 1, limit: 5 } }); show('/api/feedback/v1', res, true); }
+                catch (e) { show('/api/feedback/v1', e.data || { message: e.message }, false); }
+            };
+
+            window.testGuestbookMe = async () => {
+                try { const res = await api.get('/api/guestbook/v1/me'); show('/api/guestbook/v1/me', res, true); }
+                catch (e) { show('/api/guestbook/v1/me', e.data || { message: e.message }, false); }
+            };
+        </script>
+    </head>
+    <body>
+        <h1>API 테스트</h1>
+        <p class="desc">주요 엔드포인트를 즉시 호출해 확인할 수 있습니다. 인증 필요한 API는 로그인 후 사용하세요.</p>
+        <div class="grid">
+            <button onclick="testAuthMe()">/api/v1/auth/me</button>
+            <button onclick="testUsersMe()">/api/user/v1/users/me</button>
+            <button onclick="testLogsActivity()">/api/logs/v1/users/{uuid}/activity</button>
+            <button onclick="testContactsList()">/api/contacts/v1?page=1&limit=5</button>
+            <button onclick="testFeedbackList()">/api/feedback/v1?page=1&limit=5</button>
+            <button onclick="testGuestbookMe()">/api/guestbook/v1/me</button>
+        </div>
+        <pre id="out" class="result"></pre>
+    </body>
+    </html>
+
+

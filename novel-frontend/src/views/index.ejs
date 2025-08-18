@@ -9,7 +9,7 @@
             import api from '/public/module/api.js';
             window.testNovel = async () => {
             try {
-                const res = await api.get('/api/novel/v1/health');
+                const res = await api.get('/api/v1/health');
                 alert('OK: ' + JSON.stringify(res));
             } catch (e) {
                 alert('ERR: ' + (e?.message || 'unknown'));
@@ -17,10 +17,18 @@
             };
             window.testAuth = async () => {
             try {
-                const res = await api.get('/api/user/v1/auth/me');
+                const res = await api.get('/api/v1/auth/me');
                 alert('AUTH OK: ' + JSON.stringify(res));
             } catch (e) {
                 alert('AUTH ERR: ' + (e?.message || 'unauthorized'));
+            }
+            };
+            window.testNovels = async () => {
+            try {
+                const res = await api.get('/api/v1/novels');
+                alert('NOVELS OK: ' + JSON.stringify(res));
+            } catch (e) {
+                alert('NOVELS ERR: ' + (e?.message || 'unknown'));
             }
             };
         </script>
@@ -28,7 +36,8 @@
     <body>
         <h1>Novel Frontend</h1>
         <p>CONSTRUCTION: Novel Frontend</p>
-        <button onclick="testNovel()">/api/novel/v1/health 호출 테스트</button>
+        <button onclick="testNovel()">/api/v1/health (user-api) 호출 테스트</button>
+        <button onclick="testNovels()">/api/v1/novels (novel-api) 테스트</button>
         <button onclick="testAuth()">/api/v1/auth/me 인증 테스트</button>
     </body>
 </html>

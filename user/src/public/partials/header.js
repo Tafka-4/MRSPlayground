@@ -84,7 +84,7 @@ if (!window.headerEventsSetup) {
                     const { default: apiClient } = await import(
                         '/module/api.js'
                     );
-                    const response = await apiClient.post('/api/user/v1/auth/logout');
+                    const response = await apiClient.post('/api/v1/auth/logout');
                     
                     localStorage.removeItem('accessToken');
                     document.cookie = 'refreshToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
@@ -120,7 +120,7 @@ if (!window.headerEventsSetup) {
 
         try {
             const { default: apiClient } = await import('/module/api.js');
-            const data = await apiClient.get('/api/user/v1/auth/me');
+            const data = await apiClient.get('/api/v1/auth/me');
             
             if (!data || !data.user) {
                 throw new Error('사용자 정보를 가져올 수 없습니다.');

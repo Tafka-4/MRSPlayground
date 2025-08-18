@@ -10,7 +10,7 @@ async function loadAdmins() {
         tableContent.innerHTML =
             '<div class="loading">관리자 목록을 불러오는 중...</div>';
 
-        const data = await apiClient.get('/api/user/v1/auth/admin/user-list');
+        const data = await apiClient.get('/api/v1/auth/admin/user-list');
         currentAdmins = data.users || [];
         displayAdmins(currentAdmins);
     } catch (error) {

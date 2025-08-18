@@ -54,7 +54,7 @@ class UserActivityManager {
         }
 
         try {
-            const userResponse = await api.get(`/api/v1/users/${this.targetUserId}`);
+            const userResponse = await api.get(`/api/user/v1/users/${this.targetUserId}`);
             if (!userResponse.success || !userResponse.user) {
                 throw new Error('사용자 정보를 찾을 수 없습니다.');
             }
@@ -81,7 +81,7 @@ class UserActivityManager {
     async loadActivity(filter) {
         this.elements.activityList.innerHTML = `<div class="loading-spinner"></div>`;
         try {
-            const response = await api.get(`/api/v1/logs/users/${this.targetUserId}/activity`, { query: { filter } });
+            const response = await api.get(`/api/logs/v1/users/${this.targetUserId}/activity`, { query: { filter } });
             if (response.success && response.logs) {
                 this.renderActivityList(response.logs);
             } else {
