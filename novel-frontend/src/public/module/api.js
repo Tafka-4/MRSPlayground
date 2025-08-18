@@ -10,6 +10,11 @@ class ApiClient {
         return '';
     }
 
+    _getServiceOrigin(url) {
+        if (typeof window === 'undefined') return '';
+        return (window.__API_ORIGIN) || `${window.location.protocol}//api.${window.location.hostname}`;
+    }
+
     _buildUrl(url, query) {
         let fullUrl = url;
         if (query) {
@@ -36,8 +41,11 @@ class ApiClient {
             return urlObj.href;
         }
 
+        if (fullUrl.startsWith('/api/')) {
+            const origin = this._getServiceOrigin(fullUrl);
+            return origin + fullUrl;
+        }
         const base = this._resolveBase();
-        if (fullUrl.startsWith('/api/')) return base + fullUrl;
         return window.location.origin + fullUrl;
     }
 

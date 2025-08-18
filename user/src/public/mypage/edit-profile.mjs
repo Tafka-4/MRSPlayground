@@ -40,7 +40,7 @@ class EditProfilePage {
 
     async fetchUserData() {
         try {
-            const userData = await apiClient.get('/api/v1/auth/me');
+            const userData = await apiClient.get('/api/user/v1/auth/me');
             if (!userData) {
                 throw new Error(
                     'User data is null or undefined in API response.'
@@ -292,7 +292,7 @@ class EditProfilePage {
 
         try {
             const result = await apiClient.post(
-                '/api/v1/users/me/profile-image',
+                '/api/user/v1/users/me/profile-image',
                 formData
             );
             this.userData.profileImage = result.path;
@@ -307,7 +307,7 @@ class EditProfilePage {
 
     async handleImageDelete() {
         try {
-            await apiClient.delete('/api/v1/users/me/profile-image');
+            await apiClient.delete('/api/user/v1/users/me/profile-image');
             this.userData.profileImage = null;
             this.updateProfileImage();
             this.profileImageInput.value = '';
@@ -325,7 +325,7 @@ class EditProfilePage {
         };
 
         try {
-            const result = await apiClient.put('/api/v1/users/me', payload);
+            const result = await apiClient.put('/api/user/v1/users/me', payload);
             this.userData.nickname = result.user.nickname;
             this.userData.description = result.user.description;
             this.hasChanges = false;
@@ -356,7 +356,7 @@ class EditProfilePage {
 
     async handleAccountDelete() {
         try {
-            await apiClient.delete('/api/v1/users/me');
+            await apiClient.delete('/api/user/v1/users/me');
             new NoticeBox(
                 '회원 탈퇴가 완료되었습니다.',
                 'success'

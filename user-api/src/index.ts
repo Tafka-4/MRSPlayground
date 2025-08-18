@@ -29,7 +29,22 @@ app.set('trust proxy', true);
 
 app.use(
     cors({
-        origin: (origin, callback) => callback(null, origin || true),
+        origin: (origin, callback) => {
+            const baseDomain = process.env.BASE_DOMAIN || 'magicresearches.com';
+            const schemes = process.env.NODE_ENV === 'production' ? ['https'] : ['https', 'http'];
+            const allowed = new Set(
+                schemes.flatMap((scheme) => [
+                    `${scheme}://dev.${baseDomain}`,
+                    `${scheme}://user.${baseDomain}`,
+                    `${scheme}://novel.${baseDomain}`,
+                    `${scheme}://community.${baseDomain}`,
+                    `${scheme}://emoji.${baseDomain}`
+                ])
+            );
+            if (!origin) return callback(null, true);
+            if (allowed.has(origin)) return callback(null, true);
+            return callback(null, false);
+        },
         credentials: true
     })
 );
@@ -38,7 +53,9 @@ app.use((req, res, next) => {
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Headers', 'O, Authorization, Accept, Content-Type, Origin, X-Access-Token, X-Requested-With');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Origin', req.headers.origin as string);
+    if (req.headers.origin) {
+        res.header('Access-Control-Allow-Origin', req.headers.origin as string);
+    }
     res.header('Vary', 'Origin');
     if (req.method === 'OPTIONS') {
         res.status(204).end();

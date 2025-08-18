@@ -17,14 +17,14 @@ async function loadUsers(query = '', limit = 10) {
 
                     let response;
         if (query && query.trim().length >= 2) {
-            response = await apiClient.get('/api/v1/users/admin/search', {
+            response = await apiClient.get('/api/user/v1/users/admin/search', {
                 query: {
                     q: query.trim(),
                     limit: limit
                 }
             });
         } else {
-            response = await apiClient.get('/api/v1/users', {
+            response = await apiClient.get('/api/user/v1/users', {
                 query: {
                     limit: limit
                 }
@@ -168,7 +168,7 @@ function confirmDeleteUser(userid, nickname) {
 async function deleteUser(userid) {
     try {
         await apiClient.delete(
-            `/api/v1/auth/admin/user-delete/${userid}`
+            `/api/user/v1/auth/admin/user-delete/${userid}`
         );
 
         new NoticeBox('사용자가 성공적으로 삭제되었습니다.').show();
@@ -196,8 +196,8 @@ async function performAdminAction(userid, action) {
     try {
         const endpoint =
             action === 'set'
-                ? `/api/v1/auth/admin/set-admin/${userid}`
-                : `/api/v1/auth/admin/unset-admin/${userid}`;
+                ? `/api/user/v1/auth/admin/set-admin/${userid}`
+                : `/api/user/v1/auth/admin/unset-admin/${userid}`;
         if (action === 'set') {
             await apiClient.post(endpoint);
         } else {
@@ -233,8 +233,8 @@ async function performVerifyAction(userid, action) {
     try {
         const endpoint =
             action === 'verify'
-                ? `/api/v1/auth/admin/verify-user/${userid}`
-                : `/api/v1/auth/admin/unverify-user/${userid}`;
+                ? `/api/user/v1/auth/admin/verify-user/${userid}`
+                : `/api/user/v1/auth/admin/unverify-user/${userid}`;
         if (action === 'verify') {
             await apiClient.post(endpoint);
         } else {

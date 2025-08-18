@@ -30,10 +30,23 @@ app.use(express.json({ limit: 104857600 }));
 app.use('/uploads', express.static('./uploads'));
 
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const baseDomain = process.env.BASE_DOMAIN || 'magicresearches.com';
+    const schemes = process.env.NODE_ENV === 'production' ? ['https'] : ['https', 'http'];
+    const allowedOrigins = new Set(
+        schemes.flatMap((scheme) => [
+            `${scheme}://dev.${baseDomain}`,
+            `${scheme}://novel.${baseDomain}`,
+            `${scheme}://community.${baseDomain}`,
+            `${scheme}://emoji.${baseDomain}`
+        ])
+    );
+    const origin = req.headers.origin as string | undefined;
     res.header('Access-Control-Allow-Credentials', 'true');
     res.header('Access-Control-Allow-Headers', 'O, Authorization, Accept, Content-Type, Origin, X-Access-Token, X-Requested-With');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Origin', req.headers.origin as string);
+    if (origin && allowedOrigins.has(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
     res.header('Vary', 'Origin');
     if (req.method === 'OPTIONS') {
         res.status(204).end();

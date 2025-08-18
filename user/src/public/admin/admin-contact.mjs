@@ -30,7 +30,7 @@ class AdminContactManager {
         };
 
         try {
-            const response = await api.get('/api/v1/contacts', { query });
+            const response = await api.get('/api/user/v1/contacts', { query });
             if (response && response.success) {
                 this.contacts = response.data;
                 this.currentPage = response.pagination.page;
@@ -112,7 +112,7 @@ class AdminContactManager {
 
     async viewContact(id) {
         try {
-            const response = await api.get(`/api/v1/contacts/${id}`);
+            const response = await api.get(`/api/user/v1/contacts/${id}`);
             if (response && response.success) {
                 this.currentContact = response.data;
                 this.showContactModal();
@@ -161,7 +161,7 @@ class AdminContactManager {
         const admin_notes = document.getElementById('admin-notes').value;
         
         try {
-            const response = await api.put(`/api/v1/contacts/${id}/status`, { status, admin_notes });
+            const response = await api.put(`/api/user/v1/contacts/${id}/status`, { status, admin_notes });
             if (response && response.success) {
                 Notice.success('상태가 업데이트되었습니다.');
                 this.fetchContacts(this.currentPage);

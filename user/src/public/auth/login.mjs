@@ -72,7 +72,7 @@ class LoginManager {
         const data = Object.fromEntries(formData.entries());
 
         try {
-            const response = await api.post('/api/v1/auth/login', data);
+            const response = await api.post('/api/user/v1/auth/login', data);
             if (response.success) {
                 Notice.success('로그인되었습니다. 잠시 후 이동합니다.');
                 localStorage.setItem('accessToken', response.accessToken);

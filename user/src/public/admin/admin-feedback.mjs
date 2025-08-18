@@ -31,7 +31,7 @@ class AdminFeedbackManager {
         };
         
         try {
-            const response = await api.get('/api/v1/feedback', { query });
+            const response = await api.get('/api/user/v1/feedback', { query });
             if (response && response.success) {
                 this.feedback = response.data;
                 this.currentPage = response.pagination.page;
@@ -82,7 +82,7 @@ class AdminFeedbackManager {
 
     async viewFeedback(id) {
         try {
-            const response = await api.get(`/api/v1/feedback/${id}`);
+            const response = await api.get(`/api/user/v1/feedback/${id}`);
             if (response && response.success) {
                 this.currentFeedback = response.data;
                 this.showFeedbackModal();
@@ -130,7 +130,7 @@ class AdminFeedbackManager {
         const admin_notes = document.getElementById('admin-notes').value;
 
         try {
-            const response = await api.put(`/api/v1/feedback/${id}`, { status, admin_notes });
+            const response = await api.put(`/api/user/v1/feedback/${id}`, { status, admin_notes });
             if (response && response.success) {
                 Notice.success('상태가 업데이트되었습니다.');
                 this.fetchFeedback(this.currentPage);

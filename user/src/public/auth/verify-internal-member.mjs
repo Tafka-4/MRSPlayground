@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                await apiClient.post('/api/v1/auth/verify', data);
+                await apiClient.post('/api/user/v1/auth/verify', data);
 
                 new NoticeBox('인증이 완료되었습니다. 마이페이지로 이동합니다.', 'success').show();
                 setTimeout(() => {

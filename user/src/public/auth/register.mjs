@@ -116,7 +116,7 @@ async function checkEmailVerificationStatus() {
     if (!emailRegex.test(email)) return;
     
     try {
-        const data = await apiClient.post('/api/v1/auth/check-email-verification', {
+        const data = await apiClient.post('/api/user/v1/auth/check-email-verification', {
             email
         });
         
@@ -335,7 +335,7 @@ async function register() {
     registerButton.textContent = '처리 중...';
 
     try {
-        const data = await apiClient.post('/api/v1/auth/register', {
+        const data = await apiClient.post('/api/user/v1/auth/register', {
             id,
             password,
             nickname,
@@ -382,7 +382,7 @@ sendPinButton.addEventListener('click', async () => {
     pinTimerMessage.textContent = '';
 
     try {
-        const data = await apiClient.post('/api/v1/auth/send-pin', {
+        const data = await apiClient.post('/api/user/v1/auth/send-pin', {
             email
         });
 
@@ -457,7 +457,7 @@ verifyPinButton.addEventListener('click', async () => {
     verifyPinButton.textContent = '확인 중...';
 
     try {
-        const data = await apiClient.post('/api/v1/auth/verify-pin', {
+        const data = await apiClient.post('/api/user/v1/auth/verify-pin', {
             email,
             pin
         });

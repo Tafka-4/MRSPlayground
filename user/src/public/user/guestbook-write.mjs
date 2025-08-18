@@ -50,7 +50,7 @@ class GuestbookWriteManager {
         try {
             const [targetUserRes, currentUserRes] = await Promise.all([
                 api.get(`/api/v1/users/${this.targetUserId}`),
-                api.get('/api/v1/auth/me')
+                api.get('/api/user/v1/auth/me')
             ]);
             
             if (!targetUserRes.success || !targetUserRes.user) throw new Error('대상 사용자를 찾을 수 없습니다.');
@@ -101,7 +101,7 @@ class GuestbookWriteManager {
         this.elements.submitButton.innerHTML = `<span class="spinner"></span> 전송 중...`;
 
         try {
-            await api.post('/api/v1/guestbook', { target_userid: this.targetUserId, message });
+            await api.post('/api/user/v1/guestbook', { target_userid: this.targetUserId, message });
             Notice.success('방명록을 성공적으로 남겼습니다.');
             setTimeout(() => {
                 window.location.href = `/user/${this.targetUserId}/guestbook`;

@@ -13,7 +13,7 @@ let isKeygenMonitoringActive = false;
 async function loadDashboardStats() {
     try {
         const userStatsResponse = await apiClient.get(
-            '/api/v1/users/admin/statistics'
+            '/api/user/v1/users/admin/statistics'
         );
 
         const userStats = userStatsResponse.statistics || {
@@ -353,7 +353,7 @@ function initializeLogWebSocket() {
         }
     });
 
-    logWebSocket.connect('/ws/logs', token);
+    logWebSocket.connect('/ws/user/logs', token);
 }
 
 function toggleLogMonitoring() {
@@ -468,7 +468,7 @@ function initializeKeygenWebSocket() {
         }
     });
 
-    keygenWebSocket.connect('/ws/keygen', token);
+    keygenWebSocket.connect('/ws/user/keygen', token);
 }
 
 function updateKeygenToggleButton(isActive) {
@@ -520,7 +520,7 @@ function updateCurrentKeyDisplay(key, timestamp) {
 
 async function loadCurrentKey() {
     try {
-        const data = await apiClient.get('/api/v1/auth/current-key');
+        const data = await apiClient.get('/api/user/v1/auth/current-key');
         updateCurrentKeyDisplay(data.key);
     } catch (error) {
         console.error('현재 키 로딩 실패:', error);

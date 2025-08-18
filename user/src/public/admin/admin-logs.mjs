@@ -971,7 +971,7 @@ function startRealTimeMonitoring() {
         handleNewRealTimeLog(message.data);
     });
 
-    state.realTimeWebSocket.connect('/ws/logs', token);
+    state.realTimeWebSocket.connect('/ws/user/logs', token);
     state.isRealTimeMonitoring = true;
 }
 
@@ -1072,7 +1072,7 @@ async function handleUserSearch(event) {
 
     try {
         const response = await apiClient.get(
-            `/api/v1/users/admin/search?q=${encodeURIComponent(query)}&limit=5`
+            `/api/user/v1/users/admin/search?q=${encodeURIComponent(query)}&limit=5`
         );
 
         const data = await response;

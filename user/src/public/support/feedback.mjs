@@ -32,7 +32,7 @@ class FeedbackManager {
 
     async fetchUserEmail() {
         try {
-            const response = await api.get('/api/v1/auth/me');
+            const response = await api.get('/api/user/v1/auth/me');
             if (response.success && response.user) {
                 this.emailInput.value = response.user.email;
                 this.emailInput.disabled = true;
@@ -100,7 +100,7 @@ class FeedbackManager {
         this.setLoadingState(true);
 
         try {
-            await api.post('/api/v1/feedback', data);
+            await api.post('/api/user/v1/feedback', data);
             Notice.success('피드백이 성공적으로 접수되었습니다. 소중한 의견 감사합니다!');
             this.resetForm();
         } catch (error) {

@@ -2,7 +2,7 @@ import apiClient from './api.js';
 
 class LogApiClient {
     constructor() {
-        this.baseUrl = '/api/v1';
+        this.baseUrl = '/api/user/v1';
     }
 
     /**
