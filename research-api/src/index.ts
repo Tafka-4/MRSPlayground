@@ -15,6 +15,10 @@ app.get('/api/v1/health', (_req, res) => {
   res.status(200).json({ status: 'OK', service: 'Research API', timestamp: new Date().toISOString() });
 });
 
+app.get('/api/v1/research/health', (_req, res) => {
+  res.status(200).json({ status: 'OK', service: 'Research API', path: '/api/v1/research/health', timestamp: new Date().toISOString() });
+});
+
 app.get('/api/v1', (_req, res) => {
   res.status(200).json({ service: 'MRS Research API', version: '0.1.0' });
 });

@@ -5,10 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MRS Research</title>
     <script src="/config.js"></script>
+    <script type="module">
+        import api from '/module/api.js';
+        window.testResearchHealth = async () => {
+            try {
+                const res = await api.get('/api/v1/research/health');
+                alert('RESEARCH HEALTH OK: ' + JSON.stringify(res));
+            } catch (e) {
+                alert('RESEARCH HEALTH ERR: ' + (e?.message || 'unknown'));
+            }
+        };
+    </script>
 </head>
 <body>
     <h1>MRS Research Frontend</h1>
     <p>Demo index</p>
+    <button onclick="testResearchHealth()">/api/v1/research/health 테스트</button>
 </body>
 </html>
 

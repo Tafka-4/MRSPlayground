@@ -37,12 +37,13 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
 			`${scheme}://dev.${baseDomain}`,
 			`${scheme}://novel.${baseDomain}`,
 			`${scheme}://community.${baseDomain}`,
-			`${scheme}://emoji.${baseDomain}`
+			`${scheme}://emoji.${baseDomain}`,
+			`${scheme}://research.${baseDomain}`
 		])
 	);
 	const origin = req.headers.origin as string | undefined;
 	res.header('Access-Control-Allow-Credentials', 'true');
-	res.header('Access-Control-Allow-Headers', 'O, Authorization, Accept, Content-Type, Origin, X-Access-Token, X-Requested-With');
+	res.header('Access-Control-Allow-Headers', 'Authorization, Accept, Content-Type, Origin, X-Access-Token, X-Requested-With, X-Request-ID');
 	res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
 	if (origin && allowedOrigins.has(origin)) {
 		res.header('Access-Control-Allow-Origin', origin);
