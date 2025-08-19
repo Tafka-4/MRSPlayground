@@ -15,7 +15,6 @@ import logRoutes from './routes/logRoutes.js';
 import guestbookRoutes from './routes/guestbookRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import feedbackRoutes from './routes/feedbackRoutes.js';
-import researchRoutes from './routes/researchRoutes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { identify } from './middleware/identify.js';
 import LogWebSocketServer from './websocket/logSocket.js';
@@ -80,7 +79,6 @@ app.use('/api/v1/logs', logRoutes);
 app.use('/api/v1/guestbook', guestbookRoutes);
 app.use('/api/v1/contact', contactRoutes);
 app.use('/api/v1/feedback', feedbackRoutes);
-app.use('/api/v1/research', researchRoutes);
 
 app.get('/api/v1/health', (req, res) => {
     res.status(200).json({
