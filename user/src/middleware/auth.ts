@@ -72,8 +72,17 @@ export const authMiddleware = async (
             } catch (e) {
                 console.warn('에러 응답 내용을 읽을 수 없음');
             }
-
-            res.clearCookie('refreshToken');
+            const forwardedProto = (req.headers['x-forwarded-proto'] as string) || '';
+            const isHttps = req.secure || forwardedProto === 'https';
+            const clearOptions: any = {
+                httpOnly: true,
+                secure: isHttps,
+                path: '/'
+            };
+            if (process.env.COOKIE_DOMAIN) {
+                clearOptions.domain = process.env.COOKIE_DOMAIN;
+            }
+            res.clearCookie('refreshToken', clearOptions);
             return res.redirect('/login');
         }
 
@@ -82,7 +91,17 @@ export const authMiddleware = async (
 
         if (!data.success) {
             console.warn('토큰 검증 실패:', data.error);
-            res.clearCookie('refreshToken');
+            const forwardedProto = (req.headers['x-forwarded-proto'] as string) || '';
+            const isHttps = req.secure || forwardedProto === 'https';
+            const clearOptions: any = {
+                httpOnly: true,
+                secure: isHttps,
+                path: '/'
+            };
+            if (process.env.COOKIE_DOMAIN) {
+                clearOptions.domain = process.env.COOKIE_DOMAIN;
+            }
+            res.clearCookie('refreshToken', clearOptions);
             return res.redirect('/login');
         }
 

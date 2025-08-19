@@ -34,7 +34,17 @@ router.get('/login', loginLimiter, async (req: Request, res: Response) => {
             }
         }
     } catch (error) {
-        res.clearCookie('refreshToken');
+        const forwardedProto = (req.headers['x-forwarded-proto'] as string) || '';
+        const isHttps = req.secure || forwardedProto === 'https';
+        const clearOptions: any = {
+            httpOnly: true,
+            secure: isHttps,
+            path: '/'
+        };
+        if (process.env.COOKIE_DOMAIN) {
+            clearOptions.domain = process.env.COOKIE_DOMAIN;
+        }
+        res.clearCookie('refreshToken', clearOptions);
     }
 
     res.render('./auth/login');

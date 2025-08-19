@@ -231,6 +231,7 @@ services:
     cpuset: "1"
     environment:
       - NODE_ENV=${NODE_ENV}
+      - COOKIE_DOMAIN=.magicresearches.com
       - DB_HOST=${DB_HOST}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
@@ -283,6 +284,7 @@ services:
     cpuset: "1"
     environment:
       - NODE_ENV=${NODE_ENV}
+      - COOKIE_DOMAIN=.magicresearches.com
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
       - REDIS_URL=${REDIS_URL}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
