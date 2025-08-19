@@ -96,6 +96,32 @@ export const registerUser = async (req: Request, res: Response) => {
     });
 };
 
+const buildCookieOptions = (req: Request) => {
+    const forwardedProto = (req.headers['x-forwarded-proto'] as string) || '';
+    const isHttps = req.secure || forwardedProto === 'https';
+    let sameSite: 'lax' | 'none' = 'lax';
+    const origin = req.headers.origin as string | undefined;
+    try {
+        if (origin) {
+            const originUrl = new URL(origin);
+            if (originUrl.hostname !== req.hostname) {
+                sameSite = 'none';
+            }
+        }
+    } catch {}
+    const options: any = {
+        httpOnly: true,
+        secure: isHttps,
+        sameSite,
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: '/'
+    };
+    if (process.env.COOKIE_DOMAIN) {
+        options.domain = process.env.COOKIE_DOMAIN;
+    }
+    return options;
+};
+
 export const loginUser = async (req: Request, res: Response) => {
     const { id, password } = req.body;
 
@@ -111,19 +137,7 @@ export const loginUser = async (req: Request, res: Response) => {
     }
 
     const tokens = await user.generateTokens();
-
-    const isProd = process.env.NODE_ENV === 'production';
-    const cookieOptions: any = {
-        httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? 'none' : 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-        path: '/'
-    };
-    if (isProd && process.env.COOKIE_DOMAIN) {
-        cookieOptions.domain = process.env.COOKIE_DOMAIN;
-    }
-
+    const cookieOptions = buildCookieOptions(req);
     res.cookie('refreshToken', tokens.refreshToken, cookieOptions);
     
     await redisClient.del(`user:${user.userid}`);
@@ -150,17 +164,9 @@ export const deleteCurrentUser = async (req: Request, res: Response) => {
     await User.deleteOne({ userid: userData.userid });
 
     {
-        const isProd = process.env.NODE_ENV === 'production';
-        const clearOptions: any = {
-            httpOnly: true,
-            secure: isProd,
-            sameSite: isProd ? 'none' : 'lax',
-            path: '/'
-        };
-        if (isProd && process.env.COOKIE_DOMAIN) {
-            clearOptions.domain = process.env.COOKIE_DOMAIN;
-        }
-        res.clearCookie('refreshToken', clearOptions);
+        const clearBase = buildCookieOptions(req);
+        const { maxAge, ...clearOptions } = clearBase;
+        res.clearCookie('refreshToken', clearOptions as any);
     }
     
     res.status(200).json({
@@ -195,17 +201,9 @@ export const logoutUser = async (req: Request, res: Response) => {
     }
 
     {
-        const isProd = process.env.NODE_ENV === 'production';
-        const clearOptions: any = {
-            httpOnly: true,
-            secure: isProd,
-            sameSite: isProd ? 'none' : 'lax',
-            path: '/'
-        };
-        if (isProd && process.env.COOKIE_DOMAIN) {
-            clearOptions.domain = process.env.COOKIE_DOMAIN;
-        }
-        res.clearCookie('refreshToken', clearOptions);
+        const clearBase = buildCookieOptions(req);
+        const { maxAge, ...clearOptions } = clearBase;
+        res.clearCookie('refreshToken', clearOptions as any);
     }
     res.status(200).json({ success: true, message: '로그아웃이 성공적으로 완료되었습니다' });
 };
@@ -694,18 +692,8 @@ export const revokeAllOtherTokens = async (req: Request, res: Response) => {
     const tokens = await user.generateTokens();
 
     {
-        const isProd = process.env.NODE_ENV === 'production';
-        const cookieOptions: any = {
-            httpOnly: true,
-            secure: isProd,
-            sameSite: isProd ? 'none' : 'lax',
-            maxAge: 7 * 24 * 60 * 60 * 1000,
-            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            path: '/'
-        };
-        if (isProd && process.env.COOKIE_DOMAIN) {
-            cookieOptions.domain = process.env.COOKIE_DOMAIN;
-        }
+        const base = buildCookieOptions(req);
+        const cookieOptions = { ...base, expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) } as any;
         res.cookie('refreshToken', tokens.refreshToken, cookieOptions);
     }
 
