@@ -6,6 +6,7 @@ COPY tsconfig.json ./
 COPY src ./src
 RUN npx tsc
 RUN mkdir -p dist/public && cp -r src/public dist/ || true
+RUN mkdir -p dist/views && cp -r src/views dist/ || true
 EXPOSE 3200
 CMD ["node", "./dist/index.js"]
 

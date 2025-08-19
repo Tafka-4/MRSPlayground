@@ -15,6 +15,10 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.get('/health', (_req, res) => {
+  res.status(200).json({ status: 'healthy', service: 'community-frontend' });
+});
+
 app.get('/config.js', (req, res) => {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.magicresearches.com';
   const wsUrl = process.env.NEXT_PUBLIC_WS_URL || apiUrl.replace(/^http/, 'ws');

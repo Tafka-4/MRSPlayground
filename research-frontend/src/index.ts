@@ -15,10 +15,6 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.get('/health', (_req, res) => {
-    res.status(200).json({ status: 'healthy', service: 'emoji-frontend' });
-});
-
 app.get('/config.js', (req, res) => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.magicresearches.com';
     const wsUrl = process.env.NEXT_PUBLIC_WS_URL || apiUrl.replace(/^http/, 'ws');
@@ -27,17 +23,17 @@ app.get('/config.js', (req, res) => {
     res.send(`window.__API_ORIGIN='${apiUrl}';window.__WS_ORIGIN='${wsUrl}';`);
 });
 
+app.get('/health', (_req, res) => {
+    res.status(200).json({ status: 'healthy', service: 'research-frontend' });
+});
+
 app.get('/', (_req, res) => {
     res.render('index');
 });
 
-app.get('/emojis', (_req, res) => {
-    res.render('index');
-});
-
-const PORT = process.env.PORT || 3300;
+const PORT = process.env.PORT || 3400;
 app.listen(PORT, () => {
-    console.log(`Emoji Frontend running on port ${PORT}`);
+    console.log(`Research Frontend running on port ${PORT}`);
 });
 
 
