@@ -6,13 +6,24 @@ class ApiClient {
 
     _resolveBase() {
         if (typeof window !== 'undefined' && window.__API_ORIGIN) return window.__API_ORIGIN;
-        if (typeof window !== 'undefined') return `${window.location.protocol}//api.${window.location.hostname}`;
+        if (typeof window !== 'undefined') {
+            const host = window.location.hostname;
+            if (host.endsWith('magicresearches.com')) {
+                return 'https://api.magicresearches.com';
+            }
+            return `${window.location.protocol}//api.${host}`;
+        }
         return '';
     }
 
     _getServiceOrigin(url) {
         if (typeof window === 'undefined') return '';
-        return (window.__API_ORIGIN) || `${window.location.protocol}//api.${window.location.hostname}`;
+        if (window.__API_ORIGIN) return window.__API_ORIGIN;
+        const host = window.location.hostname;
+        if (host.endsWith('magicresearches.com')) {
+            return 'https://api.magicresearches.com';
+        }
+        return `${window.location.protocol}//api.${host}`;
     }
 
     _buildUrl(url, query) {
