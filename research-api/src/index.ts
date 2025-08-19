@@ -19,6 +19,10 @@ app.get('/api/v1', (_req, res) => {
   res.status(200).json({ service: 'MRS Research API', version: '0.1.0' });
 });
 
+app.get('/api/v1/research', (_req, res) => {
+  res.status(200).json({ message: 'Research API root' });
+});
+
 app.use('*', (req, res) => {
   res.status(404).json({ error: 'Endpoint not found', path: req.originalUrl });
 });
