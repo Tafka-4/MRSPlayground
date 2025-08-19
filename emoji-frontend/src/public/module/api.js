@@ -83,8 +83,7 @@ class ApiClient {
         const response = await fetch(fullUrl, requestOptions);
 
         if (
-            response.status === 401 &&
-            token &&
+            (response.status === 401 || response.status === 403) &&
             !url.includes('/auth/login') &&
             !url.includes('/auth/refresh') &&
             window.location.pathname !== '/login'
@@ -113,7 +112,7 @@ class ApiClient {
                 this.processQueue(null, newAccessToken);
                 originalOptions.headers['Authorization'] = `Bearer ${newAccessToken}`;
                 const requestUrl = this._buildUrl(originalUrl);
-                const response = await fetch(requestUrl, originalOptions);
+                const response = await fetch(requestUrl, { ...originalOptions, credentials: 'include' });
                 if (response.ok) return await response.json();
                 const errorData = await response.json().catch(() => ({}));
                 const error = new Error(errorData.message || 'Request failed');
