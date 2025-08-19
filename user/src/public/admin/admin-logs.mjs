@@ -1072,7 +1072,7 @@ async function handleUserSearch(event) {
 
     try {
         const response = await apiClient.get(
-            `/api/user/v1/users/admin/search?q=${encodeURIComponent(query)}&limit=5`
+            `/api/v1/users/admin/search?q=${encodeURIComponent(query)}&limit=5`
         );
 
         const data = await response;

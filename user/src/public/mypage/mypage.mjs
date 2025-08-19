@@ -113,7 +113,7 @@ class MyPageManager {
 
         try {
             Notice.info('프로필 사진을 업로드하는 중입니다...');
-            const response = await api.post('/api/user/v1/users/me/profile-image', formData);
+            const response = await api.post('/api/v1/users/me/profile-image', formData);
             if(response.success) {
                 this.user.profileImage = response.filePath;
                 this.renderUser();
@@ -138,7 +138,7 @@ class MyPageManager {
         if (!confirmed) return;
 
         try {
-            await api.delete('/api/user/v1/users/me/profile-image');
+            await api.delete('/api/v1/users/me/profile-image');
             this.user.profileImage = null;
             this.renderUser();
             Notice.success('프로필 사진이 삭제되었습니다.');

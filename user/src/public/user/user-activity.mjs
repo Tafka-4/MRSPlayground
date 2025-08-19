@@ -54,7 +54,7 @@ class UserActivityManager {
         }
 
         try {
-            const userResponse = await api.get(`/api/user/v1/users/${this.targetUserId}`);
+            const userResponse = await api.get(`/api/v1/users/${this.targetUserId}`);
             if (!userResponse.success || !userResponse.user) {
                 throw new Error('사용자 정보를 찾을 수 없습니다.');
             }

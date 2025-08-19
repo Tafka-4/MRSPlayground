@@ -13,7 +13,7 @@ let isKeygenMonitoringActive = false;
 async function loadDashboardStats() {
     try {
         const userStatsResponse = await apiClient.get(
-            '/api/user/v1/users/admin/statistics'
+            '/api/v1/users/admin/statistics'
         );
 
         const userStats = userStatsResponse.statistics || {

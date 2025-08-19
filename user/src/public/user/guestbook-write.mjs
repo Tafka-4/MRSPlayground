@@ -49,7 +49,7 @@ class GuestbookWriteManager {
     async loadTargetUser() {
         try {
             const [targetUserRes, currentUserRes] = await Promise.all([
-                api.get(`/api/user/v1/users/${this.targetUserId}`),
+                api.get(`/api/v1/users/${this.targetUserId}`),
                 api.get('/api/v1/auth/me')
             ]);
             

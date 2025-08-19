@@ -17,14 +17,14 @@ async function loadUsers(query = '', limit = 10) {
 
                     let response;
         if (query && query.trim().length >= 2) {
-            response = await apiClient.get('/api/user/v1/users/admin/search', {
+            response = await apiClient.get('/api/v1/users/admin/search', {
                 query: {
                     q: query.trim(),
                     limit: limit
                 }
             });
         } else {
-            response = await apiClient.get('/api/user/v1/users', {
+            response = await apiClient.get('/api/v1/users', {
                 query: {
                     limit: limit
                 }
