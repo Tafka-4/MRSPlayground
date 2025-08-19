@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { escape } from 'html-escaper';
 import Novel from '../model/novelModel.js';
 import { useNovelRepo } from '../repo/novelRepo.js';
+import { NovelSqlRepo } from '../repo/sql/novelSqlRepo.js';
 import novelError from '../utils/error/novelError.js';
 import userError from '../utils/error/userError.js';
 
@@ -135,14 +136,26 @@ export const deleteThumbnailImage = async (req: Request, res: Response) => {
 };
 
 export const getNovelList = async (req: Request, res: Response) => {
-  const { query, limit, page, sort, genre, status } = req.query as Record<string, string | undefined>;
+  const { query, limit, page, sort, status } = req.query as Record<string, string | undefined>;
   const limitNumber = parseInt(limit || '') || 10;
   const pageNumber = parseInt(page || '') || 1;
   if (limitNumber < 1 || limitNumber > 100) throw new novelError.NovelError('Limit must be between 1 and 100');
 
+  if (process.env.NOVEL_USE_MYSQL === 'true') {
+    const repo = new NovelSqlRepo();
+    const { rows, total } = await repo.list({
+      query: query,
+      status: status,
+      sort: sort,
+      limit: limitNumber,
+      offset: (pageNumber - 1) * limitNumber
+    });
+    res.status(200).json({ novels: rows, totalPages: Math.ceil(total / limitNumber), currentPage: pageNumber });
+    return;
+  }
+
   const filter: any = {};
   if (query) filter.title = { $regex: query, $options: 'i' };
-  if (genre) filter.genre = genre;
   if (status) filter.status = status;
 
   let sortOptions: any = { createdAt: -1 };
@@ -159,6 +172,12 @@ export const getNovelList = async (req: Request, res: Response) => {
 
 export const getNovelListByAuthor = async (req: Request, res: Response) => {
   const { author } = req.params as { author: string };
+  if (process.env.NOVEL_USE_MYSQL === 'true') {
+    const repo = new NovelSqlRepo();
+    const novels = await repo.listByAuthor(author);
+    res.status(200).json(novels);
+    return;
+  }
   const novels = await Novel.find({ author });
   res.status(200).json(novels);
 };

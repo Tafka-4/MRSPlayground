@@ -178,6 +178,7 @@ services:
     environment:
       - NODE_ENV=${NODE_ENV}
       - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - NOVEL_USE_MYSQL=true
       - NOVEL_DB_HOST=${NOVEL_DB_HOST}
       - NOVEL_DB_USER=${NOVEL_DB_USER}
       - NOVEL_DB_PASSWORD=${NOVEL_DB_PASSWORD}
