@@ -11,8 +11,8 @@ dotenv.config();
 const app = express();
 
 const initializeConnections = async () => {
-	try { await connectMongo(); } catch { process.exit(1); }
-	try { await connectRedis(); } catch {}
+    try { await connectMongo(); } catch { process.exit(1); }
+    try { await connectRedis(); } catch {}
 };
 
 initializeConnections().catch(() => process.exit(1));
@@ -22,62 +22,62 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: 104857600 }));
 
 app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
-	const baseDomain = process.env.BASE_DOMAIN || 'magicresearches.com';
-	const schemes = process.env.NODE_ENV === 'production' ? ['https'] : ['https', 'http'];
-	const allowedOrigins = new Set(
-		schemes.flatMap((scheme) => [
-			`${scheme}://dev.${baseDomain}`,
-			`${scheme}://novel.${baseDomain}`,
-			`${scheme}://community.${baseDomain}`,
-			`${scheme}://emoji.${baseDomain}`
-		])
-	);
-	const origin = req.headers.origin as string | undefined;
-	res.header('Access-Control-Allow-Credentials', 'true');
-	res.header('Access-Control-Allow-Headers', 'O, Authorization, Accept, Content-Type, Origin, X-Access-Token, X-Requested-With');
-	res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
-	if (origin && allowedOrigins.has(origin)) {
-		res.header('Access-Control-Allow-Origin', origin);
-	}
-	res.header('Vary', 'Origin');
-	if (req.method === 'OPTIONS') {
-		res.status(204).end();
-		return;
-	}
-	next();
+    const baseDomain = process.env.BASE_DOMAIN || 'magicresearches.com';
+    const schemes = process.env.NODE_ENV === 'production' ? ['https'] : ['https', 'http'];
+    const allowedOrigins = new Set(
+        schemes.flatMap((scheme) => [
+            `${scheme}://dev.${baseDomain}`,
+            `${scheme}://novel.${baseDomain}`,
+            `${scheme}://community.${baseDomain}`,
+            `${scheme}://emoji.${baseDomain}`
+        ])
+    );
+    const origin = req.headers.origin as string | undefined;
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Headers', 'O, Authorization, Accept, Content-Type, Origin, X-Access-Token, X-Requested-With');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE, OPTIONS');
+    if (origin && allowedOrigins.has(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+    res.header('Vary', 'Origin');
+    if (req.method === 'OPTIONS') {
+        res.status(204).end();
+        return;
+    }
+    next();
 });
 
 app.use(rateLimit);
 app.use(sanitizeTargetValidation);
 
-app.use('/comment/v1', commentRouter);
+app.use('/api/v1/comments', commentRouter);
 
-app.get('/health', async (req: express.Request, res: express.Response) => {
-	try {
-		const mongoStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
-		let redisStatus = 'disconnected';
-		try { redisStatus = await checkRedisConnection() ? 'connected' : 'disconnected'; } catch { redisStatus = 'error'; }
-		const isHealthy = mongoStatus === 'connected';
-		const status = isHealthy ? 'OK' : 'UNHEALTHY';
-		const statusCode = isHealthy ? 200 : 503;
-		res.status(statusCode).json({ status, service: 'Comment API', timestamp: new Date().toISOString(), uptime: process.uptime(), dependencies: { mongodb: mongoStatus, redis: redisStatus } });
-	} catch {
-		res.status(503).json({ status: 'ERROR', service: 'Comment API', timestamp: new Date().toISOString(), uptime: process.uptime(), error: 'Health check failed' });
-	}
+app.get('/api/v1/health', async (req: express.Request, res: express.Response) => {
+    try {
+        const mongoStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+        let redisStatus = 'disconnected';
+        try { redisStatus = await checkRedisConnection() ? 'connected' : 'disconnected'; } catch { redisStatus = 'error'; }
+        const isHealthy = mongoStatus === 'connected';
+        const status = isHealthy ? 'OK' : 'UNHEALTHY';
+        const statusCode = isHealthy ? 200 : 503;
+        res.status(statusCode).json({ status, service: 'Comment API', timestamp: new Date().toISOString(), uptime: process.uptime(), dependencies: { mongodb: mongoStatus, redis: redisStatus } });
+    } catch {
+        res.status(503).json({ status: 'ERROR', service: 'Comment API', timestamp: new Date().toISOString(), uptime: process.uptime(), error: 'Health check failed' });
+    }
 });
 
-app.get('/', (req: express.Request, res: express.Response) => {
-	res.status(200).json({ service: 'Comment API', version: '1.0.0', endpoints: { comment: '/comment/v1' }, health: '/health' });
+app.get('/api/v1/', (req: express.Request, res: express.Response) => {
+    res.status(200).json({ service: 'Comment API', version: '1.0.0', endpoints: { comments: '/api/v1/comments', health: '/api/v1/health' } });
 });
 
 app.use(customErrorHandler);
 
 app.use('*', (req: express.Request, res: express.Response) => {
-	res.status(404).json({ error: 'Endpoint not found', path: req.originalUrl, method: req.method });
+    res.status(404).json({ error: 'Endpoint not found', path: req.originalUrl, method: req.method });
 });
 
 app.listen(5004, '0.0.0.0', () => {
-	console.log('Comment API is running on port 5004');
+    console.log('Comment API is running on port 5004');
 });
 
 

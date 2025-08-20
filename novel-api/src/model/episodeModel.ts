@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import { mongoose, redisClient } from '../utils/dbconnect/dbconnect.js';
 import episodeError from '../utils/error/episodeError.js';
-import { parseEmojiToImgTag } from '../utils/internalEmojiTagParser.js';
 
 dotenv.config();
 
@@ -45,9 +44,6 @@ const episodeSchema = new mongoose.Schema({
 const Episode = mongoose.model<IEpisode>('Episode', episodeSchema);
 
 episodeSchema.pre('save', async function (this: IEpisode, next: (err?: any) => void) {
-  if (this.authorComment) {
-    this.authorComment = await parseEmojiToImgTag(this.authorComment, true);
-  }
   if (this.imageUploaded) {
     fs.rmSync(`./uploads/episode/${this.novelId}/${this.episodeId}`, { recursive: true, force: true });
   }

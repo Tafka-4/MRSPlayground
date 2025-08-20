@@ -1,10 +1,6 @@
 import Episode from '../model/episodeModel.js';
 import Novel from '../model/novelModel.js';
 import { redisClient } from '../utils/dbconnect/dbconnect.js';
-import { EpisodeSqlRepo } from './sql/episodeSqlRepo.js';
-import { pool } from '../config/database.js';
-
-const episodeSql = new EpisodeSqlRepo();
 
 export interface EpisodeRecord {
     episodeId: string;
@@ -90,48 +86,8 @@ class MongooseEpisodeRepo implements EpisodeRepo {
 	}
 }
 
-class PrismaEpisodeRepo implements EpisodeRepo {
-    async createEpisode(novelId: string, userId: string, title: string, content: string, authorComment?: string | null): Promise<EpisodeRecord> {
-        return (await episodeSql.createEpisode(novelId, userId, title, content, authorComment)) as any;
-    }
-    async findById(episodeId: string): Promise<EpisodeRecord | null> {
-        return (await episodeSql.findById(episodeId)) as any;
-    }
-    async increaseView(episodeId: string): Promise<void> {
-        await episodeSql.increaseView(episodeId);
-    }
-    async updateIfAuthor(episodeId: string, userId: string, data: any): Promise<EpisodeRecord | null> {
-        return (await episodeSql.updateIfAuthor(episodeId, userId, data)) as any;
-    }
-    async deleteIfAuthorAndLast(episodeId: string, userId: string): Promise<boolean> {
-        return await episodeSql.deleteIfAuthorAndLast(episodeId, userId);
-    }
-    async like(episodeId: string, novelId: string, userId: string) {
-        const resultLike = await redisClient.sAdd(`${novelId}:${episodeId}:likes`, userId);
-        const resultDislike = await redisClient.sRem(`${novelId}:${episodeId}:dislikes`, userId);
-        const ep = await episodeSql.findById(episodeId);
-        if (!ep) throw new Error('Episode not found');
-        const likeCount = ep.likeCount + (resultLike ? 1 : 0);
-        const dislikeCount = ep.dislikeCount - (resultDislike ? 1 : 0);
-        if (!resultLike) throw new Error('Already liked');
-        await pool.execute(`UPDATE episodes SET likeCount = ?, dislikeCount = ? WHERE episodeId = ?`, [likeCount, dislikeCount, episodeId]);
-        return { likeCount, dislikeCount };
-    }
-    async dislike(episodeId: string, novelId: string, userId: string) {
-        const resultDislike = await redisClient.sAdd(`${novelId}:${episodeId}:dislikes`, userId);
-        const resultLike = await redisClient.sRem(`${novelId}:${episodeId}:likes`, userId);
-        const ep = await episodeSql.findById(episodeId);
-        if (!ep) throw new Error('Episode not found');
-        const dislikeCount = ep.dislikeCount + (resultDislike ? 1 : 0);
-        const likeCount = ep.likeCount - (resultLike ? 1 : 0);
-        if (!resultDislike) throw new Error('Already disliked');
-        await pool.execute(`UPDATE episodes SET likeCount = ?, dislikeCount = ? WHERE episodeId = ?`, [likeCount, dislikeCount, episodeId]);
-        return { likeCount, dislikeCount };
-    }
-}
-
 export const useEpisodeRepo = (): EpisodeRepo => {
-  	return process.env.NOVEL_USE_MYSQL === 'true' ? new PrismaEpisodeRepo() : new MongooseEpisodeRepo();
+	return new MongooseEpisodeRepo();
 };
 
 

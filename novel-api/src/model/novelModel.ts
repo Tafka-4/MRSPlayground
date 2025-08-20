@@ -9,134 +9,134 @@ import userError from '../utils/error/userError.js';
 dotenv.config();
 
 const callUserService = async (endpoint: string, options: RequestInit = {}) => {
-  const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-api:3001';
-  const response = await fetch(`${userServiceUrl}${endpoint}`, {
-    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
-    ...options
-  });
-  if (!response.ok) throw new Error(`User Service error: ${response.status}`);
-  return response.json();
+    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-api:3001';
+    const response = await fetch(`${userServiceUrl}${endpoint}`, {
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+      ...options
+    });
+    if (!response.ok) throw new Error(`User Service error: ${response.status}`);
+    return response.json();
 };
 
 export interface INovel extends mongoose.Document {
-  novelId: string;
-  title: string;
-  description: string;
-  thumbnailImage: string;
-  episodeCount: number;
-  viewCount: number;
-  likeCount: number;
-  dislikeCount: number;
-  favoriteCount: number;
-  author: string;
-  status: string;
-  createdAt: Date;
-  updatedAt: Date;
-  like(userId: string): Promise<void>;
-  dislike(userId: string): Promise<void>;
-  favorite(userId: string): Promise<void>;
-  increaseViewCount(): Promise<void>;
-  increaseEpisode(): Promise<void>;
-  decreaseEpisode(): Promise<void>;
-  uploadThumbnailImage(file: Express.Multer.File): Promise<string>;
-  deleteThumbnailImage(): Promise<void>;
+    novelId: string;
+    title: string;
+    description: string;
+    thumbnailImage: string;
+    episodeCount: number;
+    viewCount: number;
+    likeCount: number;
+    dislikeCount: number;
+    favoriteCount: number;
+    author: string;
+    status: string;
+    createdAt: Date;
+    updatedAt: Date;
+    like(userId: string): Promise<void>;
+    dislike(userId: string): Promise<void>;
+    favorite(userId: string): Promise<void>;
+    increaseViewCount(): Promise<void>;
+    increaseEpisode(): Promise<void>;
+    decreaseEpisode(): Promise<void>;
+    uploadThumbnailImage(file: Express.Multer.File): Promise<string>;
+    deleteThumbnailImage(): Promise<void>;
 }
 
 const novelSchema = new mongoose.Schema({
-  novelId: { type: String, required: true, unique: true, default: uuidv4() },
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  thumbnailImage: { type: String, required: true },
-  episodeCount: { type: Number, default: 0 },
-  viewCount: { type: Number, default: 0 },
-  likeCount: { type: Number, default: 0 },
-  dislikeCount: { type: Number, default: 0 },
-  favoriteCount: { type: Number, default: 0 },
-  author: { type: String, required: true },
-  status: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now }
+    novelId: { type: String, required: true, unique: true, default: uuidv4() },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    thumbnailImage: { type: String, required: true },
+    episodeCount: { type: Number, default: 0 },
+    viewCount: { type: Number, default: 0 },
+    likeCount: { type: Number, default: 0 },
+    dislikeCount: { type: Number, default: 0 },
+    favoriteCount: { type: Number, default: 0 },
+    author: { type: String, required: true },
+    status: { type: String, required: true },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
 
 const Novel = mongoose.model<INovel>('Novel', novelSchema);
 
 novelSchema.pre('save', async function (this: mongoose.HydratedDocument<INovel>, next: (err?: any) => void) {
-  this.updatedAt = new Date();
-  next();
+    this.updatedAt = new Date();
+    next();
 });
 
 novelSchema.pre('deleteOne', { document: true, query: false }, async function (this: mongoose.HydratedDocument<INovel>, next: (err?: any) => void) {
-  if (this.thumbnailImage) {
-    fs.unlinkSync(this.thumbnailImage);
-  }
-  await redisClient.del(`${this.novelId}:likes`);
-  await redisClient.del(`${this.novelId}:dislikes`);
-  await redisClient.del(`${this.novelId}:favorites`);
-  next();
+    if (this.thumbnailImage) {
+        fs.unlinkSync(this.thumbnailImage);
+    }
+    await redisClient.del(`${this.novelId}:likes`);
+    await redisClient.del(`${this.novelId}:dislikes`);
+    await redisClient.del(`${this.novelId}:favorites`);
+    next();
 });
 
 novelSchema.methods.like = async function (this: mongoose.HydratedDocument<INovel>, userId: string): Promise<void> {
-  const resultLike = await redisClient.sAdd(`${this.novelId}:likes`, userId);
-  const resultDislike = await redisClient.sRem(`${this.novelId}:dislikes`, userId);
-  if (resultDislike) this.dislikeCount--;
-  if (!resultLike) throw new novelError.NovelInteractionFailedError('Already liked');
-  this.likeCount++;
-  await this.save();
+    const resultLike = await redisClient.sAdd(`${this.novelId}:likes`, userId);
+    const resultDislike = await redisClient.sRem(`${this.novelId}:dislikes`, userId);
+    if (resultDislike) this.dislikeCount--;
+    if (!resultLike) throw new novelError.NovelInteractionFailedError('Already liked');
+    this.likeCount++;
+    await this.save();
 };
 
 novelSchema.methods.dislike = async function (this: mongoose.HydratedDocument<INovel>, userId: string): Promise<void> {
-  const resultDislike = await redisClient.sAdd(`${this.novelId}:dislikes`, userId);
-  const resultLike = await redisClient.sRem(`${this.novelId}:likes`, userId);
-  if (resultLike) this.likeCount--;
-  if (!resultDislike) throw new novelError.NovelInteractionFailedError('Already disliked');
-  this.dislikeCount++;
-  await this.save();
+    const resultDislike = await redisClient.sAdd(`${this.novelId}:dislikes`, userId);
+    const resultLike = await redisClient.sRem(`${this.novelId}:likes`, userId);
+    if (resultLike) this.likeCount--;
+    if (!resultDislike) throw new novelError.NovelInteractionFailedError('Already disliked');
+    this.dislikeCount++;
+    await this.save();
 };
 
 novelSchema.methods.favorite = async function (this: mongoose.HydratedDocument<INovel>, userId: string): Promise<void> {
-  const resultFavorite = await redisClient.sAdd(`${this.novelId}:favorites`, userId);
-  if (!resultFavorite) throw new novelError.NovelInteractionFailedError('Already favorited');
-  this.favoriteCount++;
-  try {
-    await callUserService(`/api/users/add-favorite`, { method: 'PUT', body: JSON.stringify({ userid: userId, novelId: this.novelId }) });
-  } catch {
-    throw new userError.UserNotFoundError('User not found');
-  }
-  await this.save();
+    const resultFavorite = await redisClient.sAdd(`${this.novelId}:favorites`, userId);
+    if (!resultFavorite) throw new novelError.NovelInteractionFailedError('Already favorited');
+    this.favoriteCount++;
+    try {
+        await callUserService(`/api/users/add-favorite`, { method: 'PUT', body: JSON.stringify({ userid: userId, novelId: this.novelId }) });
+    } catch {
+        throw new userError.UserNotFoundError('User not found');
+    }
+    await this.save();
 };
 
 novelSchema.methods.increaseViewCount = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
-  this.viewCount++;
-  await this.save();
+    this.viewCount++;
+    await this.save();
 };
 
 novelSchema.methods.increaseEpisode = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
-  this.episodeCount++;
-  await this.save();
+    this.episodeCount++;
+    await this.save();
 };
 
 novelSchema.methods.decreaseEpisode = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
-  this.episodeCount--;
-  await this.save();
+    this.episodeCount--;
+    await this.save();
 };
 
 novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>, file: Express.Multer.File): Promise<string> {
-  const extension = file.originalname.split('.').pop();
-  if (!extension) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
-  if (!['png', 'jpg', 'jpeg'].includes(extension)) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
-  const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(this.novelId).digest('hex')}.${extension}`;
-  const filePath = `./uploads/novel/${filename}`;
-  fs.writeFileSync(filePath, file.buffer);
-  this.thumbnailImage = filePath;
-  await this.save();
-  return filePath;
+    const extension = file.originalname.split('.').pop();
+    if (!extension) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
+    if (!['png', 'jpg', 'jpeg'].includes(extension)) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
+    const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(this.novelId).digest('hex')}.${extension}`;
+    const filePath = `./uploads/novel/${filename}`;
+    fs.writeFileSync(filePath, file.buffer);
+    this.thumbnailImage = filePath;
+    await this.save();
+    return filePath;
 };
 
 novelSchema.methods.deleteThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
-  if (!this.thumbnailImage) throw new novelError.NovelImageDeleteFailedError('Thumbnail image not found');
-  fs.unlinkSync(this.thumbnailImage);
-  this.thumbnailImage = '';
-  await this.save();
+    if (!this.thumbnailImage) throw new novelError.NovelImageDeleteFailedError('Thumbnail image not found');
+    fs.unlinkSync(this.thumbnailImage);
+    this.thumbnailImage = '';
+    await this.save();
 };
 
 export default Novel;

@@ -83,7 +83,7 @@ export const deleteComment = async (req: Request, res: Response) => {
 	if (!comment) throw new commentError.CommentNotFoundError('Comment not found');
 	let isGalleryManager = false;
 	if ((comment as any).galleryId) {
-		const resp = await callGalleryApi(`/gallery/v1/${(comment as any).galleryId}`);
+		const resp = await callGalleryApi(`/api/v1/galleries/${(comment as any).galleryId}`);
 		if (resp.ok) {
 			const data: any = await resp.json();
 			const gallery: any = data.gallery || data;
@@ -92,9 +92,10 @@ export const deleteComment = async (req: Request, res: Response) => {
 	}
 	let isNovelAuthor = false;
 	if ((comment as any).novelId) {
-		const resp = await callNovelApi(`/novel/v1/${(comment as any).novelId}`);
+		const resp = await callNovelApi(`/api/v1/novels/${(comment as any).novelId}`);
 		if (resp.ok) {
-			const novel: any = await resp.json();
+			const novelResp: any = await resp.json();
+			const novel = novelResp.novel || novelResp;
 			if (novel && novel.author === userid) isNovelAuthor = true;
 		}
 	}
@@ -159,13 +160,13 @@ const findTargetById = async (targetId: string, targetType: string) => {
 	let target: any;
 	switch (targetType) {
 		case 'post': {
-			const resp = await callPostApi(`/post/v1/id/${targetId}`);
+			const resp = await callPostApi(`/api/v1/posts/id/${targetId}`);
 			if (!resp.ok) throw new commentError.CommentNotFoundError('Post not found');
 			target = await resp.json();
 			break;
 		}
 		case 'episode': {
-			const resp = await callNovelApi(`/episode/v1/${targetId}`);
+			const resp = await callNovelApi(`/api/v1/episodes/${targetId}`);
 			if (!resp.ok) throw new commentError.CommentNotFoundError('Episode not found');
 			target = await resp.json();
 			break;
@@ -177,13 +178,13 @@ const findTargetById = async (targetId: string, targetType: string) => {
 };
 
 const findGalleryById = async (galleryId: string) => {
-	const resp = await callGalleryApi(`/gallery/v1/${galleryId}`);
+	const resp = await callGalleryApi(`/api/v1/galleries/${galleryId}`);
 	if (!resp.ok) throw new commentError.CommentNotFoundError('Gallery not found');
 	return resp.json();
 };
 
 const findNovelById = async (novelId: string) => {
-	const resp = await callNovelApi(`/novel/v1/${novelId}`);
+	const resp = await callNovelApi(`/api/v1/novels/${novelId}`);
 	if (!resp.ok) throw new commentError.CommentNotFoundError('Novel not found');
 	return resp.json();
 };

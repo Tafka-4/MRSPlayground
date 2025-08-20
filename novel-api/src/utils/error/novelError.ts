@@ -1,52 +1,52 @@
 class NovelError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NovelError';
-  }
+    constructor(message: string) {
+      super(message);
+      this.name = 'NovelError';
+    }
 }
 
 class NovelNotFoundError extends NovelError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NovelNotFoundError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'NovelNotFoundError';
+    }
 }
 
 class NovelNotAuthorError extends NovelError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NovelNotAuthorError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'NovelNotAuthorError';
+    }
 }
 
 class NovelInteractionFailedError extends NovelError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NovelInteractionFailedError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'NovelInteractionFailedError';
+    }
 }
 
 class NovelImageUploadFailedError extends NovelError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NovelImageUploadFailedError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'NovelImageUploadFailedError';
+    }
 }
 
 class NovelImageDeleteFailedError extends NovelError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'NovelImageDeleteFailedError';
-  }
+    constructor(message: string) {
+        super(message);
+        this.name = 'NovelImageDeleteFailedError';
+    }
 }
 
 export default {
-  NovelError,
-  NovelNotFoundError,
-  NovelNotAuthorError,
-  NovelInteractionFailedError,
-  NovelImageUploadFailedError,
-  NovelImageDeleteFailedError
+    NovelError,
+    NovelNotFoundError,
+    NovelNotAuthorError,
+    NovelInteractionFailedError,
+    NovelImageUploadFailedError,
+    NovelImageDeleteFailedError
 };
 
 

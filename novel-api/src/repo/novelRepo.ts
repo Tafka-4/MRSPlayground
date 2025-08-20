@@ -1,7 +1,4 @@
 import Novel, { INovel } from '../model/novelModel.js';
-import { NovelSqlRepo } from './sql/novelSqlRepo.js';
-
-const novelSql = new NovelSqlRepo();
 
 export interface NovelRecord {
 	novelId: string;
@@ -51,26 +48,8 @@ class MongooseNovelRepo implements NovelRepo {
 	}
 }
 
-class PrismaNovelRepo implements NovelRepo {
-	async create(data: any): Promise<NovelRecord> {
-		return (await novelSql.create(data)) as any;
-	}
-	async findById(novelId: string): Promise<NovelRecord | null> {
-		return (await novelSql.findById(novelId)) as any;
-	}
-	async increaseView(novelId: string): Promise<void> {
-		await novelSql.increaseView(novelId);
-	}
-	async updateIfAuthor(novelId: string, author: string, data: any): Promise<NovelRecord | null> {
-		return (await novelSql.updateIfAuthor(novelId, author, data)) as any;
-	}
-	async deleteIfAuthor(novelId: string, author: string): Promise<boolean> {
-		return await novelSql.deleteIfAuthor(novelId, author);
-	}
-}
-
 export const useNovelRepo = (): NovelRepo => {
-    return process.env.NOVEL_USE_MYSQL === 'true' ? new PrismaNovelRepo() : new MongooseNovelRepo();
+	return new MongooseNovelRepo();
 };
 
 

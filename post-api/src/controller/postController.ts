@@ -18,7 +18,7 @@ export const createPost = async (req: Request, res: Response) => {
 	const ip = req.ip;
 	const userAgent = req.headers['user-agent'];
 
-	const galleryResp = await callGalleryApi(`/gallery/v1/${galleryId}`);
+	const galleryResp = await callGalleryApi(`/api/v1/galleries/${galleryId}`);
 	if (!galleryResp.ok) throw new postError.PostError('Gallery not found');
 
 	if (typeof isHidden !== 'boolean') throw new postError.PostError('Invalid isHidden type');
@@ -43,7 +43,7 @@ export const createPost = async (req: Request, res: Response) => {
 
 export const getPosts = async (req: Request, res: Response) => {
 	const { galleryId } = req.params;
-	const galleryResp = await callGalleryApi(`/gallery/v1/${galleryId}`);
+	const galleryResp = await callGalleryApi(`/api/v1/galleries/${galleryId}`);
 	if (!galleryResp.ok) throw new postError.PostError('Gallery not found');
 	const { page, limit } = req.query;
 	const posts = await Post.find({ galleryId })
@@ -54,7 +54,7 @@ export const getPosts = async (req: Request, res: Response) => {
 
 export const getPost = async (req: Request, res: Response) => {
 	const { postId, galleryId } = req.params;
-	const galleryResp = await callGalleryApi(`/gallery/v1/${galleryId}`);
+	const galleryResp = await callGalleryApi(`/api/v1/galleries/${galleryId}`);
 	if (!galleryResp.ok) throw new postError.PostError('Gallery not found');
 	const post = await Post.findOne({ postId, galleryId });
 	if (!post) throw new postError.PostNotFoundError('Post not found');
@@ -72,7 +72,7 @@ export const updatePost = async (req: Request, res: Response) => {
 	const { postId, galleryId, tempPassword } = req.params;
 	const { title, content } = req.body;
 	const userid = req.user?.userid;
-	const galleryResp = await callGalleryApi(`/gallery/v1/${galleryId}`);
+	const galleryResp = await callGalleryApi(`/api/v1/galleries/${galleryId}`);
 	if (!galleryResp.ok) throw new postError.PostError('Gallery not found');
 	const post = await Post.findOne({ postId, galleryId });
 	if (!post) throw new postError.PostNotFoundError('Post not found');
@@ -89,7 +89,7 @@ export const deletePost = async (req: Request, res: Response) => {
 	const userid = req.user?.userid;
 	const post = await Post.findOne({ postId, galleryId });
 	if (!post) throw new postError.PostNotFoundError('Post not found');
-	const galleryResp = await callGalleryApi(`/gallery/v1/${galleryId}`);
+	const galleryResp = await callGalleryApi(`/api/v1/galleries/${galleryId}`);
 	if (!galleryResp.ok) throw new postError.PostError('Gallery not found');
 	const data = await galleryResp.json() as any;
 	const gallery = data.gallery || data;
@@ -107,7 +107,7 @@ export const deletePost = async (req: Request, res: Response) => {
 export const likePost = async (req: Request, res: Response) => {
 	const { postId, galleryId } = req.params;
 	const userid = req.user?.userid;
-	const galleryResp = await callGalleryApi(`/gallery/v1/${galleryId}`);
+	const galleryResp = await callGalleryApi(`/api/v1/galleries/${galleryId}`);
 	if (!galleryResp.ok) throw new postError.PostError('Gallery not found');
 	const post = await Post.findOne({ postId, galleryId });
 	if (!post) throw new postError.PostNotFoundError('Post not found');
@@ -118,7 +118,7 @@ export const likePost = async (req: Request, res: Response) => {
 export const dislikePost = async (req: Request, res: Response) => {
 	const { postId, galleryId } = req.params;
 	const userid = req.user?.userid;
-	const galleryResp = await callGalleryApi(`/gallery/v1/${galleryId}`);
+	const galleryResp = await callGalleryApi(`/api/v1/galleries/${galleryId}`);
 	if (!galleryResp.ok) throw new postError.PostError('Gallery not found');
 	const post = await Post.findOne({ postId, galleryId });
 	if (!post) throw new postError.PostNotFoundError('Post not found');

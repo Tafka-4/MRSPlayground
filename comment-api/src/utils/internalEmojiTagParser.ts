@@ -17,7 +17,7 @@ export const parseEmojiToImgTag = async (content: string, isComment: boolean = f
 	for (const match of matches) {
 		const normalized = match.replace('<@', '').replace('>', '');
 		const [packageId, emojiId, size] = normalized.split(':');
-		const resp = await callEmojiApi(`/emoji/v1/${packageId}`);
+		const resp = await callEmojiApi(`/api/v1/emojis/${packageId}`);
 		if (!resp.ok) continue;
 		const pkg: any = await resp.json();
 		const objectKeys: string[] = Object.keys((pkg as any).packageEmojis || {});
