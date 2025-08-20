@@ -50,4 +50,42 @@ Auth: JWT required for all endpoints.
 - Body: `{ ip, time? }`
 - 200: `{ success: true, message }`
 
+## Headers & Auth
+
+- Authorization: `Bearer <JWT>` (필수)
+- Content-Type: `application/json`
+
+## Examples
+
+### Create Gallery
+
+```bash
+curl -X POST "https://api.magicresearches.com/api/v1/galleries" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{ "galleryId": "gal-1", "title": "Title", "description": "Desc" }'
+```
+
+```json
+{ "success": true, "message": "Gallery created successfully" }
+```
+
+### List Galleries
+
+```bash
+curl "https://api.magicresearches.com/api/v1/galleries?page=1&limit=10&search=art" -H "Authorization: Bearer <TOKEN>"
+```
+
+```json
+{ "success": true, "galleries": [ { "galleryId": "gal-1" } ] }
+```
+
+## Error Codes
+
+- 400 Bad Request
+- 401 Unauthorized
+- 403 Forbidden (관리자/매니저 권한 필요 등)
+- 404 Not Found
+- 418 Processing Error
+- 500 Internal Server Error
 

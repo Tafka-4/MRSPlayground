@@ -35,4 +35,47 @@ Auth: Bearer JWT required for all endpoints.
 - Interactions
 - 200: `{ success: true, message }`
 
+## Headers & Auth
+
+- Authorization: `Bearer <JWT>` (필수)
+- Content-Type: `application/json`
+
+## Examples
+
+### Create Post
+
+```bash
+curl -X POST "https://api.magicresearches.com/api/v1/posts" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "galleryId": "gal-1",
+    "title": "Hello",
+    "content": "<p>World</p>",
+    "isHidden": false
+  }'
+```
+
+```json
+{ "success": true, "post": { "postId": "...", "galleryId": "gal-1" } }
+```
+
+### List Posts in Gallery
+
+```bash
+curl "https://api.magicresearches.com/api/v1/posts/gal-1?page=1&limit=10" -H "Authorization: Bearer <TOKEN>"
+```
+
+```json
+{ "success": true, "posts": [ { "postId": "..." } ] }
+```
+
+## Error Codes
+
+- 400 Bad Request
+- 401 Unauthorized
+- 403 Forbidden
+- 404 Not Found
+- 418 Processing Error
+- 500 Internal Server Error
 

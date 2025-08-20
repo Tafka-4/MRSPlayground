@@ -50,4 +50,43 @@ Auth: JWT required for all endpoints.
 - Unmark favorite
 - 200: `{ success: true }`
 
+## Headers & Auth
+
+- Authorization: `Bearer <JWT>` (필수)
+- Content-Type: `application/json` (파일 업로드 제외)
+
+## Examples
+
+### Create Emoji Package
+
+```bash
+curl -X POST "https://api.magicresearches.com/api/v1/emojis" \
+  -H "Authorization: Bearer <TOKEN>" \
+  -F "packageName=Funny" \
+  -F "packageDescription=desc" \
+  -F "emojis=@emoji1.png" -F "emojis=@emoji2.png"
+```
+
+```json
+{ "success": true, "emojiPackage": { "packageId": "...", "packageName": "Funny" } }
+```
+
+### List Favorite Emoji Packages (Self)
+
+```bash
+curl "https://api.magicresearches.com/api/v1/emojis/favorites/self?page=1&limit=10" -H "Authorization: Bearer <TOKEN>"
+```
+
+```json
+{ "success": true, "items": [ { "packageId": "..." } ], "meta": { "page": 1, "limit": 10, "total": 20, "pages": 2 } }
+```
+
+## Error Codes
+
+- 400 Bad Request
+- 401 Unauthorized
+- 403 Forbidden
+- 404 Not Found (이모지 패키지 없음)
+- 418 Processing Error (업로드/검증 실패 등)
+- 500 Internal Server Error
 
