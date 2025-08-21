@@ -1,0 +1,139 @@
+<%
+const paginationData = {
+    currentPage: parseInt(locals.currentPage || 1),
+    totalPages: parseInt(locals.totalPages || 1),
+    baseUrl: locals.baseUrl || '',
+    maxVisible: locals.maxVisible || 5,
+    ...locals
+};
+
+const getPageUrl = (page) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('page', page);
+    return url.pathname + url.search;
+};
+
+const getPageNumbers = () => {
+    const pages = [];
+    const { currentPage, totalPages, maxVisible } = paginationData;
+    
+    if (totalPages <= maxVisible) {
+        for (let i = 1; i <= totalPages; i++) {
+            pages.push(i);
+        }
+    } else {
+        const halfVisible = Math.floor(maxVisible / 2);
+        let start = Math.max(1, currentPage - halfVisible);
+        let end = Math.min(totalPages, start + maxVisible - 1);
+        
+        if (end - start < maxVisible - 1) {
+            start = Math.max(1, end - maxVisible + 1);
+        }
+        
+        if (start > 1) {
+            pages.push(1);
+            if (start > 2) pages.push('...');
+        }
+        
+        for (let i = start; i <= end; i++) {
+            if (i !== 1 && i !== totalPages) {
+                pages.push(i);
+            }
+        }
+        
+        if (end < totalPages) {
+            if (end < totalPages - 1) pages.push('...');
+            pages.push(totalPages);
+        }
+    }
+    
+    return pages;
+};
+
+const pageNumbers = getPageNumbers();
+%>
+
+<% if (paginationData.totalPages > 1) { %>
+<nav class="pagination-container" aria-label="페이지 네비게이션">
+    <ul class="pagination">
+        <li class="page-item <%= paginationData.currentPage === 1 ? 'disabled' : '' %>">
+            <a href="?page=1" 
+               class="page-link" 
+               aria-label="첫 페이지"
+               <%= paginationData.currentPage === 1 ? 'aria-disabled="true" tabindex="-1"' : '' %>>
+                <span class="material-symbols-outlined">first_page</span>
+            </a>
+        </li>
+        
+        <li class="page-item <%= paginationData.currentPage === 1 ? 'disabled' : '' %>">
+            <a href="?page=<%= Math.max(1, paginationData.currentPage - 1) %>" 
+               class="page-link" 
+               aria-label="이전 페이지"
+               <%= paginationData.currentPage === 1 ? 'aria-disabled="true" tabindex="-1"' : '' %>>
+                <span class="material-symbols-outlined">chevron_left</span>
+            </a>
+        </li>
+        
+        <% pageNumbers.forEach(page => { %>
+            <% if (page === '...') { %>
+            <li class="page-item ellipsis">
+                <span class="page-link">...</span>
+            </li>
+            <% } else { %>
+            <li class="page-item <%= page === paginationData.currentPage ? 'active' : '' %>">
+                <a href="?page=<%= page %>" 
+                   class="page-link"
+                   <%= page === paginationData.currentPage ? 'aria-current="page"' : '' %>>
+                    <%= page %>
+                </a>
+            </li>
+            <% } %>
+        <% }); %>
+        
+        <li class="page-item <%= paginationData.currentPage === paginationData.totalPages ? 'disabled' : '' %>">
+            <a href="?page=<%= Math.min(paginationData.totalPages, paginationData.currentPage + 1) %>" 
+               class="page-link" 
+               aria-label="다음 페이지"
+               <%= paginationData.currentPage === paginationData.totalPages ? 'aria-disabled="true" tabindex="-1"' : '' %>>
+                <span class="material-symbols-outlined">chevron_right</span>
+            </a>
+        </li>
+        
+        <li class="page-item <%= paginationData.currentPage === paginationData.totalPages ? 'disabled' : '' %>">
+            <a href="?page=<%= paginationData.totalPages %>" 
+               class="page-link" 
+               aria-label="마지막 페이지"
+               <%= paginationData.currentPage === paginationData.totalPages ? 'aria-disabled="true" tabindex="-1"' : '' %>>
+                <span class="material-symbols-outlined">last_page</span>
+            </a>
+        </li>
+    </ul>
+    
+    <div class="page-info">
+        <span><%= paginationData.currentPage %> / <%= paginationData.totalPages %> 페이지</span>
+    </div>
+</nav>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const pageLinks = document.querySelectorAll('.pagination .page-link:not([aria-disabled="true"])');
+    
+    pageLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (!this.parentElement.classList.contains('disabled')) {
+                e.preventDefault();
+                const href = this.getAttribute('href');
+                const url = new URL(window.location.href);
+                const params = new URLSearchParams(href.substring(1));
+                
+                for (const [key, value] of params) {
+                    url.searchParams.set(key, value);
+                }
+                
+                window.location.href = url.toString();
+            }
+        });
+    });
+});
+</script>
+<% } %>

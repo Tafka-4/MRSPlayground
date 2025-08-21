@@ -1,0 +1,195 @@
+<%
+const reportData = {
+    targetType: locals.targetType || 'novel',
+    targetId: locals.targetId || '',
+    targetTitle: locals.targetTitle || '대상',
+    ...locals
+};
+%>
+
+<div id="reportModal" class="modal report-modal" style="display: none;" role="dialog" aria-labelledby="reportModalTitle" aria-modal="true">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="reportModalTitle" class="modal-title">
+                <span class="material-symbols-outlined">flag</span>
+                신고하기
+            </h2>
+            <button type="button" class="modal-close" aria-label="닫기">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
+        
+        <form id="reportForm" class="report-form">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="reportTarget">신고 대상</label>
+                    <input type="text" 
+                           id="reportTarget" 
+                           class="form-control" 
+                           value="<%= reportData.targetTitle %>" 
+                           readonly
+                           aria-readonly="true">
+                    <input type="hidden" 
+                           name="targetType" 
+                           value="<%= reportData.targetType %>">
+                    <input type="hidden" 
+                           name="targetId" 
+                           value="<%= reportData.targetId %>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="reportTitle">제목 <span class="required">*</span></label>
+                    <input type="text" 
+                           id="reportTitle" 
+                           name="title" 
+                           class="form-control" 
+                           placeholder="신고 제목을 입력하세요"
+                           required
+                           maxlength="100"
+                           aria-required="true">
+                    <span class="form-hint">최대 100자</span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reportReason">신고 사유 <span class="required">*</span></label>
+                    <select id="reportReason" name="reasonType" class="form-control" required aria-required="true">
+                        <option value="">선택하세요</option>
+                        <option value="spam">스팸/도배</option>
+                        <option value="inappropriate">부적절한 내용</option>
+                        <option value="copyright">저작권 침해</option>
+                        <option value="violence">폭력적/혐오 표현</option>
+                        <option value="adult">성인 콘텐츠</option>
+                        <option value="false">허위 정보</option>
+                        <option value="other">기타</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reportDetail">상세 내용 <span class="required">*</span></label>
+                    <textarea id="reportDetail" 
+                              name="detail" 
+                              class="form-control" 
+                              rows="5" 
+                              placeholder="신고 사유를 자세히 설명해주세요"
+                              required
+                              maxlength="1000"
+                              aria-required="true"></textarea>
+                    <span class="form-hint">
+                        <span id="charCount">0</span> / 1000자
+                    </span>
+                </div>
+                
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="agreement" required aria-required="true">
+                        <span>허위 신고 시 제재를 받을 수 있음을 확인했습니다.</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary modal-cancel">취소</button>
+                <button type="submit" class="btn btn-danger">
+                    <span class="material-symbols-outlined">flag</span>
+                    신고하기
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="reportToast" class="toast" style="display: none;" role="alert">
+    <div class="toast-content">
+        <span class="toast-icon material-symbols-outlined"></span>
+        <span class="toast-message"></span>
+    </div>
+</div>
+
+<script>
+(function() {
+    const modal = document.getElementById('reportModal');
+    const form = document.getElementById('reportForm');
+    const closeBtn = modal.querySelector('.modal-close');
+    const cancelBtn = modal.querySelector('.modal-cancel');
+    const overlay = modal.querySelector('.modal-overlay');
+    const detailTextarea = document.getElementById('reportDetail');
+    const charCount = document.getElementById('charCount');
+    const toast = document.getElementById('reportToast');
+    
+    window.openReportModal = function(targetType, targetId, targetTitle) {
+        modal.querySelector('[name="targetType"]').value = targetType || 'novel';
+        modal.querySelector('[name="targetId"]').value = targetId || '';
+        document.getElementById('reportTarget').value = targetTitle || '대상';
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        
+        const focusTrap = modal.querySelector('input:not([readonly]), select, textarea');
+        if (focusTrap) focusTrap.focus();
+    };
+    
+    window.closeReportModal = function() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        form.reset();
+        charCount.textContent = '0';
+    };
+    
+    function showToast(message, type = 'success') {
+        const icon = toast.querySelector('.toast-icon');
+        const msg = toast.querySelector('.toast-message');
+        
+        icon.textContent = type === 'success' ? 'check_circle' : 'error';
+        msg.textContent = message;
+        
+        toast.className = `toast toast-${type}`;
+        toast.style.display = 'block';
+        
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 3000);
+    }
+    
+    closeBtn.addEventListener('click', closeReportModal);
+    cancelBtn.addEventListener('click', closeReportModal);
+    overlay.addEventListener('click', closeReportModal);
+    
+    detailTextarea.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+    });
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(form);
+        const data = Object.fromEntries(formData);
+        
+        try {
+            const response = await fetch('/api/reports', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                showToast('신고가 접수되었습니다.', 'success');
+                closeReportModal();
+            } else {
+                const error = await response.json();
+                showToast(error.message || '신고 처리 중 오류가 발생했습니다.', 'error');
+            }
+        } catch (error) {
+            console.error('Report error:', error);
+            showToast('네트워크 오류가 발생했습니다.', 'error');
+        }
+    });
+    
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.style.display !== 'none') {
+            closeReportModal();
+        }
+    });
+})();
+</script>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/novel-card.css">
+    <style>
+        .novels-page {
+            padding: 2rem 0;
+        }
+        
+        .page-header {
+            margin-bottom: 2rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .novels-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .search-section {
+            flex: 1;
+            max-width: 500px;
+        }
+        
+        .action-section {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .novels-content {
+            min-height: 400px;
+        }
+        
+        .novel-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .novels-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-section {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    
+    <main class="main-content">
+        <div class="novels-page">
+            <div class="page-header">
+                <h1 class="page-title">소설 목록</h1>
+            </div>
+            
+            <div class="novels-controls">
+                <div class="search-section">
+                    <%- include('../partials/search-bar', { 
+                        placeholder: '제목, 작가로 검색',
+                        value: locals.query || '',
+                        action: '/novels',
+                        showAdvanced: false
+                    }) %>
+                </div>
+                
+                <div class="action-section">
+                    <a href="/novel/upload" class="btn btn-primary">
+                        <span class="material-symbols-outlined">add</span>
+                        새 소설 작성
+                    </a>
+                </div>
+            </div>
+            
+            <%- include('../partials/sort-tabs', { 
+                current: locals.sort || 'updated',
+                baseUrl: '/novels'
+            }) %>
+            
+            <div class="novels-content">
+                <div id="novelList" class="novel-list">
+                    <%- include('../partials/skeleton', { type: 'card', count: 10 }) %>
+                </div>
+                
+                <div id="paginationContainer"></div>
+            </div>
+        </div>
+    </main>
+    
+    <%- include('../partials/footer') %>
+    
+    <script type="module">
+        import apiClient from '/module/api.js';
+        
+        document.addEventListener('DOMContentLoaded', async function() {
+            const novelList = document.getElementById('novelList');
+            const paginationContainer = document.getElementById('paginationContainer');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const sort = urlParams.get('sort') || 'updated';
+            const query = urlParams.get('q') || '';
+            const page = parseInt(urlParams.get('page') || '1');
+            const size = parseInt(urlParams.get('size') || '10');
+            
+            async function loadNovels() {
+                try {
+                    novelList.innerHTML = '<%- include("../partials/skeleton", { type: "card", count: 10 }) %>';
+                    
+                    let apiUrl = `/novel/v1?sort=${sort}&page=${page}&size=${size}`;
+                    if (query) {
+                        apiUrl += `&q=${encodeURIComponent(query)}`;
+                    }
+                    
+                    const response = await apiClient.get(apiUrl);
+                    
+                    if (response.data && response.data.novels && response.data.novels.length > 0) {
+                        novelList.innerHTML = response.data.novels.map(novel => {
+                            const novelElement = document.createElement('div');
+                            novelElement.innerHTML = `<%- include('../partials/novel-preview-card', { novel: { 
+                                id: '${novel._id || novel.id}', 
+                                title: '${novel.title}', 
+                                author: '${novel.authorName || novel.author}',
+                                description: '${novel.description || ''}',
+                                thumbnail: '${novel.thumbnail || ''}',
+                                views: 0,
+                                likes: 0,
+                                genre: '${novel.genre || ''}',
+                                episodeCount: 0,
+                                updatedAt: '${novel.updatedAt || new Date().toISOString()}'
+                            }, showDescription: true }) %>`;
+                            return novelElement.innerHTML;
+                        }).join('');
+                        
+                        novelList.innerHTML = response.data.novels.map(novel => `
+                            <div class="novel-preview-card" onclick="window.location.href='/novel/${novel._id || novel.id}'" role="button" tabindex="0">
+                                <div class="novel-thumbnail">
+                                    ${novel.thumbnail ? 
+                                        `<img src="${novel.thumbnail}" alt="${novel.title} 썸네일" loading="lazy" onerror="this.src='/images/default-novel-cover.jpg'">` :
+                                        `<div class="thumbnail-placeholder">
+                                            <span class="material-symbols-outlined">menu_book</span>
+                                        </div>`
+                                    }
+                                </div>
+                                
+                                <div class="novel-info">
+                                    <div class="novel-header">
+                                        <h3 class="novel-title">${novel.title || '제목 없음'}</h3>
+                                        <p class="novel-author">
+                                            <span class="material-symbols-outlined">person</span>
+                                            ${novel.authorName || novel.author || '작가 미상'}
+                                        </p>
+                                    </div>
+                                    
+                                    ${novel.description ? `
+                                    <div class="novel-description">
+                                        ${novel.description.length > 30 ? novel.description.substring(0, 30) + '...' : novel.description}
+                                    </div>
+                                    ` : ''}
+                                    
+                                    <div class="novel-meta">
+                                        <span class="meta-item">
+                                            <span class="material-symbols-outlined">visibility</span>
+                                            ${formatNumber(novel.views || 0)}
+                                        </span>
+                                        <span class="meta-item">
+                                            <span class="material-symbols-outlined">favorite</span>
+                                            ${formatNumber(novel.likes || 0)}
+                                        </span>
+                                        ${novel.genre ? `
+                                        <span class="meta-item genre-tag">
+                                            ${novel.genre}
+                                        </span>
+                                        ` : ''}
+                                        ${novel.episodeCount ? `
+                                        <span class="meta-item">
+                                            <span class="material-symbols-outlined">library_books</span>
+                                            ${novel.episodeCount}화
+                                        </span>
+                                        ` : ''}
+                                    </div>
+                                    
+                                    ${novel.updatedAt ? `
+                                    <div class="novel-date">
+                                        <span class="date-label">최근 업데이트:</span>
+                                        <span class="date-value">${new Date(novel.updatedAt).toLocaleDateString('ko-KR')}</span>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `).join('');
+                        
+                        const totalPages = Math.ceil((response.data.total || 0) / size);
+                        if (totalPages > 1) {
+                            paginationContainer.innerHTML = `<%- include('../partials/pagination', { 
+                                currentPage: page, 
+                                totalPages: 1,
+                                baseUrl: '/novels'
+                            }) %>`;
+                            
+                            paginationContainer.innerHTML = getPaginationHTML(page, totalPages);
+                        }
+                    } else {
+                        novelList.innerHTML = `<%- include('../partials/empty-state', {
+                            icon: 'menu_book',
+                            title: '소설이 없습니다',
+                            message: query ? '검색 결과가 없습니다. 다른 검색어를 시도해보세요.' : '아직 등록된 소설이 없습니다.',
+                            showAction: true,
+                            actionText: '첫 소설 작성하기',
+                            actionUrl: '/novel/upload',
+                            actionIcon: 'add'
+                        }) %>`;
+                    }
+                } catch (error) {
+                    console.error('Error loading novels:', error);
+                    novelList.innerHTML = `<%- include('../partials/error-banner', { 
+                        message: '소설 목록을 불러오는 중 오류가 발생했습니다.',
+                        showRetry: true
+                    }) %>`;
+                }
+            }
+            
+            function formatNumber(num) {
+                if (num >= 1000000) return Math.floor(num / 1000000) + 'M';
+                if (num >= 1000) return Math.floor(num / 1000) + 'K';
+                return num.toString();
+            }
+            
+            function getPaginationHTML(currentPage, totalPages) {
+                const maxVisible = 5;
+                const pages = [];
+                
+                if (totalPages <= maxVisible) {
+                    for (let i = 1; i <= totalPages; i++) {
+                        pages.push(i);
+                    }
+                } else {
+                    const halfVisible = Math.floor(maxVisible / 2);
+                    let start = Math.max(1, currentPage - halfVisible);
+                    let end = Math.min(totalPages, start + maxVisible - 1);
+                    
+                    if (end - start < maxVisible - 1) {
+                        start = Math.max(1, end - maxVisible + 1);
+                    }
+                    
+                    if (start > 1) {
+                        pages.push(1);
+                        if (start > 2) pages.push('...');
+                    }
+                    
+                    for (let i = start; i <= end; i++) {
+                        if (i !== 1 && i !== totalPages) {
+                            pages.push(i);
+                        }
+                    }
+                    
+                    if (end < totalPages) {
+                        if (end < totalPages - 1) pages.push('...');
+                        pages.push(totalPages);
+                    }
+                }
+                
+                let html = '<nav class="pagination-container"><ul class="pagination">';
+                
+                html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a href="?page=1&sort=${sort}${query ? '&q=' + encodeURIComponent(query) : ''}" class="page-link">
+                        <span class="material-symbols-outlined">first_page</span>
+                    </a>
+                </li>`;
+                
+                html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a href="?page=${Math.max(1, currentPage - 1)}&sort=${sort}${query ? '&q=' + encodeURIComponent(query) : ''}" class="page-link">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </a>
+                </li>`;
+                
+                pages.forEach(page => {
+                    if (page === '...') {
+                        html += '<li class="page-item ellipsis"><span class="page-link">...</span></li>';
+                    } else {
+                        html += `<li class="page-item ${page === currentPage ? 'active' : ''}">
+                            <a href="?page=${page}&sort=${sort}${query ? '&q=' + encodeURIComponent(query) : ''}" class="page-link">${page}</a>
+                        </li>`;
+                    }
+                });
+                
+                html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a href="?page=${Math.min(totalPages, currentPage + 1)}&sort=${sort}${query ? '&q=' + encodeURIComponent(query) : ''}" class="page-link">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </a>
+                </li>`;
+                
+                html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a href="?page=${totalPages}&sort=${sort}${query ? '&q=' + encodeURIComponent(query) : ''}" class="page-link">
+                        <span class="material-symbols-outlined">last_page</span>
+                    </a>
+                </li>`;
+                
+                html += '</ul></nav>';
+                
+                return html;
+            }
+            
+            await loadNovels();
+        });
+    </script>
+</body>
+</html>

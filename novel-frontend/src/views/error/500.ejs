@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || '서버 오류' %></title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .error-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .error-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .error-code {
+            font-size: 8rem;
+            font-weight: 700;
+            color: var(--error-color);
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+        
+        .error-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .error-message {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .error-illustration {
+            margin-bottom: 2rem;
+        }
+        
+        .error-illustration .material-symbols-outlined {
+            font-size: 5rem;
+            color: var(--error-color);
+        }
+        
+        .error-details {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: var(--border-color);
+            border-radius: var(--border-radius);
+            max-width: 600px;
+            text-align: left;
+        }
+        
+        .error-details-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .error-details-content {
+            font-family: monospace;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 5rem;
+            }
+            
+            .error-title {
+                font-size: 1.5rem;
+            }
+            
+            .error-actions {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .error-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="error-page">
+    <%- include('../partials/header', { currentSection: locals.currentSection || '' }) %>
+    
+    <div class="error-container">
+        <div class="error-illustration">
+            <span class="material-symbols-outlined">error</span>
+        </div>
+        
+        <div class="error-code">500</div>
+        
+        <h1 class="error-title">서버 오류가 발생했습니다</h1>
+        
+        <p class="error-message">
+            요청을 처리하는 중에 문제가 발생했습니다.
+            잠시 후 다시 시도해주세요.
+        </p>
+        
+        <div class="error-actions">
+            <button onclick="window.location.reload()" class="btn btn-primary">
+                <span class="material-symbols-outlined">refresh</span>
+                새로고침
+            </button>
+            <a href="/" class="btn btn-secondary">
+                <span class="material-symbols-outlined">home</span>
+                홈으로 가기
+            </a>
+        </div>
+        
+        <% if (locals.error && process.env.NODE_ENV === 'development') { %>
+        <div class="error-details">
+            <div class="error-details-title">오류 정보 (개발 모드)</div>
+            <div class="error-details-content">
+                <%= error.message || error %>
+            </div>
+        </div>
+        <% } %>
+    </div>
+    
+    <%- include('../partials/footer') %>
+</body>
+</html>

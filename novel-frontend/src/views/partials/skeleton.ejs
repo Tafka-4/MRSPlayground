@@ -1,0 +1,168 @@
+<%
+const skeletonData = {
+    type: locals.type || 'card',
+    count: locals.count || 3,
+    ...locals
+};
+%>
+
+<% if (skeletonData.type === 'card') { %>
+    <% for (let i = 0; i < skeletonData.count; i++) { %>
+    <div class="skeleton-card">
+        <div class="skeleton-thumbnail skeleton-shimmer"></div>
+        <div class="skeleton-content">
+            <div class="skeleton-title skeleton-shimmer"></div>
+            <div class="skeleton-text skeleton-shimmer" style="width: 60%;"></div>
+            <div class="skeleton-text skeleton-shimmer" style="width: 80%;"></div>
+            <div class="skeleton-meta">
+                <span class="skeleton-meta-item skeleton-shimmer"></span>
+                <span class="skeleton-meta-item skeleton-shimmer"></span>
+                <span class="skeleton-meta-item skeleton-shimmer"></span>
+            </div>
+        </div>
+    </div>
+    <% } %>
+    
+<% } else if (skeletonData.type === 'list') { %>
+    <% for (let i = 0; i < skeletonData.count; i++) { %>
+    <div class="skeleton-list-item">
+        <div class="skeleton-avatar skeleton-shimmer"></div>
+        <div class="skeleton-list-content">
+            <div class="skeleton-text skeleton-shimmer" style="width: 30%;"></div>
+            <div class="skeleton-text skeleton-shimmer" style="width: 70%;"></div>
+        </div>
+    </div>
+    <% } %>
+    
+<% } else if (skeletonData.type === 'text') { %>
+    <% for (let i = 0; i < skeletonData.count; i++) { %>
+    <div class="skeleton-text-block">
+        <div class="skeleton-text skeleton-shimmer" style="width: 100%;"></div>
+        <div class="skeleton-text skeleton-shimmer" style="width: 90%;"></div>
+        <div class="skeleton-text skeleton-shimmer" style="width: 95%;"></div>
+        <div class="skeleton-text skeleton-shimmer" style="width: 85%;"></div>
+    </div>
+    <% } %>
+    
+<% } else if (skeletonData.type === 'grid') { %>
+    <div class="skeleton-grid">
+        <% for (let i = 0; i < skeletonData.count; i++) { %>
+        <div class="skeleton-grid-item">
+            <div class="skeleton-image skeleton-shimmer"></div>
+            <div class="skeleton-text skeleton-shimmer"></div>
+            <div class="skeleton-text skeleton-shimmer" style="width: 70%;"></div>
+        </div>
+        <% } %>
+    </div>
+<% } %>
+
+<style>
+.skeleton-shimmer {
+    animation: shimmer 2s infinite;
+    background: linear-gradient(
+        90deg,
+        var(--border-color) 0%,
+        var(--light-border-color) 50%,
+        var(--border-color) 100%
+    );
+    background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+.skeleton-thumbnail {
+    width: 120px;
+    height: 160px;
+    border-radius: 0.25rem;
+    flex-shrink: 0;
+}
+
+.skeleton-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.skeleton-title {
+    height: 24px;
+    width: 60%;
+    border-radius: 0.25rem;
+}
+
+.skeleton-text {
+    height: 16px;
+    border-radius: 0.25rem;
+}
+
+.skeleton-meta {
+    display: flex;
+    gap: 1rem;
+    margin-top: auto;
+}
+
+.skeleton-meta-item {
+    height: 20px;
+    width: 60px;
+    border-radius: 0.25rem;
+}
+
+.skeleton-list-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.skeleton-list-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.skeleton-text-block {
+    margin-bottom: 1.5rem;
+}
+
+.skeleton-text-block .skeleton-text {
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.skeleton-grid-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.skeleton-image {
+    width: 100%;
+    padding-bottom: 133%;
+    border-radius: 0.25rem;
+}
+</style>

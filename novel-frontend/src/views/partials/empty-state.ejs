@@ -1,0 +1,157 @@
+<%
+const emptyData = {
+    icon: locals.icon || 'inbox',
+    title: locals.title || '콘텐츠가 없습니다',
+    message: locals.message || '표시할 항목이 없습니다.',
+    showAction: locals.showAction !== false,
+    actionText: locals.actionText || '새로 만들기',
+    actionUrl: locals.actionUrl || '#',
+    actionIcon: locals.actionIcon || 'add',
+    ...locals
+};
+%>
+
+<div class="empty-state">
+    <div class="empty-state-icon">
+        <span class="material-symbols-outlined"><%= emptyData.icon %></span>
+    </div>
+    
+    <h3 class="empty-state-title"><%= emptyData.title %></h3>
+    
+    <p class="empty-state-message"><%= emptyData.message %></p>
+    
+    <% if (emptyData.suggestions && emptyData.suggestions.length > 0) { %>
+    <div class="empty-state-suggestions">
+        <p class="suggestions-title">다음을 시도해보세요:</p>
+        <ul class="suggestions-list">
+            <% emptyData.suggestions.forEach(suggestion => { %>
+            <li><%= suggestion %></li>
+            <% }); %>
+        </ul>
+    </div>
+    <% } %>
+    
+    <% if (emptyData.showAction) { %>
+    <div class="empty-state-actions">
+        <a href="<%= emptyData.actionUrl %>" class="btn btn-primary">
+            <span class="material-symbols-outlined"><%= emptyData.actionIcon %></span>
+            <%= emptyData.actionText %>
+        </a>
+        
+        <% if (emptyData.secondaryAction) { %>
+        <a href="<%= emptyData.secondaryAction.url %>" class="btn btn-secondary">
+            <% if (emptyData.secondaryAction.icon) { %>
+            <span class="material-symbols-outlined"><%= emptyData.secondaryAction.icon %></span>
+            <% } %>
+            <%= emptyData.secondaryAction.text %>
+        </a>
+        <% } %>
+    </div>
+    <% } %>
+</div>
+
+<style>
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 1.5rem;
+    min-height: 400px;
+}
+
+.empty-state-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    margin-bottom: 1.5rem;
+    background-color: var(--border-color);
+    border-radius: 50%;
+}
+
+.empty-state-icon .material-symbols-outlined {
+    font-size: 2.5rem;
+    color: var(--text-muted);
+}
+
+.empty-state-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.empty-state-message {
+    margin: 0 0 1.5rem 0;
+    color: var(--text-secondary);
+    max-width: 400px;
+    line-height: 1.5;
+}
+
+.empty-state-suggestions {
+    margin-bottom: 2rem;
+    max-width: 400px;
+}
+
+.suggestions-title {
+    margin: 0 0 0.5rem 0;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.suggestions-list {
+    text-align: left;
+    margin: 0;
+    padding-left: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.suggestions-list li {
+    margin-bottom: 0.5rem;
+}
+
+.empty-state-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.empty-state-actions .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .empty-state {
+        padding: 2rem 1rem;
+        min-height: 300px;
+    }
+    
+    .empty-state-icon {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .empty-state-icon .material-symbols-outlined {
+        font-size: 2rem;
+    }
+    
+    .empty-state-title {
+        font-size: 1.25rem;
+    }
+    
+    .empty-state-actions {
+        width: 100%;
+    }
+    
+    .empty-state-actions .btn {
+        flex: 1;
+        justify-content: center;
+    }
+}
+</style>

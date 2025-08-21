@@ -1,0 +1,77 @@
+<%
+const novel = locals.novel || {};
+const showDescription = locals.showDescription !== false;
+const maxDescLength = locals.maxDescLength || 30;
+
+const formatNumber = (num) => {
+    if (num >= 1000000) return Math.floor(num / 1000000) + 'M';
+    if (num >= 1000) return Math.floor(num / 1000) + 'K';
+    return num;
+};
+
+const truncateText = (text, maxLength) => {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+};
+%>
+
+<div class="novel-preview-card" onclick="window.location.href='/novel/<%= novel.id || novel._id %>'" role="button" tabindex="0">
+    <div class="novel-thumbnail">
+        <% if (novel.thumbnail) { %>
+        <img src="<%= novel.thumbnail %>" 
+             alt="<%= novel.title %> 썸네일" 
+             loading="lazy"
+             onerror="this.src='/images/default-novel-cover.jpg'">
+        <% } else { %>
+        <div class="thumbnail-placeholder">
+            <span class="material-symbols-outlined">menu_book</span>
+        </div>
+        <% } %>
+    </div>
+    
+    <div class="novel-info">
+        <div class="novel-header">
+            <h3 class="novel-title"><%= novel.title || '제목 없음' %></h3>
+            <p class="novel-author">
+                <span class="material-symbols-outlined">person</span>
+                <%= novel.author || novel.authorName || '작가 미상' %>
+            </p>
+        </div>
+        
+        <% if (showDescription && novel.description) { %>
+        <div class="novel-description">
+            <%= truncateText(novel.description, maxDescLength) %>
+        </div>
+        <% } %>
+        
+        <div class="novel-meta">
+            <span class="meta-item">
+                <span class="material-symbols-outlined">visibility</span>
+                <%= formatNumber(novel.views || 0) %>
+            </span>
+            <span class="meta-item">
+                <span class="material-symbols-outlined">favorite</span>
+                <%= formatNumber(novel.likes || 0) %>
+            </span>
+            <% if (novel.genre) { %>
+            <span class="meta-item genre-tag">
+                <%= novel.genre %>
+            </span>
+            <% } %>
+            <% if (novel.episodeCount) { %>
+            <span class="meta-item">
+                <span class="material-symbols-outlined">library_books</span>
+                <%= novel.episodeCount %>화
+            </span>
+            <% } %>
+        </div>
+        
+        <% if (novel.updatedAt) { %>
+        <div class="novel-date">
+            <span class="date-label">최근 업데이트:</span>
+            <span class="date-value"><%= new Date(novel.updatedAt).toLocaleDateString('ko-KR') %></span>
+        </div>
+        <% } %>
+    </div>
+</div>
