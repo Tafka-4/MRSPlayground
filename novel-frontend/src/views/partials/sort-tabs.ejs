@@ -1,0 +1,47 @@
+<%
+const sortData = {
+    current: locals.current || 'updated',
+    baseUrl: locals.baseUrl || '',
+    options: locals.options || [
+        { value: 'updated', label: '업데이트 날짜 순', icon: 'update' },
+        { value: 'views', label: '조회순', icon: 'visibility' },
+        { value: 'likes', label: '추천순', icon: 'favorite' }
+    ],
+    ...locals
+};
+
+const getUrl = (sort) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', sort);
+    return url.pathname + url.search;
+};
+%>
+
+<div class="sort-tabs-container">
+    <div class="sort-tabs">
+        <% sortData.options.forEach(option => { %>
+        <a href="?sort=<%= option.value %>" 
+           class="sort-tab <%= sortData.current === option.value ? 'active' : '' %>"
+           data-sort="<%= option.value %>">
+            <span class="material-symbols-outlined"><%= option.icon %></span>
+            <span><%= option.label %></span>
+        </a>
+        <% }); %>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.sort-tab');
+    
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(e) {
+            e.preventDefault();
+            const sort = this.dataset.sort;
+            const url = new URL(window.location.href);
+            url.searchParams.set('sort', sort);
+            window.location.href = url.toString();
+        });
+    });
+});
+</script>

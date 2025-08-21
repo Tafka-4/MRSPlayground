@@ -1,0 +1,198 @@
+<%
+const errorData = {
+    type: locals.type || 'error',
+    title: locals.title || '오류가 발생했습니다',
+    message: locals.message || '요청을 처리하는 중 문제가 발생했습니다.',
+    showRetry: locals.showRetry !== false,
+    retryText: locals.retryText || '다시 시도',
+    dismissible: locals.dismissible !== false,
+    ...locals
+};
+
+const iconMap = {
+    error: 'error',
+    warning: 'warning',
+    info: 'info',
+    success: 'check_circle'
+};
+
+const icon = iconMap[errorData.type] || 'error';
+%>
+
+<div class="error-banner error-banner-<%= errorData.type %>" role="alert">
+    <div class="error-banner-icon">
+        <span class="material-symbols-outlined"><%= icon %></span>
+    </div>
+    
+    <div class="error-banner-content">
+        <h3 class="error-banner-title"><%= errorData.title %></h3>
+        <p class="error-banner-message"><%= errorData.message %></p>
+        
+        <% if (errorData.details) { %>
+        <div class="error-banner-details">
+            <% if (typeof errorData.details === 'string') { %>
+                <p><%= errorData.details %></p>
+            <% } else if (Array.isArray(errorData.details)) { %>
+                <ul>
+                    <% errorData.details.forEach(detail => { %>
+                    <li><%= detail %></li>
+                    <% }); %>
+                </ul>
+            <% } else { %>
+                <pre><%= JSON.stringify(errorData.details, null, 2) %></pre>
+            <% } %>
+        </div>
+        <% } %>
+        
+        <% if (errorData.showRetry || errorData.actions) { %>
+        <div class="error-banner-actions">
+            <% if (errorData.showRetry) { %>
+            <button class="btn btn-primary" onclick="window.location.reload()">
+                <span class="material-symbols-outlined">refresh</span>
+                <%= errorData.retryText %>
+            </button>
+            <% } %>
+            
+            <% if (errorData.actions) { %>
+                <% errorData.actions.forEach(action => { %>
+                <button class="btn <%= action.class || 'btn-secondary' %>" 
+                        onclick="<%= action.onclick || '' %>">
+                    <% if (action.icon) { %>
+                    <span class="material-symbols-outlined"><%= action.icon %></span>
+                    <% } %>
+                    <%= action.text %>
+                </button>
+                <% }); %>
+            <% } %>
+        </div>
+        <% } %>
+    </div>
+    
+    <% if (errorData.dismissible) { %>
+    <button class="error-banner-close" aria-label="닫기" onclick="this.parentElement.remove()">
+        <span class="material-symbols-outlined">close</span>
+    </button>
+    <% } %>
+</div>
+
+<style>
+.error-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    margin: 1rem 0;
+    border-radius: var(--border-radius);
+    border: 1px solid;
+    position: relative;
+}
+
+.error-banner-error {
+    background-color: rgba(244, 67, 54, 0.1);
+    border-color: #f44336;
+    color: #c62828;
+}
+
+.error-banner-warning {
+    background-color: rgba(255, 152, 0, 0.1);
+    border-color: #ff9800;
+    color: #e65100;
+}
+
+.error-banner-info {
+    background-color: rgba(33, 150, 243, 0.1);
+    border-color: #2196f3;
+    color: #0277bd;
+}
+
+.error-banner-success {
+    background-color: rgba(76, 175, 80, 0.1);
+    border-color: #4caf50;
+    color: #2e7d32;
+}
+
+[data-theme='dark'] .error-banner-error {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: #ef5350;
+}
+
+[data-theme='dark'] .error-banner-warning {
+    background-color: rgba(255, 152, 0, 0.2);
+    color: #ffa726;
+}
+
+[data-theme='dark'] .error-banner-info {
+    background-color: rgba(33, 150, 243, 0.2);
+    color: #42a5f5;
+}
+
+[data-theme='dark'] .error-banner-success {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #66bb6a;
+}
+
+.error-banner-icon {
+    flex-shrink: 0;
+}
+
+.error-banner-icon .material-symbols-outlined {
+    font-size: 1.5rem;
+}
+
+.error-banner-content {
+    flex: 1;
+}
+
+.error-banner-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.error-banner-message {
+    margin: 0 0 0.5rem 0;
+    line-height: 1.5;
+}
+
+.error-banner-details {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.error-banner-details ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.error-banner-details pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.error-banner-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.error-banner-close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    color: inherit;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.error-banner-close:hover {
+    opacity: 1;
+}
+</style>

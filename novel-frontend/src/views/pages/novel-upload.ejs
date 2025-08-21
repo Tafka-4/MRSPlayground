@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    <main class="main-content">
+        <div class="container" style="max-width:720px;padding:2rem 0;">
+            <h1>소설 업로드</h1>
+            <form id="novelForm" class="form">
+                <div class="form-group">
+                    <label>제목</label>
+                    <input type="text" name="title" class="input" required>
+                </div>
+                <div class="form-group">
+                    <label>설명</label>
+                    <textarea name="description" class="input" rows="5" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>장르</label>
+                    <select name="genre" class="input">
+                        <option value="">선택 없음</option>
+                        <option value="fantasy">판타지</option>
+                        <option value="romance">로맨스</option>
+                        <option value="action">액션</option>
+                        <option value="mystery">미스터리</option>
+                        <option value="sf">SF</option>
+                        <option value="horror">호러</option>
+                        <option value="comedy">코미디</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>태그</label>
+                    <input type="text" name="tags" class="input" placeholder="쉼표로 구분 (예: 던전, 성장, 모험)">
+                </div>
+                <div class="form-group">
+                    <label>썸네일 URL</label>
+                    <input type="url" name="thumbnailImage" class="input" placeholder="https://...">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">등록</button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <%- include('../partials/footer') %>
+    <script type="module">
+        import apiClient from '/module/api.js';
+        const form = document.getElementById('novelForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = new FormData(form);
+            const body = {
+                title: data.get('title'),
+                description: data.get('description'),
+                genre: data.get('genre') || '',
+                tags: (data.get('tags') || '').toString().split(',').map(s => s.trim()).filter(Boolean),
+                thumbnailImage: data.get('thumbnailImage') || ''
+            };
+            try {
+                const res = await apiClient.post('/api/novel/v1', body);
+                const novel = res.data;
+                window.location.href = `/novel/${novel.novelId || novel._id || novel.id}`;
+            } catch (err) {
+                alert('업로드 실패: ' + (err?.data?.message || err.message));
+            }
+        });
+    </script>
+</body>
+</html>
+
