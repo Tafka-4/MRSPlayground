@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || '페이지를 찾을 수 없습니다' %></title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="/css/main.css">
+    <style>
+        .error-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .error-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .error-code {
+            font-size: 8rem;
+            font-weight: 700;
+            color: var(--purple-color);
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+        
+        .error-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .error-message {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+        
+        .error-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        .error-illustration {
+            margin-bottom: 2rem;
+        }
+        
+        .error-illustration .material-symbols-outlined {
+            font-size: 5rem;
+            color: var(--text-muted);
+        }
+        
+        @media (max-width: 768px) {
+            .error-code {
+                font-size: 5rem;
+            }
+            
+            .error-title {
+                font-size: 1.5rem;
+            }
+            
+            .error-actions {
+                flex-direction: column;
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .error-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="error-page">
+    <%- include('../partials/header', { currentSection: locals.currentSection || '' }) %>
+    
+    <div class="error-container">
+        <div class="error-illustration">
+            <span class="material-symbols-outlined">search_off</span>
+        </div>
+        
+        <div class="error-code">404</div>
+        
+        <h1 class="error-title">페이지를 찾을 수 없습니다</h1>
+        
+        <p class="error-message">
+            요청하신 페이지가 존재하지 않거나 이동되었을 수 있습니다.
+            URL을 다시 확인해주세요.
+        </p>
+        
+        <div class="error-actions">
+            <a href="/" class="btn btn-primary">
+                <span class="material-symbols-outlined">home</span>
+                홈으로 가기
+            </a>
+            <button onclick="history.back()" class="btn btn-secondary">
+                <span class="material-symbols-outlined">arrow_back</span>
+                이전 페이지
+            </button>
+        </div>
+    </div>
+    
+    <%- include('../partials/footer') %>
+</body>
+</html>

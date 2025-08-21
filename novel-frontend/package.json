@@ -1,0 +1,35 @@
+{
+    "name": "novel-frontend",
+    "version": "1.0.0",
+    "description": "Novel Archive Frontend Service",
+    "license": "ISC",
+    "author": "MRS Playground",
+    "type": "module",
+    "scripts": {
+        "build": "tsc && npm run copy-static",
+        "start": "node ./dist/index.js",
+        "dev": "nodemon --watch src --ext ts,json,ejs,css,js --exec \"tsx ./src/index.ts\"",
+        "copy-static": "node scripts/copy-static.mjs",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "dependencies": {
+        "@types/cookie-parser": "^1.4.8",
+        "@types/express-session": "^1.18.0",
+        "cookie-parser": "^1.4.7",
+        "dotenv": "^16.4.7",
+        "ejs": "^3.1.10",
+        "express": "^4.21.2",
+        "express-rate-limit": "^7.4.1",
+        "express-session": "^1.18.1",
+        "redis": "^4.7.0",
+        "uuid": "^11.1.0"
+    },
+    "devDependencies": {
+        "@types/express": "^5.0.2",
+        "@types/node": "^22.0.0",
+        "nodemon": "^3.1.10",
+        "ts-node": "^10.9.2",
+        "tsx": "^4.19.4",
+        "typescript": "^5.7.0"
+    }
+}

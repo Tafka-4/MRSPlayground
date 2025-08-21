@@ -23,7 +23,7 @@ const callUserService = async (endpoint: string, options: RequestInit = {}) => {
 
 // login required
 export const createNovel = async (req: Request, res: Response) => {
-    const { title, description, thumbnailImage } = req.body;
+    const { title, description, thumbnailImage, genre, tags } = req.body;
     const userId = req.user?.userid;
 
     if (!userId) {
@@ -33,13 +33,22 @@ export const createNovel = async (req: Request, res: Response) => {
         throw new novelError.NovelError("Title and description are required");
     }
 
-    const novelData = {
+    const novelData: any = {
         title: escape(title),
         description: escape(description),
         thumbnailImage: escape(thumbnailImage || ""),
         author: userId,
         status: "ongoing"
     };
+
+    if (genre) {
+        novelData.genre = escape(genre);
+    }
+    if (Array.isArray(tags)) {
+        novelData.tags = tags.map((t: string) => escape(t.trim())).filter((t: string) => t.length > 0);
+    } else if (typeof tags === 'string') {
+        novelData.tags = tags.split(',').map((t: string) => escape(t.trim())).filter((t: string) => t.length > 0);
+    }
 
     const novel = await Novel.create(novelData);
 
@@ -73,7 +82,7 @@ export const getNovel = async (req: Request, res: Response) => {
 // login required
 export const updateNovel = async (req: Request, res: Response) => {
     const { novelId } = req.params;
-    const { title, description } = req.body;
+    const { title, description, genre, tags, status } = req.body;
     const userId = req.user?.userid;
 
     if (!userId) {
@@ -83,6 +92,17 @@ export const updateNovel = async (req: Request, res: Response) => {
     const updateData: any = {};
     if (title) updateData.title = escape(title);
     if (description) updateData.description = escape(description);
+    if (genre !== undefined) updateData.genre = genre ? escape(genre) : "";
+    if (status !== undefined) updateData.status = escape(status);
+    if (tags !== undefined) {
+        if (Array.isArray(tags)) {
+            updateData.tags = tags.map((t: string) => escape(t.trim())).filter((t: string) => t.length > 0);
+        } else if (typeof tags === 'string') {
+            updateData.tags = tags.split(',').map((t: string) => escape(t.trim())).filter((t: string) => t.length > 0);
+        } else {
+            updateData.tags = [];
+        }
+    }
     // Only update if there's something to update
     if (Object.keys(updateData).length === 0) {
          throw new novelError.NovelError("No fields provided for update");
@@ -259,8 +279,8 @@ export const deleteThumbnailImage = async (req: Request, res: Response) => {
 
 // login required
 export const getNovelList = async (req: Request, res: Response) => {
-    const { query, limit, page, sort, genre, status } = req.query;
-    const limitNumber = parseInt(limit as string) || 10;
+    const { query, q, limit, size, page, sort, genre, status, tags } = req.query as any;
+    const limitNumber = parseInt((limit || size) as string) || 10;
     const pageNumber = parseInt(page as string) || 1;
 
     if (limitNumber < 1 || limitNumber > 100) {
@@ -268,16 +288,25 @@ export const getNovelList = async (req: Request, res: Response) => {
     }
 
     const filter: any = {};
-    if (query) filter.title = { $regex: query, $options: "i" };
-    if (genre && typeof genre === 'string') filter.genre = genre; // Add genre filter
-    if (status && typeof status === 'string') filter.status = status; // Add status filter
+    const search = (query || q) as string | undefined;
+    if (search) filter.title = { $regex: search, $options: "i" };
+    if (genre && typeof genre === 'string') filter.genre = genre;
+    if (status && typeof status === 'string') filter.status = status;
+    if (tags) {
+        const tagList = typeof tags === 'string' ? tags.split(',').map((t: string) => t.trim()).filter(Boolean) : Array.isArray(tags) ? tags : [];
+        if (tagList.length > 0) {
+            filter.tags = { $all: tagList };
+        }
+    }
 
-    let sortOptions: any = { createdAt: -1 }; // Default sort
-    if (sort === 'views') sortOptions = { viewCount: -1 };
-    else if (sort === 'likes') sortOptions = { likeCount: -1 };
-    else if (sort === 'favorites') sortOptions = { favoriteCount: -1 };
-    else if (sort === 'episodes') sortOptions = { episodeCount: -1 };
-    else if (sort === 'recent') sortOptions = { updatedAt: -1 };
+    let sortKey = sort as string;
+    if (sortKey === 'updated') sortKey = 'recent';
+    let sortOptions: any = { createdAt: -1 };
+    if (sortKey === 'views') sortOptions = { viewCount: -1 };
+    else if (sortKey === 'likes') sortOptions = { likeCount: -1 };
+    else if (sortKey === 'favorites') sortOptions = { favoriteCount: -1 };
+    else if (sortKey === 'episodes') sortOptions = { episodeCount: -1 };
+    else if (sortKey === 'recent') sortOptions = { updatedAt: -1 };
 
     const novels = await Novel.find(filter)
         .sort(sortOptions)
@@ -288,6 +317,7 @@ export const getNovelList = async (req: Request, res: Response) => {
 
     res.status(200).json({
         novels,
+        total: totalNovels,
         totalPages: Math.ceil(totalNovels / limitNumber),
         currentPage: pageNumber,
     });

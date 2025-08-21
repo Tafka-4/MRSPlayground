@@ -37,6 +37,8 @@ export interface INovel extends mongoose.Document {
     favoriteCount: number;
     author: string;
     status: string;
+    genre?: string;
+    tags?: string[];
     createdAt: Date;
     updatedAt: Date;
     like(userId: string): Promise<void>;
@@ -61,11 +63,11 @@ const novelSchema = new mongoose.Schema({
     favoriteCount: { type: Number, default: 0 },
     author: { type: String, required: true },
     status: { type: String, required: true },
+    genre: { type: String, default: "" },
+    tags: { type: [String], default: [] },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now },
 });
-
-const Novel = mongoose.model<INovel>("Novel", novelSchema);
 
 novelSchema.pre("save", async function (next) {
     this.updatedAt = new Date();
