@@ -251,7 +251,7 @@
 }
 
 .social-link:hover .material-symbols-outlined {
-    color: var(--primary-color);
+    color: var(--card-background);
 }
 
 .social-link .material-symbols-outlined {
