@@ -145,7 +145,15 @@
                             </div>
                         `).join('');
                     } else {
-                        popularGrid.innerHTML = '<%- include("../partials/empty-state", { icon: "trophy", title: "인기 작품이 없어요", message: "조금만 기다려주세요. 작품들이 모이면 이곳에 보여드릴게요.", compact: true }) %>';
+                        popularGrid.innerHTML = `
+                            <div class="empty-state compact">
+                                <div class="empty-state-icon">
+                                    <span class="material-symbols-outlined">trophy</span>
+                                </div>
+                                <h3 class="empty-state-title">인기 작품이 없어요</h3>
+                                <p class="empty-state-message">조금만 기다려주세요. 작품들이 모이면 이곳에 보여드릴게요.</p>
+                            </div>
+                        `;
                     }
                 } catch (error) {
                     console.error('Error loading popular novels:', error);
@@ -170,7 +178,15 @@
                             </div>
                         `).join('');
                     } else {
-                        newsList.innerHTML = '<%- include("../partials/empty-state", { icon: "newspaper", title: "새 소식이 없어요", message: "업데이트가 올라오면 곧바로 알려드릴게요.", compact: true }) %>';
+                        newsList.innerHTML = `
+                            <div class="empty-state compact">
+                                <div class="empty-state-icon">
+                                    <span class="material-symbols-outlined">newspaper</span>
+                                </div>
+                                <h3 class="empty-state-title">새 소식이 없어요</h3>
+                                <p class="empty-state-message">업데이트가 올라오면 곧바로 알려드릴게요.</p>
+                            </div>
+                        `;
                     }
                 } catch (error) {
                     console.error('Error loading news:', error);
@@ -201,7 +217,21 @@
                             </div>
                         `).join('');
                     } else {
-                        activityList.innerHTML = '<%- include("../partials/empty-state", { icon: "history", title: "아직 활동이 없어요", message: "읽기나 추천, 북마크를 시작해보세요!", showAction: true, actionText: "소설 둘러보기", actionUrl: "/novels", actionIcon: "auto_stories", compact: true }) %>';
+                        activityList.innerHTML = `
+                            <div class="empty-state compact">
+                                <div class="empty-state-icon">
+                                    <span class="material-symbols-outlined">history</span>
+                                </div>
+                                <h3 class="empty-state-title">아직 활동이 없어요</h3>
+                                <p class="empty-state-message">읽기나 추천, 북마크를 시작해보세요!</p>
+                                <div class="empty-state-actions">
+                                    <a href="/novels" class="btn btn-primary">
+                                        <span class="material-symbols-outlined">auto_stories</span>
+                                        소설 둘러보기
+                                    </a>
+                                </div>
+                            </div>
+                        `;
                     }
                 } catch (error) {
                     console.error('Error loading activities:', error);

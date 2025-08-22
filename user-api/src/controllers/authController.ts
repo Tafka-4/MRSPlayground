@@ -99,20 +99,10 @@ export const registerUser = async (req: Request, res: Response) => {
 const buildCookieOptions = (req: Request) => {
     const forwardedProto = (req.headers['x-forwarded-proto'] as string) || '';
     const isHttps = req.secure || forwardedProto === 'https';
-    let sameSite: 'lax' | 'none' = 'lax';
-    const origin = req.headers.origin as string | undefined;
-    try {
-        if (origin) {
-            const originUrl = new URL(origin);
-            if (originUrl.hostname !== req.hostname) {
-                sameSite = 'none';
-            }
-        }
-    } catch {}
     const options: any = {
         httpOnly: true,
         secure: isHttps,
-        sameSite,
+        sameSite: 'none',
         maxAge: 7 * 24 * 60 * 60 * 1000,
         path: '/'
     };
