@@ -15,18 +15,67 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '3002');
 
 let redisClient: ReturnType<typeof createClient> | null = null;
+let isReconnecting = false;
+let lastErrorLoggedAt = 0;
+let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+
+const setupRedisEvents = (client: ReturnType<typeof createClient>) => {
+    client.on('error', (err: unknown) => {
+        const now = Date.now();
+        if (now - lastErrorLoggedAt > 60000) {
+            console.error('Redis Client Error:', err);
+            lastErrorLoggedAt = now;
+        }
+        if (!isReconnecting && !client.isOpen) {
+            isReconnecting = true;
+            setTimeout(async () => {
+                try {
+                    await client.connect();
+                    isReconnecting = false;
+                } catch {
+                    isReconnecting = false;
+                }
+            }, 3000);
+        }
+    });
+    client.on('end', () => {
+        if (!isReconnecting) {
+            isReconnecting = true;
+            setTimeout(async () => {
+                try {
+                    await client.connect();
+                    isReconnecting = false;
+                } catch {
+                    isReconnecting = false;
+                }
+            }, 3000);
+        }
+    });
+    client.on('ready', () => {
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+        }
+        heartbeatInterval = setInterval(async () => {
+            if (redisClient && redisClient.isOpen) {
+                try { await redisClient.ping(); } catch {}
+            }
+        }, 30000);
+    });
+};
 
 const initRedis = async () => {
     try {
         redisClient = createClient({
             url: process.env.REDIS_URL || 'redis://redis:6379',
-            password: process.env.REDIS_PASSWORD
+            password: process.env.REDIS_PASSWORD,
+            socket: {
+                connectTimeout: 10000,
+                keepAlive: true,
+                reconnectStrategy: (retries: number) => Math.min(retries * 1000, 5000)
+            }
         });
-
-        redisClient.on('error', (err) => {
-            console.error('Redis Client Error:', err);
-        });
-
+        setupRedisEvents(redisClient);
         await redisClient.connect();
         console.log('✅ Redis connected');
     } catch (error) {
