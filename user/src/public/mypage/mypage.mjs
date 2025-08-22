@@ -56,7 +56,7 @@ class MyPageManager {
 
         const badges = [
             createRoleBadge(this.user.authority),
-            createVerificationBadge(this.user.isVerified, () => window.location.href = '/auth/verify-internal-member'),
+            createVerificationBadge(this.user.isVerified, () => window.location.href = '/verify-internal-member'),
         ];
         badges.forEach(badge => {
             if (badge) badgeContainer.appendChild(badge);

@@ -137,7 +137,7 @@
                             </div>
                         `).join('');
                     } else {
-                        popularGrid.innerHTML = '<%- include("../partials/empty-state", { title: "작품이 없습니다", message: "아직 인기 작품이 없습니다." }) %>';
+                        popularGrid.innerHTML = '<%- include("../partials/empty-state", { icon: "menu_book", title: "작품이 없습니다", message: "아직 인기 작품이 없습니다." }) %>';
                     }
                 } catch (error) {
                     console.error('Error loading popular novels:', error);

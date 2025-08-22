@@ -2,7 +2,11 @@ class ApiClient {
     constructor() {
         this.isRefreshing = false;
         this.failedQueue = [];
-        this.baseUrl = '';
+        try {
+            this.baseUrl = (typeof window !== 'undefined' && window.__API_BASE_URL) || 'https://api.magicresearches.com';
+        } catch (e) {
+            this.baseUrl = 'https://api.magicresearches.com';
+        }
     }
 
     generateRequestId() {
@@ -151,7 +155,7 @@ class ApiClient {
 
     async refreshToken() {
         try {
-            const response = await fetch('/api/v1/auth/refresh', {
+            const response = await fetch(`${this.baseUrl}/api/v1/auth/refresh`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {

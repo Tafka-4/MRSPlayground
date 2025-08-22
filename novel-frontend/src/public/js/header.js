@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
+    const API_BASE = 'https://api.magicresearches.com';
     const header = document.querySelector('.main-header');
     const dropdowns = document.querySelectorAll('.dropdown');
     const themeToggle = document.getElementById('themeToggle');
@@ -105,7 +106,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async function() {
             try {
-                const response = await fetch('/api/v1/auth/logout', {
+                const response = await fetch(`${API_BASE}/api/v1/auth/logout`, {
                     method: 'POST',
                     credentials: 'include'
                 });
@@ -125,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const token = localStorage.getItem('accessToken');
             if (!token) return;
             
-            const response = await fetch('/api/v1/users/me', {
+            const response = await fetch(`${API_BASE}/api/v1/users/me`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
