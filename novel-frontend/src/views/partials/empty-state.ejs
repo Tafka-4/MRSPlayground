@@ -7,11 +7,12 @@ const emptyData = {
     actionText: locals.actionText || '새로 만들기',
     actionUrl: locals.actionUrl || '#',
     actionIcon: locals.actionIcon || 'add',
+    compact: !!locals.compact,
     ...locals
 };
 %>
 
-<div class="empty-state">
+<div class="empty-state<%= emptyData.compact ? ' compact' : '' %>">
     <div class="empty-state-icon">
         <span class="material-symbols-outlined"><%= emptyData.icon %></span>
     </div>
@@ -61,6 +62,11 @@ const emptyData = {
     min-height: 400px;
 }
 
+.empty-state.compact {
+    padding: 1.25rem 1rem;
+    min-height: 180px;
+}
+
 .empty-state-icon {
     display: flex;
     align-items: center;
@@ -77,6 +83,16 @@ const emptyData = {
     color: var(--text-muted);
 }
 
+.empty-state.compact .empty-state-icon {
+    width: 56px;
+    height: 56px;
+    margin-bottom: 0.75rem;
+}
+
+.empty-state.compact .empty-state-icon .material-symbols-outlined {
+    font-size: 2rem;
+}
+
 .empty-state-title {
     margin: 0 0 0.5rem 0;
     font-size: 1.5rem;
@@ -84,12 +100,16 @@ const emptyData = {
     color: var(--text-primary);
 }
 
+.empty-state.compact .empty-state-title { font-size: 1.1rem; }
+
 .empty-state-message {
     margin: 0 0 1.5rem 0;
     color: var(--text-secondary);
     max-width: 400px;
     line-height: 1.5;
 }
+
+.empty-state.compact .empty-state-message { margin-bottom: 1rem; }
 
 .empty-state-suggestions {
     margin-bottom: 2rem;

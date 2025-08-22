@@ -145,7 +145,7 @@
                             </div>
                         `).join('');
                     } else {
-                        popularGrid.innerHTML = '<%- include("../partials/empty-state", { icon: "menu_book", title: "작품이 없습니다", message: "아직 인기 작품이 없습니다." }) %>';
+                        popularGrid.innerHTML = '<%- include("../partials/empty-state", { icon: "trophy", title: "인기 작품이 없어요", message: "조금만 기다려주세요. 작품들이 모이면 이곳에 보여드릴게요.", compact: true }) %>';
                     }
                 } catch (error) {
                     console.error('Error loading popular novels:', error);
@@ -170,7 +170,7 @@
                             </div>
                         `).join('');
                     } else {
-                        newsList.innerHTML = '<%- include("../partials/empty-state", { icon: "newspaper", title: "소식이 없습니다", message: "아직 최신 소식이 없습니다." }) %>';
+                        newsList.innerHTML = '<%- include("../partials/empty-state", { icon: "newspaper", title: "새 소식이 없어요", message: "업데이트가 올라오면 곧바로 알려드릴게요.", compact: true }) %>';
                     }
                 } catch (error) {
                     console.error('Error loading news:', error);
@@ -201,7 +201,7 @@
                             </div>
                         `).join('');
                     } else {
-                        activityList.innerHTML = '<%- include("../partials/empty-state", { icon: "history", title: "활동 내역이 없습니다", message: "아직 활동 내역이 없습니다.", showAction: false }) %>';
+                        activityList.innerHTML = '<%- include("../partials/empty-state", { icon: "history", title: "아직 활동이 없어요", message: "읽기나 추천, 북마크를 시작해보세요!", showAction: true, actionText: "소설 둘러보기", actionUrl: "/novels", actionIcon: "auto_stories", compact: true }) %>';
                     }
                 } catch (error) {
                     console.error('Error loading activities:', error);

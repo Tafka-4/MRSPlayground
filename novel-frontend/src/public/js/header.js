@@ -147,16 +147,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 token = await ensureAccessToken();
             }
             if (!token) return;
-            
-            const response = await fetch(`${API_BASE}/api/v1/auth/me`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+
+            const doMe = async (bearer) => fetch(`${API_BASE}/api/v1/auth/me`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: { 'Authorization': `Bearer ${bearer}` }
             });
-            
+
+            let response = await doMe(token);
+            if (response.status === 401) {
+                const refreshed = await ensureAccessToken();
+                if (refreshed) {
+                    token = refreshed;
+                    response = await doMe(token);
+                }
+            }
+
             if (response.ok) {
                 const data = await response.json();
-                if (data.role === 'admin' && adminMenuItem) {
+                const role = data?.user?.authority || data?.authority || data?.role;
+                if ((role === 'admin' || role === 'bot') && adminMenuItem) {
                     adminMenuItem.style.display = 'block';
                 }
             }
