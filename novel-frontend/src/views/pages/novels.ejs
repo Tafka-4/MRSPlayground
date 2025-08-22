@@ -6,6 +6,11 @@
     <title><%= title %></title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/component/style/buttons.css">
+    <link rel="stylesheet" href="/component/style/cards.css">
+    <link rel="stylesheet" href="/component/style/badges.css">
+    <link rel="stylesheet" href="/component/style/forms.css">
+    <link rel="stylesheet" href="/component/style/navigation.css">
     <link rel="stylesheet" href="/css/novel-card.css">
     <style>
         .novels-page {
@@ -144,28 +149,11 @@
                     const response = await apiClient.get(apiUrl);
                     
                     if (response.data && response.data.novels && response.data.novels.length > 0) {
-                        novelList.innerHTML = response.data.novels.map(novel => {
-                            const novelElement = document.createElement('div');
-                            novelElement.innerHTML = `<%- include('../partials/novel-preview-card', { novel: { 
-                                id: '${novel._id || novel.id}', 
-                                title: '${novel.title}', 
-                                author: '${novel.authorName || novel.author}',
-                                description: '${novel.description || ''}',
-                                thumbnail: '${novel.thumbnail || ''}',
-                                views: 0,
-                                likes: 0,
-                                genre: '${novel.genre || ''}',
-                                episodeCount: 0,
-                                updatedAt: '${novel.updatedAt || new Date().toISOString()}'
-                            }, showDescription: true }) %>`;
-                            return novelElement.innerHTML;
-                        }).join('');
-                        
                         novelList.innerHTML = response.data.novels.map(novel => `
                             <div class="novel-preview-card" onclick="window.location.href='/novel/${novel.novelId || novel._id || novel.id}'" role="button" tabindex="0">
                                 <div class="novel-thumbnail">
                                     ${novel.thumbnailImage ? 
-                                        `<img src="${novel.thumbnailImage}" alt="${novel.title} 썸네일" loading="lazy" onerror="this.src='/images/default-novel-cover.jpg'">` :
+                                        `<img src="${novel.thumbnailImage}" alt="${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')} 썸네일" loading="lazy" onerror="this.src='/images/default-novel-cover.jpg'">` :
                                         `<div class="thumbnail-placeholder">
                                             <span class="material-symbols-outlined">menu_book</span>
                                         </div>`
@@ -174,16 +162,16 @@
                                 
                                 <div class="novel-info">
                                     <div class="novel-header">
-                                        <h3 class="novel-title">${novel.title || '제목 없음'}</h3>
+                                        <h3 class="novel-title">${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}</h3>
                                         <p class="novel-author">
                                             <span class="material-symbols-outlined">person</span>
-                                            ${novel.authorName || novel.author || '작가 미상'}
+                                            ${String(novel.authorName || novel.author || '작가 미상').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}
                                         </p>
                                     </div>
                                     
                                     ${novel.description ? `
                                     <div class="novel-description">
-                                        ${novel.description.length > 30 ? novel.description.substring(0, 30) + '...' : novel.description}
+                                        ${String(novel.description).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').slice(0,30)}${novel.description.length>30?'...':''}
                                     </div>
                                     ` : ''}
                                     
@@ -198,11 +186,11 @@
                                         </span>
                                         ${novel.genre ? `
                                         <span class="meta-item genre-tag">
-                                            ${novel.genre}
+                                            ${String(novel.genre).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
                                         </span>
                                         ` : ''}
                                         ${Array.isArray(novel.tags) && novel.tags.length ? `
-                                        ${novel.tags.slice(0, 3).map(t => `<span class=\"meta-item genre-tag\">${t}</span>`).join('')}
+                                        ${novel.tags.slice(0, 3).map(t => `<span class=\"meta-item genre-tag\">${String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`).join('')}
                                         ` : ''}
                                         ${novel.episodeCount ? `
                                         <span class="meta-item">
@@ -242,6 +230,7 @@
                             actionUrl: '/novel/upload',
                             actionIcon: 'add'
                         }) %>`;
+                        paginationContainer.innerHTML = '';
                     }
                 } catch (error) {
                     console.error('Error loading novels:', error);

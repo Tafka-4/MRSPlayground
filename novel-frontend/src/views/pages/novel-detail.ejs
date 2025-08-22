@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/component/style/buttons.css">
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
@@ -31,17 +32,17 @@
             container.innerHTML = `
                 <div class="novel-detail-card">
                     <div class="novel-header" style="display:flex;gap:16px;align-items:center;">
-                        ${n.thumbnailImage ? `<img src="${n.thumbnailImage}" alt="${n.title}" style="width:120px;height:160px;object-fit:cover;border-radius:4px;">` : ''}
+                        ${n.thumbnailImage ? `<img src="${n.thumbnailImage}" alt="${String(n.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}" style="width:120px;height:160px;object-fit:cover;border-radius:4px;">` : ''}
                         <div>
-                            <h2 style="margin:0 0 8px;">${n.title}</h2>
-                            <div style="color:var(--text-secondary);">${n.author || 'Unknown'}</div>
+                            <h2 style="margin:0 0 8px;">${String(n.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h2>
+                            <div style="color:var(--text-secondary);">${String(n.author||'Unknown').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
                             <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-                                ${n.genre ? `<span class="genre-tag">${n.genre}</span>` : ''}
-                                ${Array.isArray(n.tags) ? n.tags.slice(0,5).map(t=>`<span class=\"genre-tag\">${t}</span>`).join('') : ''}
+                                ${n.genre ? `<span class="genre-tag">${String(n.genre).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>` : ''}
+                                ${Array.isArray(n.tags) ? n.tags.slice(0,5).map(t=>`<span class=\"genre-tag\">${String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`).join('') : ''}
                             </div>
                         </div>
                     </div>
-                    <div class="novel-body" style="margin-top:16px;white-space:pre-wrap;">${n.description || ''}</div>
+                    <div class="novel-body" style="margin-top:16px;white-space:pre-wrap;">${String(n.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
                 </div>
             `;
         } catch (e) {

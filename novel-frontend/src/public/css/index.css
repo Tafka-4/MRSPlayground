@@ -1,8 +1,9 @@
 .hero-section {
     padding: 3rem 0;
-    background: linear-gradient(135deg, var(--purple-color) 0%, var(--purple-hover) 100%);
-    color: white;
+    background: var(--card-background);
+    color: var(--text-primary);
     border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
     margin-bottom: 3rem;
 }
 
@@ -82,9 +83,9 @@
 }
 
 .tab-btn.active {
-    background: var(--purple-color);
-    color: white;
-    border-color: var(--purple-color);
+    background: var(--border-color);
+    color: var(--text-primary);
+    border-color: var(--border-color);
 }
 
 .popular-section {
@@ -109,7 +110,7 @@
 .novel-card-grid:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
-    border-color: var(--purple-color);
+    border-color: var(--light-border-color);
 }
 
 .novel-card-grid .novel-thumbnail {

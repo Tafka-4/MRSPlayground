@@ -20,8 +20,8 @@
     --warning-color: #eea73c;
     --success-color: #28a745;
     --info-color: rgb(23, 162, 184);
-    --purple-color: #8b5cf6;
-    --purple-hover: #7c3aed;
+    --purple-color: var(--primary-color);
+    --purple-hover: var(--primary-hover);
     
     --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.15);
@@ -91,7 +91,7 @@ a {
 }
 
 a:hover {
-    color: var(--purple-color);
+    color: rgb(50, 50, 50);
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -106,6 +106,41 @@ h3 { font-size: 1.5rem; }
 h4 { font-size: 1.25rem; }
 h5 { font-size: 1.1rem; }
 h6 { font-size: 1rem; }
+
+.title {
+    display: flex;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    font-weight: 500;
+    margin: 0 0 1rem 0;
+}
+
+.subtitle {
+    display: flex;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    color: var(--secondary-color);
+    margin: 0.5rem 0 1rem 0;
+    font-size: 0.85rem;
+    font-weight: 300;
+}
+
+.subtitle a {
+    color: var(--primary-color);
+    text-decoration: none;
+    margin-left: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color var(--transition);
+}
+
+.subtitle a:hover {
+    color: rgb(50, 50, 50);
+}
 
 .btn {
     display: inline-flex;
@@ -123,13 +158,13 @@ h6 { font-size: 1rem; }
 }
 
 .btn-primary {
-    background-color: var(--purple-color);
-    color: white;
+    background-color: var(--text-primary);
+    color: var(--card-background);
 }
 
 .btn-primary:hover {
-    background-color: var(--purple-hover);
-    color: white;
+    background-color: var(--primary-hover);
+    color: var(--card-background);
 }
 
 .btn-secondary {
@@ -200,8 +235,8 @@ h6 { font-size: 1rem; }
 
 .form-control:focus {
     outline: none;
-    border-color: var(--purple-color);
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    border-color: var(--text-secondary);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
 }
 
 .form-hint {
@@ -257,7 +292,7 @@ h6 { font-size: 1rem; }
     width: 40px;
     height: 40px;
     border: 3px solid var(--border-color);
-    border-top-color: var(--purple-color);
+    border-top-color: var(--text-primary);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
 }
@@ -315,6 +350,10 @@ h6 { font-size: 1rem; }
         transform: translateX(100%);
         opacity: 0;
     }
+}
+
+.component-shared-styles {
+    display: none;
 }
 
 .modal {
@@ -391,18 +430,17 @@ h6 { font-size: 1rem; }
 }
 
 .nav-link.active {
-    background-color: var(--purple-color);
-    color: white;
+    background-color: var(--border-color);
+    color: var(--text-primary);
 }
 
 .nav-link.active:hover {
-    background-color: var(--purple-hover);
-    color: white;
+    background-color: var(--light-border-color);
 }
 
 .dropdown-link.active {
-    background-color: rgba(139, 92, 246, 0.1);
-    color: var(--purple-color);
+    background-color: var(--border-color);
+    color: var(--text-primary);
 }
 
 @media (max-width: 1024px) {

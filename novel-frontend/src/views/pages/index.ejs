@@ -6,6 +6,14 @@
     <title><%= title %></title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/component/style/base.css">
+    <link rel="stylesheet" href="/component/style/buttons.css">
+    <link rel="stylesheet" href="/component/style/input.css">
+    <link rel="stylesheet" href="/component/style/cards.css">
+    <link rel="stylesheet" href="/component/style/badges.css">
+    <link rel="stylesheet" href="/component/style/forms.css">
+    <link rel="stylesheet" href="/component/style/modals.css">
+    <link rel="stylesheet" href="/component/style/navigation.css">
     <link rel="stylesheet" href="/css/novel-card.css">
     <link rel="stylesheet" href="/css/index.css">
 </head>
@@ -114,15 +122,15 @@
                             <div class="novel-card-grid" onclick="window.location.href='/novel/${novel.novelId || novel._id || novel.id}'">
                                 <div class="novel-thumbnail">
                                     ${novel.thumbnailImage ? 
-                                        `<img src="${novel.thumbnailImage}" alt="${novel.title}" loading="lazy">` :
+                                        `<img src="${novel.thumbnailImage}" alt="` + (String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')) + `" loading="lazy" onerror="this.src='/images/default-novel-cover.jpg'">` :
                                         `<div class="thumbnail-placeholder">
                                             <span class="material-symbols-outlined">menu_book</span>
                                         </div>`
                                     }
                                 </div>
                                 <div class="novel-info">
-                                    <h3 class="novel-title">${novel.title}</h3>
-                                    <p class="novel-author">${novel.author || '작가 미상'}</p>
+                                    <h3 class="novel-title">${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}</h3>
+                                    <p class="novel-author">${String(novel.author||'작가 미상').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;')}</p>
                                     <div class="novel-meta">
                                         <span class="meta-item">
                                             <span class="material-symbols-outlined">visibility</span>

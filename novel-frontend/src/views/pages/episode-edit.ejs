@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/component/style/input.css">
+    <link rel="stylesheet" href="/component/style/buttons.css">
+    <link rel="stylesheet" href="/component/style/cards.css">
+    <link rel="stylesheet" href="/component/style/badges.css">
+    <link rel="stylesheet" href="/component/style/forms.css">
+    <link rel="stylesheet" href="/component/style/navigation.css">
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
@@ -12,9 +18,39 @@
         <div class="container" style="padding:2rem 0;">
             <h1 class="page-title">에피소드 수정</h1>
             <div class="meta" style="margin-bottom:1rem;">Novel: <%= locals.novelId %> / Episode: <%= locals.episodeId %></div>
-            <div>
-                <%- include('../partials/empty-state', { icon: 'edit', title: '에피소드 수정', message: '준비 중입니다.' }) %>
-            </div>
+            <form id="episodeForm" class="form" style="max-width:720px;">
+                <div class="input-group input-style1">
+                    <label for="title">제목</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">title</span>
+                        <input id="title" name="title" type="text" placeholder="에피소드 제목" required>
+                    </div>
+                </div>
+                <div class="input-group input-style1">
+                    <label for="content">본문</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">description</span>
+                        <textarea id="content" name="content" rows="10" placeholder="에피소드 본문" required></textarea>
+                    </div>
+                </div>
+                <div class="input-group input-style1">
+                    <label for="authorComment">작가의 말</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">comment</span>
+                        <textarea id="authorComment" name="authorComment" rows="3" placeholder="선택 사항"></textarea>
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top:1rem;display:flex;gap:0.5rem;justify-content:flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="history.back()">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        취소
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-symbols-outlined">save</span>
+                        저장
+                    </button>
+                </div>
+            </form>
         </div>
     </main>
     <%- include('../partials/footer') %>

@@ -1,0 +1,135 @@
+/* Button Base Styles */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    text-decoration: none;
+    height: 2.5rem;
+    min-width: 0;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Button Variants */
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.form-container .btn-primary {
+    width: 100%;
+}
+
+.btn-secondary {
+    background-color: var(--lighter-background);
+    color: var(--text-primary);
+    transition: background-color 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background-color: var(--background-color);
+}
+
+.btn-error,
+.btn-danger {
+    background-color: var(--error-color);
+    color: white;
+}
+
+.btn-warning {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.btn-success {
+    background-color: var(--success-color, #28a745);
+    color: white;
+}
+
+/* Button Sizes */
+.btn-small,
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    height: 2rem;
+}
+
+.btn-medium,
+.btn-md {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+    height: 2.5rem;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.125rem;
+    height: 3rem;
+}
+
+/* Outline Button Variants */
+.btn-outline-primary {
+    background-color: transparent;
+    color: var(--primary-color);
+}
+
+.btn-outline-secondary {
+    background-color: transparent;
+    color: var(--secondary-color);
+}
+
+.btn-outline-danger {
+    background-color: transparent;
+    color: var(--error-color);
+}
+
+.btn-outline-success {
+    background-color: transparent;
+    color: var(--success-color, #28a745);
+}
+
+.btn-outline-warning {
+    background-color: transparent;
+    color: var(--warning-color);
+}
+
+/* Button Groups */
+.btn-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+/* Dark Theme Button Styles */
+[data-theme='dark'] .btn-secondary {
+    background-color: rgb(60, 60, 60);
+    color: var(--text-primary);
+}
+
+[data-theme='dark'] .btn-primary {
+    background-color: rgb(60, 60, 60);
+    color: white;
+}
+
+[data-theme='dark'] .btn-danger {
+    background-color: var(--error-color);
+    color: white;
+}
+
+

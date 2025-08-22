@@ -5,16 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/component/style/input.css">
+    <link rel="stylesheet" href="/component/style/buttons.css">
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
     <main class="main-content">
         <div class="container" style="padding:2rem 0;">
             <h1 class="page-title">공지사항 작성</h1>
-            <div class="meta" style="margin-bottom:1rem;">Novel: <%= locals.novelId %></div>
-            <div>
-                <%- include('../partials/empty-state', { icon: 'draft', title: '공지 작성', message: '준비 중입니다.' }) %>
-            </div>
+            <form id="noticeForm" class="form" style="max-width:720px;">
+                <div class="input-group input-style1">
+                    <label for="title">제목</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">title</span>
+                        <input id="title" name="title" type="text" placeholder="공지 제목" required>
+                    </div>
+                </div>
+                <div class="input-group input-style1">
+                    <label for="content">내용</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">description</span>
+                        <textarea id="content" name="content" rows="8" placeholder="공지 내용" required></textarea>
+                    </div>
+                </div>
+                <div class="form-actions" style="margin-top:1rem;display:flex;gap:0.5rem;justify-content:flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="history.back()">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        취소
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-symbols-outlined">send</span>
+                        등록
+                    </button>
+                </div>
+            </form>
         </div>
     </main>
     <%- include('../partials/footer') %>

@@ -1,0 +1,51 @@
+/* Common form utilities copied from user */
+.input-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 0.5rem;
+}
+
+.input-wrapper .material-symbols-outlined {
+    position: absolute;
+    left: 0.7rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--secondary-color);
+    font-size: 1.5rem;
+    font-weight: 20;
+    z-index: 10;
+}
+
+.form-input {
+    font-size: 1rem;
+    font-weight: 400;
+    display: flex;
+    box-sizing: border-box;
+    position: relative;
+    width: 100%;
+    height: 2.15rem;
+    margin: 0;
+    padding: 0.5rem 0.5rem 0.5rem 2.5rem;
+    outline: none;
+    border: solid 1px var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--background-color);
+    transition: background-color var(--transition);
+}
+
+.form-input::placeholder {
+    color: var(--secondary-color);
+    padding-right: 0.5rem;
+    font-size: 1rem;
+    font-weight: 300;
+}
+
+.form-input:focus {
+    background: rgb(230, 230, 230);
+    color: var(--primary-color);
+    outline: none;
+}
+
+.checkbox-wrapper { display:flex; align-items:center; gap:0.5rem; margin:0.5rem 0; }
+

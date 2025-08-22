@@ -6,12 +6,13 @@
     notificationCount: locals.notificationCount || 0,
     currentSection: locals.currentSection || '',
     ...locals 
-}; %>
+};
+const fixedHeader = typeof locals.fixedHeader === 'undefined' ? true : locals.fixedHeader; %>
 
 <link rel="stylesheet" href="/css/header.css" />
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
 
-<header class="main-header">
+<header class="main-header<%= fixedHeader ? ' fixed-header' : '' %>">
     <div class="header-container">
         <div class="header-brand">
             <a href="<%= headerData.brandHref %>" class="brand-link">

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/component/style/input.css">
+    <link rel="stylesheet" href="/component/style/buttons.css">
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
@@ -17,22 +19,41 @@
             </div>
             <div id="commentsPagination" style="margin-top:12px;"></div>
             <div class="comment-form" style="margin-top:1rem;">
-                <select id="episodeSelect" class="input" style="max-width:200px;"></select>
-                <div style="position:relative;">
-                    <textarea id="commentContent" class="input" rows="3" placeholder="댓글을 입력하세요 (예: @user1 @user2)"></textarea>
-                    <div id="mentionSuggestions" style="position:absolute;left:0;right:0;top:100%;background:var(--card-background);border:1px solid var(--border-color);display:none;z-index:10;"></div>
+                <div class="input-group input-style1" style="max-width:280px;">
+                    <label for="episodeSelect">대상 에피소드</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">list</span>
+                        <select id="episodeSelect"></select>
+                    </div>
+                </div>
+                <div class="input-group input-style1">
+                    <label for="commentContent">댓글</label>
+                    <div class="input-wrapper" style="position:relative;">
+                        <span class="material-symbols-outlined">chat</span>
+                        <textarea id="commentContent" rows="3" placeholder="댓글을 입력하세요 (예: @user1 @user2)"></textarea>
+                        <div id="mentionSuggestions" style="position:absolute;left:0;right:0;top:100%;background:var(--card-background);border:1px solid var(--border-color);display:none;z-index:10;"></div>
+                    </div>
                 </div>
                 <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
                     <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="isHidden"> 익명</label>
-                    <input type="password" id="tempPassword" class="input" placeholder="익명 비밀번호(8+ 영숫자)" style="max-width:240px;display:none;">
-                    <label>정렬
+                    <div class="input-group input-style1" style="max-width:260px;display:none;" id="anonPwWrap">
+                        <label for="tempPassword">익명 비밀번호</label>
+                        <div class="input-wrapper">
+                            <span class="material-symbols-outlined">password</span>
+                            <input type="password" id="tempPassword" placeholder="8+ 영숫자">
+                        </div>
+                    </div>
+                    <label style="display:flex;align-items:center;gap:6px;">정렬
                         <select id="sortSelect" class="input" style="max-width:160px;">
                             <option value="latest">최신순</option>
                             <option value="oldest">오래된순</option>
                             <option value="likes">좋아요순</option>
                         </select>
                     </label>
-                    <button id="commentSubmit" class="btn btn-primary">등록</button>
+                    <button id="commentSubmit" class="btn btn-primary">
+                        <span class="material-symbols-outlined">send</span>
+                        등록
+                    </button>
                 </div>
             </div>
         </div>

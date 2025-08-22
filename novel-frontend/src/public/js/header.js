@@ -121,12 +121,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    async function ensureAccessToken() {
+        let token = localStorage.getItem('accessToken');
+        if (token) return token;
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/auth/refresh`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.accessToken) {
+                    localStorage.setItem('accessToken', data.accessToken);
+                    return data.accessToken;
+                }
+            }
+        } catch {}
+        return null;
+    }
+
     async function checkUserRole() {
         try {
-            const token = localStorage.getItem('accessToken');
+            let token = localStorage.getItem('accessToken');
+            if (!token) {
+                token = await ensureAccessToken();
+            }
             if (!token) return;
             
-            const response = await fetch(`${API_BASE}/api/v1/users/me`, {
+            const response = await fetch(`${API_BASE}/api/v1/auth/me`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

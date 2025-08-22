@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/component/style/input.css">
+    <link rel="stylesheet" href="/component/style/buttons.css">
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
@@ -12,37 +14,59 @@
         <div class="container" style="max-width:720px;padding:2rem 0;">
             <h1>소설 수정</h1>
             <form id="novelForm" class="form">
-                <div class="form-group">
-                    <label>제목</label>
-                    <input type="text" name="title" class="input">
+                <div class="input-group input-style1">
+                    <label for="title">제목</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">title</span>
+                        <input id="title" name="title" type="text" placeholder="제목을 입력하세요">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>설명</label>
-                    <textarea name="description" class="input" rows="5"></textarea>
+                <div class="input-group input-style1">
+                    <label for="description">설명</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">notes</span>
+                        <textarea id="description" name="description" rows="5" placeholder="작품 설명을 입력하세요"></textarea>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>장르</label>
-                    <select name="genre" class="input">
-                        <option value="">선택 없음</option>
-                        <option value="fantasy">판타지</option>
-                        <option value="romance">로맨스</option>
-                        <option value="action">액션</option>
-                        <option value="mystery">미스터리</option>
-                        <option value="sf">SF</option>
-                        <option value="horror">호러</option>
-                        <option value="comedy">코미디</option>
-                    </select>
+                <div class="input-group input-style1">
+                    <label for="genre">장르</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">category</span>
+                        <select id="genre" name="genre">
+                            <option value="">선택 없음</option>
+                            <option value="fantasy">판타지</option>
+                            <option value="romance">로맨스</option>
+                            <option value="action">액션</option>
+                            <option value="mystery">미스터리</option>
+                            <option value="sf">SF</option>
+                            <option value="horror">호러</option>
+                            <option value="comedy">코미디</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>태그</label>
-                    <input type="text" name="tags" class="input" placeholder="쉼표로 구분 (예: 던전, 성장, 모험)">
+                <div class="input-group input-style1">
+                    <label for="tags">태그</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">sell</span>
+                        <input id="tags" name="tags" type="text" placeholder="쉼표로 구분 (예: 던전, 성장, 모험)">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>썸네일 URL</label>
-                    <input type="url" name="thumbnailImage" class="input" placeholder="https://...">
+                <div class="input-group input-style1">
+                    <label for="thumbnailImage">썸네일 URL</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">image</span>
+                        <input id="thumbnailImage" name="thumbnailImage" type="url" placeholder="https://...">
+                    </div>
                 </div>
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">저장</button>
+                <div class="form-actions" style="margin-top:1rem;display:flex;gap:0.5rem;justify-content:flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="history.back()">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        취소
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-symbols-outlined">save</span>
+                        저장
+                    </button>
                 </div>
             </form>
         </div>
