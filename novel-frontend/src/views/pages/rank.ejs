@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    <main class="main-content">
+        <div class="container" style="padding:2rem 0;">
+            <h1 class="page-title">랭킹</h1>
+            <div id="rankList">
+                <%- include('../partials/skeleton', { type: 'card', count: 10 }) %>
+            </div>
+        </div>
+    </main>
+    <%- include('../partials/footer') %>
+</body>
+</html>
+

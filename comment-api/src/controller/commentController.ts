@@ -41,15 +41,24 @@ export const createComment = async (req: Request, res: Response) => {
 };
 
 export const getComments = async (req: Request, res: Response) => {
-	const { galleryId, novelId, targetId, targetType } = req.params as any;
-	const { page, limit } = req.query as any;
+	const { galleryId, novelId, targetId, targetType, page = 1, limit = 20, sort = 'latest' } = req.query as any;
 	if (galleryId && galleryId !== 'undefined') await findGalleryById(galleryId);
 	if (novelId && novelId !== 'undefined') await findNovelById(novelId);
-	await findTargetById(targetId, targetType);
-	const query: any = { commentTargetId: targetId, commentTargetType: targetType };
+	if (!targetType) throw new commentError.CommentError('targetType is required');
+	const query: any = { commentTargetType: targetType };
+	if (targetId && targetId !== 'undefined') query.commentTargetId = targetId;
 	if (galleryId && galleryId !== 'undefined') query.galleryId = galleryId;
 	if (novelId && novelId !== 'undefined') query.novelId = novelId;
-	const comments = await Comment.find(query).populate('commentTargetId').populate('commentParentId').skip((Number(page) - 1) * Number(limit)).limit(Number(limit)).exec();
+	let sortOption: any = { createdAt: -1 };
+	if (sort === 'oldest') sortOption = { createdAt: 1 };
+	if (sort === 'likes') sortOption = { likeCount: -1 };
+	const pageNum = Number(page) || 1;
+	const limitNum = Number(limit) || 20;
+	const comments = await Comment.find(query)
+		.sort(sortOption)
+		.skip((pageNum - 1) * limitNum)
+		.limit(limitNum)
+		.exec();
 	res.status(200).json({ success: true, comments });
 };
 
@@ -77,7 +86,8 @@ export const updateComment = async (req: Request, res: Response) => {
 };
 
 export const deleteComment = async (req: Request, res: Response) => {
-	const { commentId, tempPassword } = req.params as any;
+	const { commentId } = req.params as any;
+	const tempPassword = (req.params as any).tempPassword ?? (req.query as any).tempPassword ?? (req.body as any)?.tempPassword;
 	const userid = req.user?.userid;
 	const comment = await Comment.findOne({ commentId });
 	if (!comment) throw new commentError.CommentNotFoundError('Comment not found');

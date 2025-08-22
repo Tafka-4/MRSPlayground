@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    <main class="main-content">
+        <div class="container" style="padding:2rem 0;">
+            <h1 class="page-title">공지사항 수정</h1>
+            <div class="meta" style="margin-bottom:1rem;">Novel: <%= locals.novelId %> / Notice: <%= locals.noticeId %></div>
+            <div>
+                <%- include('../partials/empty-state', { icon: 'edit', title: '공지 수정', message: '준비 중입니다.' }) %>
+            </div>
+        </div>
+    </main>
+    <%- include('../partials/footer') %>
+</body>
+</html>
+

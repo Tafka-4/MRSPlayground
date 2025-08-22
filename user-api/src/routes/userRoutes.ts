@@ -11,6 +11,8 @@ const router = Router();
 router.get('/admin/statistics', adminRequired, userRequestWatchStart, asyncWrapper(userController.getUserStatistics));
 router.get('/admin/search', adminRequired, userRequestWatchStart, asyncWrapper(userController.searchUsers));
 
+router.get('/search', userRequestWatchStart, asyncWrapper(userController.searchUsers));
+
 router.get('/:userid', userRequestWatchStart, asyncWrapper(userController.getUser));
 router.get('/', adminRequired, userRequestWatchStart, asyncWrapper(userController.getUserList));
 router.put('/me', loginRequired, userRequestWatchStart, asyncWrapper(userController.updateUser));

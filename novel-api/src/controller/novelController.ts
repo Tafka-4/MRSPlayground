@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import { escape } from 'html-escaper';
 import Novel from '../model/novelModel.js';
 import { useNovelRepo } from '../repo/novelRepo.js';
@@ -33,7 +34,9 @@ export const createNovel = async (req: Request, res: Response) => {
 
     try {
         await callUserService(`/api/users/add-novel`, { method: 'PUT', body: JSON.stringify({ userid: userId, novelId: novel.novelId }) });
-    } catch {}
+    } catch (e) {
+        console.warn('User service add-novel failed, continuing');
+    }
 
     res.status(201).json({ success: true, novel });
 };

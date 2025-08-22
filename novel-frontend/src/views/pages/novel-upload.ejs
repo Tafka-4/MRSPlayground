@@ -62,8 +62,8 @@
                 thumbnailImage: data.get('thumbnailImage') || ''
             };
             try {
-                const res = await apiClient.post('/api/novel/v1', body);
-                const novel = res.data;
+                const res = await apiClient.post('/api/v1/novels', body);
+                const novel = res.data.novel || res.data;
                 window.location.href = `/novel/${novel.novelId || novel._id || novel.id}`;
             } catch (err) {
                 alert('업로드 실패: ' + (err?.data?.message || err.message));

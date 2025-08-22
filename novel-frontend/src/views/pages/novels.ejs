@@ -130,7 +130,7 @@
                 try {
                     novelList.innerHTML = '<%- include("../partials/skeleton", { type: "card", count: 10 }) %>';
                     
-                    let apiUrl = `/api/novel/v1?sort=${sort}&page=${page}&size=${size}`;
+                    let apiUrl = `/api/v1/novels?sort=${sort}&page=${page}&size=${size}`;
                     if (query) {
                         apiUrl += `&q=${encodeURIComponent(query)}`;
                     }

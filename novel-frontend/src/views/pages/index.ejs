@@ -107,15 +107,14 @@
             async function loadPopularNovels(range = 'now') {
                 try {
                     popularGrid.innerHTML = '<%- include("../partials/skeleton", { type: "grid", count: 9 }) %>';
-                    
-                    const response = await apiClient.get(`/novel/v1/popular?range=${range}&limit=9`);
-                    
-                    if (response.data && response.data.length > 0) {
-                        popularGrid.innerHTML = response.data.map(novel => `
-                            <div class="novel-card-grid" onclick="window.location.href='/novel/${novel._id}'">
+                    const response = await apiClient.get(`/api/v1/novels?sort=${range === 'week' ? 'likes' : 'views'}&limit=9`);
+                    const items = response.data.novels || response.data || [];
+                    if (items.length > 0) {
+                        popularGrid.innerHTML = items.map(novel => `
+                            <div class="novel-card-grid" onclick="window.location.href='/novel/${novel.novelId || novel._id || novel.id}'">
                                 <div class="novel-thumbnail">
-                                    ${novel.thumbnail ? 
-                                        `<img src="${novel.thumbnail}" alt="${novel.title}" loading="lazy">` :
+                                    ${novel.thumbnailImage ? 
+                                        `<img src="${novel.thumbnailImage}" alt="${novel.title}" loading="lazy">` :
                                         `<div class="thumbnail-placeholder">
                                             <span class="material-symbols-outlined">menu_book</span>
                                         </div>`
@@ -123,15 +122,15 @@
                                 </div>
                                 <div class="novel-info">
                                     <h3 class="novel-title">${novel.title}</h3>
-                                    <p class="novel-author">${novel.authorName || '작가 미상'}</p>
+                                    <p class="novel-author">${novel.author || '작가 미상'}</p>
                                     <div class="novel-meta">
                                         <span class="meta-item">
                                             <span class="material-symbols-outlined">visibility</span>
-                                            ${formatNumber(novel.views || 0)}
+                                            ${formatNumber(novel.viewCount || novel.views || 0)}
                                         </span>
                                         <span class="meta-item">
                                             <span class="material-symbols-outlined">favorite</span>
-                                            ${formatNumber(novel.likes || 0)}
+                                            ${formatNumber(novel.likeCount || novel.likes || 0)}
                                         </span>
                                     </div>
                                 </div>
@@ -148,17 +147,17 @@
             
             async function loadNews() {
                 try {
-                    const response = await apiClient.get('/novel/v1/feeds?limit=20');
-                    
-                    if (response.data && response.data.length > 0) {
-                        newsList.innerHTML = response.data.map(item => `
+                    const response = await apiClient.get('/api/v1/novels?sort=recent&limit=20');
+                    const items = response.data.novels || [];
+                    if (items.length > 0) {
+                        newsList.innerHTML = items.map(item => `
                             <div class="news-item">
                                 <div class="news-icon">
-                                    <span class="material-symbols-outlined">${getNewsIcon(item.type)}</span>
+                                    <span class="material-symbols-outlined">${getNewsIcon('update')}</span>
                                 </div>
                                 <div class="news-content">
-                                    <p class="news-text">${item.content}</p>
-                                    <span class="news-time">${formatTime(item.createdAt)}</span>
+                                    <p class="news-text">새 소설: ${item.title}</p>
+                                    <span class="news-time">${formatTime(item.updatedAt || item.createdAt)}</span>
                                 </div>
                             </div>
                         `).join('');
@@ -176,17 +175,20 @@
                 }
                 
                 try {
-                    const response = await apiClient.get('/novel/v1/me/activities?limit=20');
-                    
-                    if (response.data && response.data.length > 0) {
-                        activityList.innerHTML = response.data.map(activity => `
+                    const me = await apiClient.get('/api/v1/auth/me');
+                    const userid = me?.data?.user?.userid || me?.data?.userid || '';
+                    if (!userid) return;
+                    const response = await apiClient.get(`/api/v1/logs/users/${encodeURIComponent(userid)}/activity?limit=20`).catch(() => null);
+                    const activities = response?.data?.activities || response?.data || [];
+                    if (activities.length > 0) {
+                        activityList.innerHTML = activities.map(activity => `
                             <div class="activity-item">
                                 <div class="activity-icon">
-                                    <span class="material-symbols-outlined">${getActivityIcon(activity.type)}</span>
+                                    <span class="material-symbols-outlined">${getActivityIcon(activity.type || 'history')}</span>
                                 </div>
                                 <div class="activity-content">
-                                    <p class="activity-text">${activity.description}</p>
-                                    <span class="activity-time">${formatTime(activity.createdAt)}</span>
+                                    <p class="activity-text">${activity.description || activity.message || '활동 기록'}</p>
+                                    <span class="activity-time">${formatTime(activity.createdAt || activity.time || new Date().toISOString())}</span>
                                 </div>
                             </div>
                         `).join('');

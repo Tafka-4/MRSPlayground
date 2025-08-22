@@ -43,7 +43,7 @@ export interface INovel extends mongoose.Document {
 }
 
 const novelSchema = new mongoose.Schema({
-    novelId: { type: String, required: true, unique: true, default: uuidv4() },
+    novelId: { type: String, required: true, unique: true, default: uuidv4 },
     title: { type: String, required: true },
     description: { type: String, required: true },
     thumbnailImage: { type: String, required: true },
@@ -67,7 +67,7 @@ novelSchema.pre('save', async function (this: mongoose.HydratedDocument<INovel>,
 
 novelSchema.pre('deleteOne', { document: true, query: false }, async function (this: mongoose.HydratedDocument<INovel>, next: (err?: any) => void) {
     if (this.thumbnailImage) {
-        fs.unlinkSync(this.thumbnailImage);
+        try { fs.unlinkSync(this.thumbnailImage); } catch {}
     }
     await redisClient.del(`${this.novelId}:likes`);
     await redisClient.del(`${this.novelId}:dislikes`);
@@ -99,8 +99,8 @@ novelSchema.methods.favorite = async function (this: mongoose.HydratedDocument<I
     this.favoriteCount++;
     try {
         await callUserService(`/api/users/add-favorite`, { method: 'PUT', body: JSON.stringify({ userid: userId, novelId: this.novelId }) });
-    } catch {
-        throw new userError.UserNotFoundError('User not found');
+    } catch (e) {
+        // Ignore external user service failure for favorite operation
     }
     await this.save();
 };

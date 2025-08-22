@@ -1,6 +1,7 @@
 import dotenv from 'dotenv';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
+import path from 'path';
 import { mongoose, redisClient } from '../utils/dbconnect/dbconnect.js';
 import episodeError from '../utils/error/episodeError.js';
 
@@ -26,7 +27,7 @@ export interface IEpisode extends mongoose.Document {
 }
 
 const episodeSchema = new mongoose.Schema({
-  episodeId: { type: String, required: true, unique: true, default: uuidv4() },
+  episodeId: { type: String, required: true, unique: true, default: uuidv4 },
   episodeNumber: { type: Number, required: true },
   novelId: { type: String, required: true },
   title: { type: String, required: true },
@@ -56,19 +57,21 @@ episodeSchema.pre('save', async function (this: IEpisode, next: (err?: any) => v
     const typeMatch = file.match(/data:image\/(png|jpeg|webp|gif);base64,/);
     if (!typeMatch) continue;
     const imageType = typeMatch[1];
-    const base64Data = file.replace(/^<img src="data:image\/(png|jpeg|webp|gif);base64,/, '').replace(/"$/, '');
-    const filePath = `./uploads/episode/${this.novelId}/${this.episodeId}/${uuidv4()}.${imageType}`;
+    const base64Data = file
+      .replace(/^<img src="data:image\/(png|jpeg|webp|gif);base64,/, '')
+      .replace(/"$/, '');
+    const diskDir = path.join('.', 'uploads', 'episode', this.novelId, this.episodeId);
+    const fileName = `${uuidv4()}.${imageType}`;
+    const diskPath = path.join(diskDir, fileName);
+    const publicPath = `/uploads/episode/${this.novelId}/${this.episodeId}/${fileName}`;
     try {
       const fileBuffer = Buffer.from(base64Data, 'base64');
       if (fileBuffer.length > 10 * 1024 * 1024) {
         throw new episodeError.EpisodeUploadFailedError('Image size is too large');
       }
-      fs.writeFile(filePath, fileBuffer, (err) => {
-        if (err) {
-          throw new episodeError.EpisodeUploadFailedError('Failed to upload image');
-        }
-        this.content = this.content.replace(file, `<img src="${filePath}">`);
-      });
+      fs.mkdirSync(diskDir, { recursive: true });
+      fs.writeFileSync(diskPath, fileBuffer);
+      this.content = this.content.replace(file, `<img src="${publicPath}">`);
     } catch (error) {
       throw new episodeError.EpisodeUploadFailedError('Failed to upload image');
     }
@@ -86,8 +89,8 @@ episodeSchema.pre('deleteOne', { document: true, query: false }, async function 
   } catch (error) {
     throw new episodeError.EpisodeUploadFailedError('Failed to delete image from S3');
   }
-  await redisClient.del(`${this.episodeId}:likes`);
-  await redisClient.del(`${this.episodeId}:dislikes`);
+  await redisClient.del(`${this.novelId}:${this.episodeId}:likes`);
+  await redisClient.del(`${this.novelId}:${this.episodeId}:dislikes`);
   next();
 });
 

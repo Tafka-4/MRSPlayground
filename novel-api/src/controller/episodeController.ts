@@ -22,6 +22,13 @@ export const getEpisode = async (req: Request, res: Response) => {
     res.status(200).json({ success: true, episode });
 };
 
+export const listEpisodesByNovel = async (req: Request, res: Response) => {
+    const { novelId } = req.params as { novelId: string };
+    const repo = useEpisodeRepo();
+    const episodes = await repo.findByNovelId(novelId);
+    res.status(200).json({ success: true, episodes });
+};
+
 export const updateEpisode = async (req: Request, res: Response) => {
     const { episodeId } = req.params as { episodeId: string };
     const { title, content, authorComment } = req.body;
@@ -48,7 +55,7 @@ export const likeEpisode = async (req: Request, res: Response) => {
     const userId = req.user?.userid;
     if (!userId) throw new userError.UserNotLoginError('Login required to like episode');
     const repo = useEpisodeRepo();
-    const { likeCount, dislikeCount } = await repo.like(episodeId, req.params.novelId as any, userId);
+    const { likeCount, dislikeCount } = await repo.like(episodeId, (req as any).body?.novelId || (req as any).query?.novelId || '', userId);
     res.status(200).json({ success: true, message: 'Episode liked successfully', likeCount, dislikeCount });
 };
 
@@ -57,7 +64,7 @@ export const dislikeEpisode = async (req: Request, res: Response) => {
     const userId = req.user?.userid;
     if (!userId) throw new userError.UserNotLoginError('Login required to dislike episode');
     const repo = useEpisodeRepo();
-    const { likeCount, dislikeCount } = await repo.dislike(episodeId, req.params.novelId as any, userId);
+    const { likeCount, dislikeCount } = await repo.dislike(episodeId, (req as any).body?.novelId || (req as any).query?.novelId || '', userId);
     res.status(200).json({ success: true, message: 'Episode disliked successfully', likeCount, dislikeCount });
 };
 

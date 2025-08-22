@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    <main class="main-content">
+        <div class="container" style="padding:2rem 0;">
+            <h1 class="page-title">소설 상세</h1>
+            <div class="meta" style="margin-bottom:1rem;">ID: <%= locals.novelId %></div>
+            <div id="novelDetail">
+                <%- include('../partials/skeleton', { type: 'card', count: 2 }) %>
+            </div>
+        </div>
+    </main>
+    <%- include('../partials/footer') %>
+</body>
+</html>
+<script type="module">
+    import apiClient from '/module/api.js';
+    const container = document.getElementById('novelDetail');
+    const novelId = '<%= locals.novelId %>';
+    async function load() {
+        try {
+            const res = await apiClient.get(`/api/v1/novels/${novelId}`);
+            const n = res.data.novel || res.data;
+            container.innerHTML = `
+                <div class="novel-detail-card">
+                    <div class="novel-header" style="display:flex;gap:16px;align-items:center;">
+                        ${n.thumbnailImage ? `<img src="${n.thumbnailImage}" alt="${n.title}" style="width:120px;height:160px;object-fit:cover;border-radius:4px;">` : ''}
+                        <div>
+                            <h2 style="margin:0 0 8px;">${n.title}</h2>
+                            <div style="color:var(--text-secondary);">${n.author || 'Unknown'}</div>
+                            <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+                                ${n.genre ? `<span class="genre-tag">${n.genre}</span>` : ''}
+                                ${Array.isArray(n.tags) ? n.tags.slice(0,5).map(t=>`<span class=\"genre-tag\">${t}</span>`).join('') : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="novel-body" style="margin-top:16px;white-space:pre-wrap;">${n.description || ''}</div>
+                </div>
+            `;
+        } catch (e) {
+            container.innerHTML = `<div class="error">로딩 실패</div>`;
+        }
+    }
+    load();
+</script>
+

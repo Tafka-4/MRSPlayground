@@ -21,6 +21,7 @@ export interface EpisodeRecord {
 export interface EpisodeRepo {
 	createEpisode(novelId: string, userId: string, title: string, content: string, authorComment?: string | null): Promise<EpisodeRecord>;
 	findById(episodeId: string): Promise<EpisodeRecord | null>;
+	findByNovelId(novelId: string): Promise<Pick<EpisodeRecord, 'episodeId' | 'episodeNumber' | 'title' | 'createdAt' | 'updatedAt'>[]>;
 	increaseView(episodeId: string): Promise<void>;
 	updateIfAuthor(episodeId: string, userId: string, data: Partial<Pick<EpisodeRecord, 'title' | 'content' | 'authorComment'>>): Promise<EpisodeRecord | null>;
 	deleteIfAuthorAndLast(episodeId: string, userId: string): Promise<boolean>;
@@ -38,6 +39,10 @@ class MongooseEpisodeRepo implements EpisodeRepo {
 	async findById(episodeId: string): Promise<EpisodeRecord | null> {
 		const ep = await Episode.findOne({ episodeId });
 		return ep ? (ep.toObject() as any) : null;
+	}
+	async findByNovelId(novelId: string) {
+		const eps = await Episode.find({ novelId }).select('episodeId episodeNumber title createdAt updatedAt').sort({ episodeNumber: 1 });
+		return eps.map(e => e.toObject() as any);
 	}
 	async increaseView(episodeId: string): Promise<void> {
 		await Episode.findOneAndUpdate({ episodeId }, { $inc: { viewCount: 1 } });

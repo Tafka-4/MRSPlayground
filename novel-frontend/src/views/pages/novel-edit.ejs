@@ -55,7 +55,7 @@
 
         async function loadInitial() {
             try {
-                const res = await apiClient.get(`/api/novel/v1/${novelId}`);
+                const res = await apiClient.get(`/api/v1/novels/${novelId}`);
                 const n = res.data;
                 form.title.value = n.title || '';
                 form.description.value = n.description || '';
@@ -77,7 +77,7 @@
             body.tags = (data.get('tags') || '').toString().split(',').map(s => s.trim()).filter(Boolean);
             if (data.get('thumbnailImage')) body.thumbnailImage = data.get('thumbnailImage');
             try {
-                await apiClient.put(`/api/novel/v1/${novelId}`, body);
+                await apiClient.put(`/api/v1/novels/${novelId}`, body);
                 window.location.href = `/novel/${novelId}`;
             } catch (err) {
                 alert('수정 실패: ' + (err?.data?.message || err.message));
