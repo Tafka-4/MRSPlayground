@@ -165,9 +165,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    if (localStorage.getItem('accessToken')) {
-        checkUserRole();
-    }
+    (async () => {
+        try {
+            if (!localStorage.getItem('accessToken')) {
+                await ensureAccessToken();
+            }
+            if (localStorage.getItem('accessToken')) {
+                checkUserRole();
+            }
+        } catch {}
+    })();
     
     const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll('.nav-link, .dropdown-link');

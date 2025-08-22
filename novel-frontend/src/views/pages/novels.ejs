@@ -125,7 +125,7 @@
             
             const urlParams = new URLSearchParams(window.location.search);
             const sort = urlParams.get('sort') || 'updated';
-            const query = urlParams.get('q') || urlParams.get('query') || '';
+            const query = urlParams.get('query') || urlParams.get('q') || '';
             const genre = urlParams.get('genre') || '';
             const tags = urlParams.get('tags') || '';
             const page = parseInt(urlParams.get('page') || '1');
@@ -137,7 +137,7 @@
                     
                     let apiUrl = `/api/v1/novels?sort=${sort}&page=${page}&size=${size}`;
                     if (query) {
-                        apiUrl += `&q=${encodeURIComponent(query)}`;
+                        apiUrl += `&query=${encodeURIComponent(query)}`;
                     }
                     if (genre) {
                         apiUrl += `&genre=${encodeURIComponent(genre)}`;
@@ -210,7 +210,7 @@
                             </div>
                         `).join('');
                         
-                        const totalPages = Math.ceil((response.data.total || 0) / size);
+                        const totalPages = response.data.totalPages || Math.ceil((response.data.total || 0) / size);
                         if (totalPages > 1) {
                             paginationContainer.innerHTML = `<%- include('../partials/pagination', { 
                                 currentPage: page, 
@@ -284,13 +284,13 @@
                 let html = '<nav class="pagination-container"><ul class="pagination">';
                 
                 html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                    <a href="?page=1&sort=${sort}${query ? '&q=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
+                    <a href="?page=1&sort=${sort}${query ? '&query=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
                         <span class="material-symbols-outlined">first_page</span>
                     </a>
                 </li>`;
                 
                 html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                    <a href="?page=${Math.max(1, currentPage - 1)}&sort=${sort}${query ? '&q=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
+                    <a href="?page=${Math.max(1, currentPage - 1)}&sort=${sort}${query ? '&query=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
                         <span class="material-symbols-outlined">chevron_left</span>
                     </a>
                 </li>`;
@@ -300,19 +300,19 @@
                         html += '<li class="page-item ellipsis"><span class="page-link">...</span></li>';
                     } else {
                         html += `<li class="page-item ${page === currentPage ? 'active' : ''}">
-                            <a href="?page=${page}&sort=${sort}${query ? '&q=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">${page}</a>
+                            <a href="?page=${page}&sort=${sort}${query ? '&query=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">${page}</a>
                         </li>`;
                     }
                 });
                 
                 html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                    <a href="?page=${Math.min(totalPages, currentPage + 1)}&sort=${sort}${query ? '&q=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
+                    <a href="?page=${Math.min(totalPages, currentPage + 1)}&sort=${sort}${query ? '&query=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
                         <span class="material-symbols-outlined">chevron_right</span>
                     </a>
                 </li>`;
                 
                 html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                    <a href="?page=${totalPages}&sort=${sort}${query ? '&q=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
+                    <a href="?page=${totalPages}&sort=${sort}${query ? '&query=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
                         <span class="material-symbols-outlined">last_page</span>
                     </a>
                 </li>`;

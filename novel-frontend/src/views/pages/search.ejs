@@ -48,7 +48,7 @@
 
             const urlParams = new URLSearchParams(window.location.search);
             const sort = urlParams.get('sort') || 'updated';
-            const query = urlParams.get('q') || urlParams.get('query') || '';
+            const query = urlParams.get('query') || urlParams.get('q') || '';
             const page = parseInt(urlParams.get('page') || '1');
             const size = parseInt(urlParams.get('size') || '10');
             const genre = urlParams.get('genre') || '';
@@ -57,7 +57,7 @@
             async function load() {
                 result.innerHTML = `<%- include('../partials/skeleton', { type: 'card', count: 10 }) %>`;
                 let apiUrl = `/api/v1/novels?sort=${sort}&page=${page}&size=${size}`;
-                if (query) apiUrl += `&q=${encodeURIComponent(query)}`;
+                if (query) apiUrl += `&query=${encodeURIComponent(query)}`;
                 if (genre) apiUrl += `&genre=${encodeURIComponent(genre)}`;
                 if (tags) apiUrl += `&tags=${encodeURIComponent(tags)}`;
                 try {
@@ -88,7 +88,7 @@
                             </div>
                         </div>`).join('');
 
-                        const totalPages = Math.ceil((response.data.total || 0) / size);
+                        const totalPages = response.data.totalPages || Math.ceil((response.data.total || 0) / size);
                         if (totalPages > 1) {
                             paginationContainer.innerHTML = getPaginationHTML(page, totalPages);
                         } else {
@@ -106,7 +106,7 @@
 
             function getPaginationHTML(currentPage, totalPages) {
                 let html = '<nav class="pagination-container"><ul class="pagination">';
-                const qp = (p) => `?page=${p}&sort=${sort}${query ? '&q=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}`;
+                const qp = (p) => `?page=${p}&sort=${sort}${query ? '&query=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}`;
                 html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a href="${qp(1)}" class="page-link"><span class="material-symbols-outlined">first_page</span></a></li>`;
                 html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a href="${qp(Math.max(1, currentPage-1))}" class="page-link"><span class="material-symbols-outlined">chevron_left</span></a></li>`;
                 const maxVisible = 5;

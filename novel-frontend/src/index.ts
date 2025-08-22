@@ -106,13 +106,14 @@ app.use((req, res, next) => {
     res.locals.currentPath = req.path;
     res.locals.brandText = '마법연구회';
     res.locals.brandHref = '/';
-    res.locals.isAuthenticated = !!req.cookies.accessToken;
+    res.locals.isAuthenticated = !!(req.cookies.accessToken || req.cookies.refreshToken);
     next();
 });
 
 const checkAuth = (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const token = req.cookies.accessToken || req.headers.authorization?.replace('Bearer ', '');
-    if (!token) {
+    const hasRefresh = !!req.cookies.refreshToken;
+    if (!token && !hasRefresh) {
         return res.redirect('/login?redirect=' + encodeURIComponent(req.originalUrl));
     }
     next();
