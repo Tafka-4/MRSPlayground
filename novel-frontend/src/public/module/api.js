@@ -44,31 +44,6 @@ class ApiClient {
             clearTimeout(timeoutId);
 
             if (response.status === 401 && !url.includes('/auth/login') && !url.includes('/auth/refresh') && window.location.pathname !== '/login') {
-                const publicPages = [
-                    '/help', 
-                    '/contact', 
-                    '/feedback', 
-                    '/notice', 
-                    '/license',
-                    '/novel',
-                    '/novels',
-                    '/rank',
-                    '/search'
-                ];
-                const novelDetailPattern = /^\/novel\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-                const episodeDetailPattern = /^\/novel\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\/episode\/[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-                const isPublicPage = publicPages.includes(window.location.pathname) || 
-                                     novelDetailPattern.test(window.location.pathname) ||
-                                     episodeDetailPattern.test(window.location.pathname);
-                
-                if (isPublicPage) {
-                    const errorData = await response.json().catch(() => ({}));
-                    const error = new Error(errorData.message || 'Authentication required');
-                    error.status = response.status;
-                    error.data = errorData;
-                    throw error;
-                }
-                
                 if (this.isRefreshing) {
                     return new Promise((resolve, reject) => {
                         this.failedQueue.push({
@@ -165,8 +140,12 @@ class ApiClient {
 
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('accessToken', data.accessToken);
-                return data.accessToken;
+                const access = data?.accessToken || data?.data?.accessToken;
+                if (access) {
+                    localStorage.setItem('accessToken', access);
+                    return access;
+                }
+                return null;
             } else {
                 return null;
             }

@@ -170,7 +170,7 @@
                             </div>
                         `).join('');
                     } else {
-                        newsList.innerHTML = '<p class="empty-message">최신 소식이 없습니다.</p>';
+                        newsList.innerHTML = '<%- include("../partials/empty-state", { icon: "newspaper", title: "소식이 없습니다", message: "아직 최신 소식이 없습니다." }) %>';
                     }
                 } catch (error) {
                     console.error('Error loading news:', error);
