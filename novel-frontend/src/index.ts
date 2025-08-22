@@ -71,7 +71,7 @@ const initRedis = async () => {
             password: process.env.REDIS_PASSWORD,
             socket: {
                 connectTimeout: 10000,
-                keepAlive: true,
+                keepAlive: 60000,
                 reconnectStrategy: (retries: number) => Math.min(retries * 1000, 5000)
             }
         });
