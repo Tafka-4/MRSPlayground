@@ -96,10 +96,36 @@
     align-items: center;
     justify-content: center;
     grid-column: 1 / -1;
+    width: 100%;
 }
 
 .popular-empty-content {
     text-align: center;
+}
+
+/* Inline header for news/activity with icon and text aligned */
+.news-header,
+.activity-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.news-header .news-icon,
+.activity-header .activity-icon {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: var(--card-background);
+    transform: translateY(-1px);
+}
+
+.news-header .material-symbols-outlined,
+.activity-header .material-symbols-outlined {
+    font-size: 1.1rem;
 }
 
 .novel-grid {
