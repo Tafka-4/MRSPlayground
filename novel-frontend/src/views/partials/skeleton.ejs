@@ -2,6 +2,7 @@
 const skeletonData = {
     type: locals.type || 'card',
     count: locals.count || 3,
+    inline: !!locals.inline,
     ...locals
 };
 %>
@@ -45,7 +46,9 @@ const skeletonData = {
     <% } %>
     
 <% } else if (skeletonData.type === 'grid') { %>
+    <% if (!skeletonData.inline) { %>
     <div class="skeleton-grid">
+    <% } %>
         <% for (let i = 0; i < skeletonData.count; i++) { %>
         <div class="skeleton-grid-item">
             <div class="skeleton-image skeleton-shimmer"></div>
@@ -53,7 +56,9 @@ const skeletonData = {
             <div class="skeleton-text skeleton-shimmer" style="width: 70%;"></div>
         </div>
         <% } %>
+    <% if (!skeletonData.inline) { %>
     </div>
+    <% } %>
 <% } %>
 
 <style>

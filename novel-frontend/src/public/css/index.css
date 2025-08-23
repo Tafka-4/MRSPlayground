@@ -132,7 +132,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1.25rem;
-    justify-items: center;
+    align-items: stretch;
 }
 
 .novel-card-grid {
@@ -160,6 +160,22 @@
     height: 180px;
     background: var(--border-color);
     overflow: hidden;
+}
+
+/* Horizontal layout for popular cards */
+.novel-preview-card.horizontal {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0.75rem;
+}
+.novel-preview-card.horizontal .novel-thumbnail {
+    width: 120px;
+    height: 160px;
+}
+.novel-preview-card.horizontal .novel-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .novel-card-grid .novel-thumbnail img {
@@ -198,6 +214,20 @@
 .novel-card-grid .novel-author {
     margin: 0 0 0.75rem 0;
     font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.novel-tags {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+}
+.novel-tags .badge {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    font-size: 0.7rem;
     color: var(--text-secondary);
 }
 
