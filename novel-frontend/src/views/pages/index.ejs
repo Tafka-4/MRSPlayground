@@ -105,7 +105,7 @@
     <script type="module">
         import apiClient from '/module/api.js';
         
-        document.addEventListener('DOMContentLoaded', async function() {
+        async function init() {
             const popularGrid = document.getElementById('popularGrid');
             const newsList = document.getElementById('newsList');
             const activityList = document.getElementById('activityList');
@@ -298,7 +298,13 @@
                 loadNews(),
                 loadActivities()
             ]);
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>

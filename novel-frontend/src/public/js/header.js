@@ -1,5 +1,5 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const API_BASE = 'https://api.magicresearches.com';
+document.addEventListener('DOMContentLoaded', async function() {
+    const { default: apiClient } = await import('/module/api.js');
     const header = document.querySelector('.main-header');
     const dropdowns = document.querySelectorAll('.dropdown');
     const themeToggle = document.getElementById('themeToggle');
@@ -106,15 +106,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async function() {
             try {
-                const response = await fetch(`${API_BASE}/api/v1/auth/logout`, {
-                    method: 'POST',
-                    credentials: 'include'
-                });
-                
-                if (response.ok) {
-                    localStorage.removeItem('accessToken');
-                    window.location.href = '/';
-                }
+                await apiClient.post('/api/v1/auth/logout');
+                localStorage.removeItem('accessToken');
+                window.location.href = '/';
             } catch (error) {
                 console.error('Logout error:', error);
             }
@@ -125,16 +119,11 @@ document.addEventListener('DOMContentLoaded', function() {
         let token = localStorage.getItem('accessToken');
         if (token) return token;
         try {
-            const res = await fetch(`${API_BASE}/api/v1/auth/refresh`, {
-                method: 'POST',
-                credentials: 'include'
-            });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.accessToken) {
-                    localStorage.setItem('accessToken', data.accessToken);
-                    return data.accessToken;
-                }
+            const refreshed = await apiClient.post('/api/v1/auth/refresh');
+            const access = refreshed?.data?.accessToken || refreshed?.accessToken;
+            if (access) {
+                localStorage.setItem('accessToken', access);
+                return access;
             }
         } catch {}
         return null;
@@ -148,28 +137,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             if (!token) return;
 
-            const doMe = async (bearer) => fetch(`${API_BASE}/api/v1/auth/me`, {
-                method: 'GET',
-                credentials: 'include',
-                headers: { 'Authorization': `Bearer ${bearer}` }
-            });
+            const doMe = async (bearer) => apiClient.get('/api/v1/auth/me', { headers: { 'Authorization': `Bearer ${bearer}` } });
 
-            let response = await doMe(token);
-            if (response.status === 401) {
-                const refreshed = await ensureAccessToken();
-                if (refreshed) {
-                    token = refreshed;
-                    response = await doMe(token);
-                }
-            }
-
-            if (response.ok) {
-                const data = await response.json();
-                const role = data?.user?.authority || data?.authority || data?.role;
+            try {
+                const data = await doMe(token);
+                const role = data?.data?.user?.authority || data?.user?.authority || data?.authority || data?.role;
                 if ((role === 'admin' || role === 'bot') && adminMenuItem) {
                     adminMenuItem.style.display = 'block';
                 }
-            }
+            } catch (e) {}
         } catch (error) {
             console.error('Error checking user role:', error);
         }

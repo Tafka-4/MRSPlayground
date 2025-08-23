@@ -119,7 +119,7 @@
     <script type="module">
         import apiClient from '/module/api.js';
         
-        document.addEventListener('DOMContentLoaded', async function() {
+        async function init() {
             const novelList = document.getElementById('novelList');
             const paginationContainer = document.getElementById('paginationContainer');
             
@@ -323,7 +323,13 @@
             }
             
             await loadNovels();
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>

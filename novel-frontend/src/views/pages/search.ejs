@@ -42,7 +42,7 @@
     <%- include('../partials/footer') %>
     <script type="module">
         import apiClient from '/module/api.js';
-        document.addEventListener('DOMContentLoaded', async function() {
+        async function init() {
             const result = document.getElementById('searchResult');
             const paginationContainer = document.getElementById('paginationContainer');
 
@@ -124,7 +124,13 @@
             }
 
             await load();
-        });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
     </script>
 </body>
 </html>
