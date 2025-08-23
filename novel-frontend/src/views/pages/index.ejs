@@ -24,7 +24,7 @@
         <section class="hero-section">
             <div class="hero-content">
                 <h1 class="hero-title">마법연구회 아카이브</h1>
-                <p class="hero-description">웹소설 연재하기!</p>
+                <p class="hero-description">웹소설 연재!</p>
                 
                 <%- include('../partials/search-bar', { 
                     placeholder: '제목, 작가로 검색',
@@ -55,7 +55,7 @@
             </div>
             
             <div id="popularGrid" class="novel-grid">
-                <%- include('../partials/skeleton', { type: 'grid', count: 9 }) %>
+                <%- include('../partials/skeleton', { type: 'grid', count: 10 }) %>
             </div>
         </section>
         
@@ -114,8 +114,8 @@
             
             async function loadPopularNovels(range = 'now') {
                 try {
-                    popularGrid.innerHTML = `<%- include("../partials/skeleton", { type: "grid", count: 9 }) %>`;
-                    const response = await apiClient.get(`/api/v1/novels?sort=${range === 'week' ? 'likes' : 'views'}&limit=9`);
+                    popularGrid.innerHTML = `<%- include("../partials/skeleton", { type: "grid", count: 10 }) %>`;
+                    const response = await apiClient.get(`/api/v1/novels?sort=${range === 'week' ? 'likes' : 'views'}&limit=10`);
                     const items = (response && response.data && Array.isArray(response.data.novels)) ? response.data.novels : (Array.isArray(response?.data) ? response.data : []);
                     if (items.length > 0) {
                         popularGrid.innerHTML = items.map(novel => `
@@ -151,12 +151,14 @@
                         `).join('');
                     } else {
                         popularGrid.innerHTML = `
-                            <div class="empty-state compact">
-                                <div class="empty-state-icon">
-                                    <span class="material-symbols-outlined">trophy</span>
+                            <div class="card card-outlined popular-empty-card">
+                                <div class="card-body">
+                                    <div class="popular-empty-content">
+                                        <span class="empty-state-icon"><span class="material-symbols-outlined">trophy</span></span>
+                                        <h3 class="empty-state-title">인기 작품이 없어요</h3>
+                                        <p class="empty-state-message">조금만 기다려주세요. 작품들이 모이면 이곳에 보여드릴게요.</p>
+                                    </div>
                                 </div>
-                                <h3 class="empty-state-title">인기 작품이 없어요</h3>
-                                <p class="empty-state-message">조금만 기다려주세요. 작품들이 모이면 이곳에 보여드릴게요.</p>
                             </div>
                         `;
                     }

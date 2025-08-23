@@ -91,6 +91,17 @@
     margin-bottom: 3rem;
 }
 
+.popular-empty-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    grid-column: 1 / -1;
+}
+
+.popular-empty-content {
+    text-align: center;
+}
+
 .novel-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -259,6 +270,19 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+.empty-state .empty-state-icon {
+    display: inline-flex;
+    vertical-align: middle;
+    margin: 0 0.5rem 0 0;
+}
+.empty-state.compact .empty-state-icon {
+    margin-bottom: 0;
+}
+.empty-state .empty-state-title {
+    display: inline-flex;
+    align-items: center;
 }
 
 @media (max-width: 1024px) {

@@ -180,9 +180,8 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (avatarImg) {
                 let src = user.profileImage || user.avatar || '';
                 if (src && src.startsWith('/uploads/')) {
-                    const origin = window.location.origin;
-                    const normalized = origin.replace('://novel.', '://user.');
-                    src = `${normalized}${src}`;
+                    const apiBase = 'https://api.magicresearches.com';
+                    src = `${apiBase}${src}`;
                 }
                 if (src) {
                     avatarImg.src = src;
