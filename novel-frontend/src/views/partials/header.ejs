@@ -85,7 +85,6 @@ const fixedHeader = typeof locals.fixedHeader === 'undefined' ? true : locals.fi
         </nav>
 
         <div class="header-actions">
-            <% if (headerData.isAuthenticated) { %>
             <button class="action-btn notification-btn" id="notificationBtn">
                 <span class="material-symbols-outlined">notifications</span>
                 <% if (headerData.notificationCount > 0) { %>
@@ -145,9 +144,6 @@ const fixedHeader = typeof locals.fixedHeader === 'undefined' ? true : locals.fi
                     </li>
                 </ul>
             </div>
-            <% } else { %>
-            <a href="/login" class="btn btn-primary">로그인</a>
-            <% } %>
 
             <button class="action-btn theme-toggle" id="themeToggle">
                 <span class="material-symbols-outlined">dark_mode</span>

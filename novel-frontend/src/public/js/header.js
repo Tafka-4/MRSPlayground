@@ -108,13 +108,22 @@ document.addEventListener('DOMContentLoaded', async function() {
             try {
                 await apiClient.post('/api/v1/auth/logout');
                 localStorage.removeItem('accessToken');
-                window.location.href = '/';
+                window.location.href = 'https://dev.magicresearches.com/login';
             } catch (error) {
                 console.error('Logout error:', error);
+                window.location.href = 'https://dev.magicresearches.com/login';
             }
         });
     }
     
+    function buildLoginUrlWithRedirect() {
+        const currentUrl = window.location.href;
+        const base = 'https://dev.magicresearches.com/login';
+        const url = new URL(base);
+        url.searchParams.set('redirect', currentUrl);
+        return url.toString();
+    }
+
     async function ensureAccessToken() {
         let token = localStorage.getItem('accessToken');
         if (token) return token;
@@ -155,7 +164,10 @@ document.addEventListener('DOMContentLoaded', async function() {
         try {
             let token = localStorage.getItem('accessToken');
             if (!token) token = await ensureAccessToken();
-            if (!token) return;
+            if (!token) {
+                updateUIForGuest();
+                return;
+            }
 
             const me = await apiClient.get('/api/v1/auth/me', { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
             const user = me?.data?.user || me?.user || {};
@@ -198,10 +210,33 @@ document.addEventListener('DOMContentLoaded', async function() {
                 adminMenuItem.style.display = 'block';
             }
         } catch (e) {
-            // no-op
+            updateUIForGuest();
         }
     }
     
+    function updateUIForGuest() {
+        document.querySelectorAll('.user-name').forEach((el) => (el.textContent = '게스트'));
+        document.querySelectorAll('.user-role').forEach((el) => (el.textContent = '로그인 필요'));
+        const avatarImg = document.getElementById('headerAvatarImage');
+        const avatarIcon = document.querySelector('.user-avatar .material-symbols-outlined');
+        if (avatarImg) {
+            avatarImg.removeAttribute('src');
+            avatarImg.style.display = 'none';
+        }
+        if (avatarIcon) avatarIcon.style.display = 'inline-block';
+        const userMenu = document.getElementById('userMenu');
+        if (userMenu) {
+            userMenu.innerHTML = `
+                <li>
+                    <a href="${buildLoginUrlWithRedirect()}" class="dropdown-link">
+                        <span class="material-symbols-outlined">login</span>
+                        <span>로그인</span>
+                    </a>
+                </li>
+            `;
+        }
+    }
+
     (async () => {
         try {
             if (!localStorage.getItem('accessToken')) await ensureAccessToken();

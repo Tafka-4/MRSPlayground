@@ -107,6 +107,8 @@ app.use((req, res, next) => {
     res.locals.brandText = '마법연구회';
     res.locals.brandHref = '/';
     res.locals.isAuthenticated = !!(req.cookies.accessToken || req.cookies.refreshToken);
+    res.locals.brandText = '마법연구회';
+    res.locals.brandHref = '/';
     next();
 });
 
@@ -114,7 +116,9 @@ const checkAuth = (req: express.Request, res: express.Response, next: express.Ne
     const token = req.cookies.accessToken || req.headers.authorization?.replace('Bearer ', '');
     const hasRefresh = !!req.cookies.refreshToken;
     if (!token && !hasRefresh) {
-        return res.redirect('/login?redirect=' + encodeURIComponent(req.originalUrl));
+        const fullUrl = `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+        const loginUrl = `https://dev.magicresearches.com/login?redirect=${encodeURIComponent(fullUrl)}`;
+        return res.redirect(loginUrl);
     }
     next();
 };

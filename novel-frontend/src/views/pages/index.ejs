@@ -82,19 +82,7 @@
                 </div>
                 
                 <div id="activityList" class="activity-list">
-                    <% if (locals.isAuthenticated) { %>
-                        <%- include('../partials/skeleton', { type: 'list', count: 5 }) %>
-                    <% } else { %>
-                        <%- include('../partials/empty-state', {
-                            icon: 'login',
-                            title: '로그인이 필요합니다',
-                            message: '활동 내역을 보려면 로그인하세요.',
-                            showAction: true,
-                            actionText: '로그인',
-                            actionUrl: '/login',
-                            actionIcon: 'login'
-                        }) %>
-                    <% } %>
+                    <%- include('../partials/skeleton', { type: 'list', count: 5 }) %>
                 </div>
             </section>
         </div>
@@ -203,7 +191,25 @@
             }
             
             async function loadActivities() {
+                const activityListEl = document.getElementById('activityList');
                 if (!localStorage.getItem('accessToken')) {
+                    activityListEl.innerHTML = `
+                        <div class="empty-state compact">
+                            <div class="empty-state-header">
+                                <div class="empty-state-icon">
+                                    <span class="material-symbols-outlined">login</span>
+                                </div>
+                                <h3 class="empty-state-title">로그인이 필요합니다</h3>
+                            </div>
+                            <p class="empty-state-message">활동 내역을 보려면 로그인하세요.</p>
+                            <div class="empty-state-actions">
+                                <a class="btn btn-primary" href="https://dev.magicresearches.com/login?redirect=${encodeURIComponent(window.location.href)}">
+                                    <span class="material-symbols-outlined">login</span>
+                                    로그인
+                                </a>
+                            </div>
+                        </div>
+                    `;
                     return;
                 }
                 
