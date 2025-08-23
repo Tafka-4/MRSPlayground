@@ -116,7 +116,7 @@
                 try {
                     popularGrid.innerHTML = '<%- include("../partials/skeleton", { type: "grid", count: 9 }) %>';
                     const response = await apiClient.get(`/api/v1/novels?sort=${range === 'week' ? 'likes' : 'views'}&limit=9`);
-                    const items = response.data.novels || response.data || [];
+                    const items = (response && response.data && Array.isArray(response.data.novels)) ? response.data.novels : (Array.isArray(response?.data) ? response.data : []);
                     if (items.length > 0) {
                         popularGrid.innerHTML = items.map(novel => `
                             <div class="novel-card-grid" onclick="window.location.href='/novel/${novel.novelId || novel._id || novel.id}'">
@@ -164,7 +164,7 @@
             async function loadNews() {
                 try {
                     const response = await apiClient.get('/api/v1/novels?sort=recent&limit=20');
-                    const items = response.data.novels || [];
+                    const items = (response && response.data && Array.isArray(response.data.novels)) ? response.data.novels : [];
                     if (items.length > 0) {
                         newsList.innerHTML = items.map(item => `
                             <div class="news-item">
@@ -190,6 +190,7 @@
                     }
                 } catch (error) {
                     console.error('Error loading news:', error);
+                    newsList.innerHTML = '<%- include("../partials/error-banner", { message: "새 소식 불러오기 실패" }) %>';
                 }
             }
             
@@ -203,7 +204,7 @@
                     const userid = me?.data?.user?.userid || me?.data?.userid || '';
                     if (!userid) return;
                     const response = await apiClient.get(`/api/v1/logs/users/${encodeURIComponent(userid)}/activity?limit=20`).catch(() => null);
-                    const activities = response?.data?.activities || response?.data || [];
+                    const activities = (response && response.data && Array.isArray(response.data.activities)) ? response.data.activities : (Array.isArray(response?.data) ? response.data : []);
                     if (activities.length > 0) {
                         activityList.innerHTML = activities.map(activity => `
                             <div class="activity-item">
@@ -235,6 +236,7 @@
                     }
                 } catch (error) {
                     console.error('Error loading activities:', error);
+                    activityList.innerHTML = '<%- include("../partials/error-banner", { message: "활동 내역 불러오기 실패" }) %>';
                 }
             }
             

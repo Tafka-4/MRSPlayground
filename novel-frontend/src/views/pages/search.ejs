@@ -62,8 +62,9 @@
                 if (tags) apiUrl += `&tags=${encodeURIComponent(tags)}`;
                 try {
                     const response = await apiClient.get(apiUrl);
-                    if (response.data && response.data.novels && response.data.novels.length) {
-                        result.innerHTML = response.data.novels.map(novel => `
+                    const items = (response && response.data && Array.isArray(response.data.novels)) ? response.data.novels : (Array.isArray(response?.data) ? response.data : []);
+                    if (items.length) {
+                        result.innerHTML = items.map(novel => `
                         <div class="novel-preview-card" onclick="window.location.href='/novel/${novel.novelId || novel._id || novel.id}'" role="button" tabindex="0">
                             <div class="novel-thumbnail">
                                 ${novel.thumbnailImage ? `<img src="${novel.thumbnailImage}" alt="${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')} 썸네일" loading="lazy" onerror="this.src='/images/default-novel-cover.jpg'">` : `
@@ -88,7 +89,7 @@
                             </div>
                         </div>`).join('');
 
-                        const totalPages = response.data.totalPages || Math.ceil((response.data.total || 0) / size);
+                        const totalPages = response.data?.totalPages || Math.ceil((response.data?.total || 0) / size);
                         if (totalPages > 1) {
                             paginationContainer.innerHTML = getPaginationHTML(page, totalPages);
                         } else {

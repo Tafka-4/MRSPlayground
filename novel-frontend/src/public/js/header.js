@@ -150,15 +150,44 @@ document.addEventListener('DOMContentLoaded', async function() {
             console.error('Error checking user role:', error);
         }
     }
+
+    async function fetchAndUpdateUserData() {
+        try {
+            let token = localStorage.getItem('accessToken');
+            if (!token) token = await ensureAccessToken();
+            if (!token) return;
+
+            const me = await apiClient.get('/api/v1/auth/me', { headers: token ? { 'Authorization': `Bearer ${token}` } : {} });
+            const user = me?.data?.user || me?.user || {};
+
+            if (user && (user.nickname || user.username)) {
+                const name = user.nickname || user.username;
+                document.querySelectorAll('.user-name').forEach((el) => (el.textContent = name));
+            }
+
+            const role = user.authority === 'admin' ? '관리자' : '사용자';
+            document.querySelectorAll('.user-role').forEach((el) => (el.textContent = role));
+
+            const notificationBadge = document.querySelector('.notification-badge');
+            if (notificationBadge) {
+                const count = user.notificationCount || 0;
+                notificationBadge.textContent = count;
+                notificationBadge.style.display = count > 0 ? 'inline' : 'none';
+            }
+
+            if ((user.authority === 'admin' || user.authority === 'bot') && adminMenuItem) {
+                adminMenuItem.style.display = 'block';
+            }
+        } catch (e) {
+            // no-op
+        }
+    }
     
     (async () => {
         try {
-            if (!localStorage.getItem('accessToken')) {
-                await ensureAccessToken();
-            }
-            if (localStorage.getItem('accessToken')) {
-                checkUserRole();
-            }
+            if (!localStorage.getItem('accessToken')) await ensureAccessToken();
+            if (localStorage.getItem('accessToken')) checkUserRole();
+            fetchAndUpdateUserData();
         } catch {}
     })();
     

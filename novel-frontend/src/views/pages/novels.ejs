@@ -147,9 +147,10 @@
                     }
                     
                     const response = await apiClient.get(apiUrl);
+                    const items = (response && response.data && Array.isArray(response.data.novels)) ? response.data.novels : (Array.isArray(response?.data) ? response.data : []);
                     
-                    if (response.data && response.data.novels && response.data.novels.length > 0) {
-                        novelList.innerHTML = response.data.novels.map(novel => `
+                    if (items.length > 0) {
+                        novelList.innerHTML = items.map(novel => `
                             <div class="novel-preview-card" onclick="window.location.href='/novel/${novel.novelId || novel._id || novel.id}'" role="button" tabindex="0">
                                 <div class="novel-thumbnail">
                                     ${novel.thumbnailImage ? 
@@ -210,7 +211,7 @@
                             </div>
                         `).join('');
                         
-                        const totalPages = response.data.totalPages || Math.ceil((response.data.total || 0) / size);
+                        const totalPages = response.data?.totalPages || Math.ceil((response.data?.total || 0) / size);
                         if (totalPages > 1) {
                             paginationContainer.innerHTML = `<%- include('../partials/pagination', { 
                                 currentPage: page, 
