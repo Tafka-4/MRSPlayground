@@ -13,11 +13,11 @@ const emptyData = {
 %>
 
 <div class="empty-state<%= emptyData.compact ? ' compact' : '' %>">
-    <div class="empty-state-header" style="display:flex;align-items:center;gap:0.5rem;">
+    <div class="empty-state-header">
         <div class="empty-state-icon">
             <span class="material-symbols-outlined"><%= emptyData.icon %></span>
         </div>
-        <h3 class="empty-state-title" style="margin:0;"> <%= emptyData.title %> </h3>
+        <h3 class="empty-state-title"> <%= emptyData.title %> </h3>
     </div>
     
     <p class="empty-state-message"><%= emptyData.message %></p>
@@ -63,6 +63,13 @@ const emptyData = {
     min-height: 400px;
 }
 
+.empty-state-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
 .empty-state.compact {
     padding: 1.25rem 1rem;
     min-height: 180px;
@@ -95,7 +102,7 @@ const emptyData = {
 }
 
 .empty-state-title {
-    margin: 0 0 0.5rem 0;
+    margin: 0;
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--text-primary);
