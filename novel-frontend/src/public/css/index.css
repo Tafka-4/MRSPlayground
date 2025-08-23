@@ -95,6 +95,7 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 1.25rem;
+    justify-items: center;
 }
 
 .novel-card-grid {
@@ -104,6 +105,11 @@
     overflow: hidden;
     cursor: pointer;
     transition: all var(--transition);
+}
+
+.novel-grid .novel-preview-card {
+    width: 100%;
+    max-width: 320px;
 }
 
 .novel-card-grid:hover {
@@ -246,6 +252,13 @@
     text-align: center;
     color: var(--text-muted);
     padding: 2rem;
+}
+
+.empty-state.compact .empty-state-icon + .empty-state-title,
+.empty-state .empty-state-icon + .empty-state-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 @media (max-width: 1024px) {
