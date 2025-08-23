@@ -175,6 +175,21 @@ document.addEventListener('DOMContentLoaded', async function() {
                 notificationBadge.style.display = count > 0 ? 'inline' : 'none';
             }
 
+            const avatarImg = document.getElementById('headerAvatarImage');
+            const avatarIcon = document.querySelector('.user-avatar .material-symbols-outlined');
+            if (avatarImg) {
+                const src = user.profileImage || user.avatar || '';
+                if (src) {
+                    avatarImg.src = src;
+                    avatarImg.style.display = 'inline-block';
+                    if (avatarIcon) avatarIcon.style.display = 'none';
+                } else {
+                    avatarImg.removeAttribute('src');
+                    avatarImg.style.display = 'none';
+                    if (avatarIcon) avatarIcon.style.display = 'inline-block';
+                }
+            }
+
             if ((user.authority === 'admin' || user.authority === 'bot') && adminMenuItem) {
                 adminMenuItem.style.display = 'block';
             }
