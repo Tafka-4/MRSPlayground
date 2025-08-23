@@ -133,7 +133,7 @@
             
             async function loadNovels() {
                 try {
-                    novelList.innerHTML = '<%- include("../partials/skeleton", { type: "card", count: 10 }) %>';
+                    novelList.innerHTML = `<%- include("../partials/skeleton", { type: "card", count: 10 }) %>`;
                     
                     let apiUrl = `/api/v1/novels?sort=${sort}&page=${page}&size=${size}`;
                     if (query) {

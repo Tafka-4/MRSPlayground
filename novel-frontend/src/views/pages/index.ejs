@@ -114,7 +114,7 @@
             
             async function loadPopularNovels(range = 'now') {
                 try {
-                    popularGrid.innerHTML = '<%- include("../partials/skeleton", { type: "grid", count: 9 }) %>';
+                    popularGrid.innerHTML = `<%- include("../partials/skeleton", { type: "grid", count: 9 }) %>`;
                     const response = await apiClient.get(`/api/v1/novels?sort=${range === 'week' ? 'likes' : 'views'}&limit=9`);
                     const items = (response && response.data && Array.isArray(response.data.novels)) ? response.data.novels : (Array.isArray(response?.data) ? response.data : []);
                     if (items.length > 0) {
@@ -157,7 +157,7 @@
                     }
                 } catch (error) {
                     console.error('Error loading popular novels:', error);
-                    popularGrid.innerHTML = '<%- include("../partials/error-banner", { message: "인기 작품을 불러오는 중 오류가 발생했습니다." }) %>';
+                    popularGrid.innerHTML = `<%- include("../partials/error-banner", { message: "인기 작품을 불러오는 중 오류가 발생했습니다." }) %>`;
                 }
             }
             
@@ -190,7 +190,7 @@
                     }
                 } catch (error) {
                     console.error('Error loading news:', error);
-                    newsList.innerHTML = '<%- include("../partials/error-banner", { message: "새 소식 불러오기 실패" }) %>';
+                    newsList.innerHTML = `<%- include("../partials/error-banner", { message: "새 소식 불러오기 실패" }) %>`;
                 }
             }
             
@@ -236,7 +236,7 @@
                     }
                 } catch (error) {
                     console.error('Error loading activities:', error);
-                    activityList.innerHTML = '<%- include("../partials/error-banner", { message: "활동 내역 불러오기 실패" }) %>';
+                    activityList.innerHTML = `<%- include("../partials/error-banner", { message: "활동 내역 불러오기 실패" }) %>`;
                 }
             }
             

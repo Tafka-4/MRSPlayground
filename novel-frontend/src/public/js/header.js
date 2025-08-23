@@ -178,7 +178,12 @@ document.addEventListener('DOMContentLoaded', async function() {
             const avatarImg = document.getElementById('headerAvatarImage');
             const avatarIcon = document.querySelector('.user-avatar .material-symbols-outlined');
             if (avatarImg) {
-                const src = user.profileImage || user.avatar || '';
+                let src = user.profileImage || user.avatar || '';
+                if (src && src.startsWith('/uploads/')) {
+                    const origin = window.location.origin;
+                    const normalized = origin.replace('://novel.', '://user.');
+                    src = `${normalized}${src}`;
+                }
                 if (src) {
                     avatarImg.src = src;
                     avatarImg.style.display = 'inline-block';
