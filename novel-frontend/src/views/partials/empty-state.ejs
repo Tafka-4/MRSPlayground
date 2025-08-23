@@ -13,11 +13,12 @@ const emptyData = {
 %>
 
 <div class="empty-state<%= emptyData.compact ? ' compact' : '' %>">
-    <div class="empty-state-icon">
-        <span class="material-symbols-outlined"><%= emptyData.icon %></span>
+    <div class="empty-state-header" style="display:flex;align-items:center;gap:0.5rem;">
+        <div class="empty-state-icon">
+            <span class="material-symbols-outlined"><%= emptyData.icon %></span>
+        </div>
+        <h3 class="empty-state-title" style="margin:0;"> <%= emptyData.title %> </h3>
     </div>
-    
-    <h3 class="empty-state-title"><%= emptyData.title %></h3>
     
     <p class="empty-state-message"><%= emptyData.message %></p>
     
