@@ -12,6 +12,8 @@ export interface NovelRecord {
 	favoriteCount: number;
 	author: string;
 	status: string;
+	visibility: 'public' | 'code' | 'private';
+	accessCodeHash?: string;
 	createdAt: Date;
 	updatedAt: Date;
 }
@@ -20,7 +22,7 @@ export interface NovelRepo {
 	create(data: Omit<NovelRecord, 'createdAt' | 'updatedAt' | 'viewCount' | 'likeCount' | 'dislikeCount' | 'favoriteCount' | 'episodeCount'>): Promise<NovelRecord>;
 	findById(novelId: string): Promise<NovelRecord | null>;
 	increaseView(novelId: string): Promise<void>;
-	updateIfAuthor(novelId: string, author: string, data: Partial<Pick<NovelRecord, 'title' | 'description'>>): Promise<NovelRecord | null>;
+	updateIfAuthor(novelId: string, author: string, data: Partial<Pick<NovelRecord, 'title' | 'description' | 'visibility' | 'accessCodeHash'>>): Promise<NovelRecord | null>;
 	deleteIfAuthor(novelId: string, author: string): Promise<boolean>;
 }
 
