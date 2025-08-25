@@ -16,7 +16,7 @@
                 </div>
             <link rel="stylesheet" href="/component/style/input.css">
             <link rel="stylesheet" href="/component/style/buttons.css">
-            <form id="novelForm" class="form">
+            <form id="novelForm" class="form" enctype="multipart/form-data">
                 <div class="input-group input-style1">
                     <label for="title">제목</label>
                     <div class="input-wrapper">
@@ -32,22 +32,6 @@
                     </div>
                 </div>
                 <div class="input-group input-style1">
-                    <label for="genre">장르</label>
-                    <div class="input-wrapper">
-                        <span class="material-symbols-outlined">category</span>
-                        <select id="genre" name="genre">
-                            <option value="">선택 없음</option>
-                            <option value="fantasy">판타지</option>
-                            <option value="romance">로맨스</option>
-                            <option value="action">액션</option>
-                            <option value="mystery">미스터리</option>
-                            <option value="sf">SF</option>
-                            <option value="horror">호러</option>
-                            <option value="comedy">코미디</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="input-group input-style1">
                     <label for="tags">태그</label>
                     <div class="input-wrapper">
                         <span class="material-symbols-outlined">sell</span>
@@ -55,10 +39,29 @@
                     </div>
                 </div>
                 <div class="input-group input-style1">
-                    <label for="thumbnailImage">썸네일 URL</label>
+                    <label for="thumbnailFile">썸네일 업로드</label>
+                    <div class="file-input">
+                        <input id="thumbnailFile" name="thumbnail" type="file" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="input-group input-style1">
+                    <label for="visibility">공개 범위</label>
                     <div class="input-wrapper">
-                        <span class="material-symbols-outlined">image</span>
-                        <input id="thumbnailImage" name="thumbnailImage" type="url" placeholder="https://...">
+                        <span class="material-symbols-outlined">lock_open</span>
+                        <select id="visibility" name="visibility">
+                            <option value="public">공개</option>
+                            <option value="code">코드 소지자만</option>
+                            <option value="private">본인만</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group input-style1" id="accessCodeWrap" style="display:none;">
+                    <label for="accessCode">접근 코드</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">key</span>
+                        <input id="accessCode" name="accessCode" type="text" placeholder="코드 소지자만 선택 시 입력">
                     </div>
                 </div>
                 <div class="form-actions stack-h" style="justify-content:flex-end;">
@@ -79,19 +82,30 @@
     <script type="module">
         import apiClient from '/module/api.js';
         const form = document.getElementById('novelForm');
+        const visibility = document.getElementById('visibility');
+        const accessCodeWrap = document.getElementById('accessCodeWrap');
+        visibility?.addEventListener('change', () => {
+            accessCodeWrap.style.display = visibility.value === 'code' ? 'block' : 'none';
+        });
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const data = new FormData(form);
             const body = {
                 title: data.get('title'),
                 description: data.get('description'),
-                genre: data.get('genre') || '',
                 tags: (data.get('tags') || '').toString().split(',').map(s => s.trim()).filter(Boolean),
-                thumbnailImage: data.get('thumbnailImage') || ''
+                visibility: data.get('visibility') || 'public',
+                accessCode: data.get('accessCode') || ''
             };
             try {
-                const res = await apiClient.post('/api/v1/novels', body);
-                const novel = res.data.novel || res.data;
+                let response = await apiClient.post('/api/v1/novels', body);
+                const novel = response.data.novel || response.data;
+                const file = data.get('thumbnail');
+                if (file && file instanceof File) {
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    await apiClient.post(`/api/v1/novels/${novel.novelId || novel._id || novel.id}/thumbnail-image`, fd);
+                }
                 window.location.href = `/novel/${novel.novelId || novel._id || novel.id}`;
             } catch (err) {
                 alert('업로드 실패: ' + (err?.data?.message || err.message));
