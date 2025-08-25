@@ -5,13 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/component/style/buttons.css">
-    <link rel="stylesheet" href="/component/style/cards.css">
-    <link rel="stylesheet" href="/component/style/badges.css">
-    <link rel="stylesheet" href="/component/style/forms.css">
-    <link rel="stylesheet" href="/component/style/navigation.css">
-    <link rel="stylesheet" href="/css/novel-card.css">
+    <%- include('../partials/head-assets') %>
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
