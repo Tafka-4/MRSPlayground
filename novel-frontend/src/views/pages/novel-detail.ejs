@@ -6,15 +6,25 @@
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/component/style/buttons.css">
+    <link rel="stylesheet" href="/component/style/cards.css">
+    <link rel="stylesheet" href="/component/style/badges.css">
+    <link rel="stylesheet" href="/component/style/navigation.css">
+    <link rel="stylesheet" href="/css/novel-card.css">
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
     <main class="main-content">
-        <div class="container" style="padding:2rem 0;">
-            <h1 class="page-title">소설 상세</h1>
-            <div class="meta" style="margin-bottom:1rem;">ID: <%= locals.novelId %></div>
-            <div id="novelDetail">
-                <%- include('../partials/skeleton', { type: 'card', count: 2 }) %>
+        <div class="container">
+            <div class="page">
+                <div class="page-header">
+                    <h1 class="page-title">소설 상세</h1>
+                </div>
+                <div class="muted">ID: <%= locals.novelId %></div>
+                <div class="section">
+                    <div id="novelDetail">
+                        <%- include('../partials/skeleton', { type: 'card', count: 2 }) %>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -30,19 +40,21 @@
             const res = await apiClient.get(`/api/v1/novels/${novelId}`);
             const n = res.data.novel || res.data;
             container.innerHTML = `
-                <div class="novel-detail-card">
-                    <div class="novel-header" style="display:flex;gap:16px;align-items:center;">
-                        ${n.thumbnailImage ? `<img src="${n.thumbnailImage}" alt="${String(n.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}" style="width:120px;height:160px;object-fit:cover;border-radius:4px;">` : ''}
-                        <div>
-                            <h2 style="margin:0 0 8px;">${String(n.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h2>
-                            <div style="color:var(--text-secondary);">${String(n.author||'Unknown').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-                            <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
-                                ${n.genre ? `<span class="genre-tag">${String(n.genre).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>` : ''}
+                <div class="card">
+                    <div class="stack-h">
+                        ${n.thumbnailImage ? `<div class=\"novel-thumbnail\"><img src=\"${n.thumbnailImage}\" alt=\"${String(n.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}\"></div>` : ''}
+                        <div class="stack-v" style="min-width:0;">
+                            <h2 class="novel-title">${String(n.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h2>
+                            <div class="novel-author muted">${String(n.author||'Unknown').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                            <div class="stack-h" style="flex-wrap:wrap;">
+                                ${n.genre ? `<span class=\"genre-tag\">${String(n.genre).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>` : ''}
                                 ${Array.isArray(n.tags) ? n.tags.slice(0,5).map(t=>`<span class=\"genre-tag\">${String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`).join('') : ''}
                             </div>
                         </div>
                     </div>
-                    <div class="novel-body" style="margin-top:16px;white-space:pre-wrap;">${String(n.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                    <div class="section">
+                        <div class="novel-description">${String(n.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                    </div>
                 </div>
             `;
         } catch (e) {

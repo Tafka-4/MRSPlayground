@@ -13,15 +13,42 @@
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
     <main class="main-content">
-        <div class="container" style="padding:2rem 0;">
-            <h1 class="page-title">공지사항</h1>
-            <div class="meta" style="margin-bottom:1rem;">Novel: <%= locals.novelId %> / Notice: <%= locals.noticeId %></div>
-            <div id="noticeDetail">
-                <%- include('../partials/skeleton', { type: 'card', count: 2 }) %>
+        <div class="container">
+            <div class="page">
+                <div class="page-header">
+                    <h1 class="page-title">공지사항</h1>
+                </div>
+                <div class="muted">Novel: <%= locals.novelId %> / Notice: <%= locals.noticeId %></div>
+                <div class="section">
+                    <div id="noticeDetail">
+                        <%- include('../partials/skeleton', { type: 'card', count: 2 }) %>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
     <%- include('../partials/footer') %>
 </body>
 </html>
+<script type="module">
+    import apiClient from '/module/api.js';
+    const container = document.getElementById('noticeDetail');
+    const noticeId = '<%= locals.noticeId %>';
+    async function load() {
+        try {
+            const res = await apiClient.get(`/api/v1/notices/${noticeId}`);
+            const n = res.data?.notice || res.data || {};
+            container.innerHTML = `
+                <div class="card">
+                    <h2 class="page-title">${String(n.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h2>
+                    <div class="muted">${new Date(n.createdAt || Date.now()).toLocaleString('ko-KR')}</div>
+                    <div class="section" style="white-space:pre-wrap;">${String(n.content||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                </div>
+            `;
+        } catch (e) {
+            container.innerHTML = `<div class="error">로딩 실패</div>`;
+        }
+    }
+    load();
+</script>
 

@@ -361,6 +361,51 @@ h6 { font-size: 1rem; }
     padding: 0 1.5rem;
 }
 
+/* Page utilities */
+.page {
+    padding: 2rem 0;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.page-title {
+    font-size: 2rem;
+    margin: 0;
+}
+
+.page-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.section {
+    margin-bottom: 2rem;
+}
+
+.stack-v {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.stack-h {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.muted {
+    color: var(--text-secondary);
+}
+
 .grid {
     display: grid;
     gap: 1.5rem;

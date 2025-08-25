@@ -12,104 +12,45 @@
     <link rel="stylesheet" href="/component/style/forms.css">
     <link rel="stylesheet" href="/component/style/navigation.css">
     <link rel="stylesheet" href="/css/novel-card.css">
-    <style>
-        .novels-page {
-            padding: 2rem 0;
-        }
-        
-        .page-header {
-            margin-bottom: 2rem;
-        }
-        
-        .page-title {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-        
-        .novels-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        
-        .search-section {
-            flex: 1;
-            max-width: 500px;
-        }
-        
-        .action-section {
-            display: flex;
-            gap: 1rem;
-        }
-        
-        .novels-content {
-            min-height: 400px;
-        }
-        
-        .novel-list {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-        
-        @media (max-width: 768px) {
-            .page-title {
-                font-size: 1.5rem;
-            }
-            
-            .novels-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .search-section {
-                max-width: 100%;
-            }
-        }
-    </style>
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
     
     <main class="main-content">
-        <div class="novels-page">
-            <div class="page-header">
-                <h1 class="page-title">소설 목록</h1>
-            </div>
-            
-            <div class="novels-controls">
-                <div class="search-section">
-                    <%- include('../partials/search-bar', { 
-                        placeholder: '제목, 작가로 검색',
-                        value: locals.query || '',
-                        action: '/novels',
-                        showAdvanced: false
-                    }) %>
+        <div class="container">
+            <div class="page">
+                <div class="page-header">
+                    <h1 class="page-title">소설 목록</h1>
                 </div>
-                
-                <div class="action-section">
-                    <a href="/novel/upload" class="btn btn-primary">
-                        <span class="material-symbols-outlined">add</span>
-                        새 소설 작성
-                    </a>
+
+                <div class="page-controls">
+                    <div class="search-section" style="flex:1;max-width:600px;">
+                        <%- include('../partials/search-bar', { 
+                            placeholder: '제목, 작가로 검색',
+                            value: locals.query || '',
+                            action: '/novels',
+                            showAdvanced: false
+                        }) %>
+                    </div>
+                    <div class="action-section">
+                        <a href="/novel/upload" class="btn btn-primary">
+                            <span class="material-symbols-outlined">add</span>
+                            새 소설 작성
+                        </a>
+                    </div>
                 </div>
-            </div>
             
-            <%- include('../partials/sort-tabs', { 
-                current: locals.sort || 'updated',
-                baseUrl: '/novels'
-            }) %>
-            
-            <div class="novels-content">
-                <div id="novelList" class="novel-list">
-                    <%- include('../partials/skeleton', { type: 'card', count: 10 }) %>
+                <%- include('../partials/sort-tabs', { 
+                    current: locals.sort || 'updated',
+                    baseUrl: '/novels'
+                }) %>
+
+                <div class="section">
+                    <div id="novelList" class="novel-list">
+                        <%- include('../partials/skeleton', { type: 'card', count: 10 }) %>
+                    </div>
+                    <div id="paginationContainer"></div>
                 </div>
-                
-                <div id="paginationContainer"></div>
             </div>
         </div>
     </main>

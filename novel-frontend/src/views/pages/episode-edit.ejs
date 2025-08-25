@@ -15,10 +15,13 @@
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
     <main class="main-content">
-        <div class="container" style="padding:2rem 0;">
-            <h1 class="page-title">에피소드 수정</h1>
-            <div class="meta" style="margin-bottom:1rem;">Novel: <%= locals.novelId %> / Episode: <%= locals.episodeId %></div>
-            <form id="episodeForm" class="form" style="max-width:720px;">
+        <div class="container">
+            <div class="page" style="max-width:720px;margin:0 auto;">
+                <div class="page-header">
+                    <h1 class="page-title">에피소드 수정</h1>
+                </div>
+                <div class="muted">Novel: <%= locals.novelId %> / Episode: <%= locals.episodeId %></div>
+                <form id="episodeForm" class="form">
                 <div class="input-group input-style1">
                     <label for="title">제목</label>
                     <div class="input-wrapper">
@@ -40,7 +43,7 @@
                         <textarea id="authorComment" name="authorComment" rows="3" placeholder="선택 사항"></textarea>
                     </div>
                 </div>
-                <div class="form-actions" style="margin-top:1rem;display:flex;gap:0.5rem;justify-content:flex-end;">
+                <div class="form-actions stack-h" style="justify-content:flex-end;">
                     <button type="button" class="btn btn-secondary" onclick="history.back()">
                         <span class="material-symbols-outlined">arrow_back</span>
                         취소
@@ -50,10 +53,41 @@
                         저장
                     </button>
                 </div>
-            </form>
+                </form>
+            </div>
         </div>
     </main>
     <%- include('../partials/footer') %>
 </body>
 </html>
+<script type="module">
+    import apiClient from '/module/api.js';
+    const form = document.getElementById('episodeForm');
+    const episodeId = '<%= locals.episodeId %>';
+    async function loadInitial() {
+        try {
+            const res = await apiClient.get(`/api/v1/episodes/${episodeId}`);
+            const e = res.data?.episode || res.data || {};
+            form.title.value = e.title || '';
+            form.content.value = e.content || '';
+            form.authorComment.value = e.authorComment || '';
+        } catch {}
+    }
+    form.addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        const data = new FormData(form);
+        const body = {
+            title: data.get('title'),
+            content: data.get('content'),
+            authorComment: data.get('authorComment') || ''
+        };
+        try {
+            await apiClient.put(`/api/v1/episodes/${episodeId}`, body);
+            window.location.reload();
+        } catch (err) {
+            alert('수정 실패: ' + (err?.data?.message || err.message));
+        }
+    });
+    loadInitial();
+</script>
 

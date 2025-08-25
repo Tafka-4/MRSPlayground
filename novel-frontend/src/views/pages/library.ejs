@@ -13,14 +13,20 @@
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
     <main class="main-content">
-        <div class="container" style="padding:2rem 0;">
-            <h1 class="page-title">내 서재</h1>
-            <div class="filters" style="margin-bottom:1rem;">
-                <span>유형: <%= locals.type %></span>
-                <span style="margin-left:8px;">정렬: <%= locals.sort %></span>
-            </div>
-            <div id="libraryList">
-                <%- include('../partials/skeleton', { type: 'card', count: 10 }) %>
+        <div class="container">
+            <div class="page">
+                <div class="page-header">
+                    <h1 class="page-title">내 서재</h1>
+                </div>
+                <div class="muted stack-h">
+                    <span>유형: <%= locals.type %></span>
+                    <span>정렬: <%= locals.sort %></span>
+                </div>
+                <div class="section">
+                    <div id="libraryList">
+                        <%- include('../partials/skeleton', { type: 'card', count: 10 }) %>
+                    </div>
+                </div>
             </div>
         </div>
     </main>

@@ -29,7 +29,8 @@ app.use((req: express.Request, res: express.Response, next: express.NextFunction
             `${scheme}://dev.${baseDomain}`,
             `${scheme}://novel.${baseDomain}`,
             `${scheme}://community.${baseDomain}`,
-            `${scheme}://emoji.${baseDomain}`
+            `${scheme}://emoji.${baseDomain}`,
+            `${scheme}://${baseDomain}`
         ])
     );
     const origin = req.headers.origin as string | undefined;

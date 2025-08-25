@@ -38,7 +38,8 @@ app.use(
                     `${scheme}://user.${baseDomain}`,
                     `${scheme}://novel.${baseDomain}`,
                     `${scheme}://community.${baseDomain}`,
-                    `${scheme}://emoji.${baseDomain}`
+                    `${scheme}://emoji.${baseDomain}`,
+                    `${scheme}://${baseDomain}`
                 ])
             );
             if (!origin) return callback(null, true);

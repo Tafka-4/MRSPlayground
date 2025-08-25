@@ -192,7 +192,18 @@
             
             async function loadActivities() {
                 const activityListEl = document.getElementById('activityList');
-                if (!localStorage.getItem('accessToken')) {
+                let token = localStorage.getItem('accessToken');
+                if (!token) {
+                    try {
+                        const refreshed = await apiClient.post('/api/v1/auth/refresh');
+                        const access = refreshed?.data?.accessToken || refreshed?.accessToken;
+                        if (access) {
+                            localStorage.setItem('accessToken', access);
+                            token = access;
+                        }
+                    } catch (e) {}
+                }
+                if (!token) {
                     activityListEl.innerHTML = `
                         <div class="empty-state compact">
                             <div class="empty-state-header">
@@ -208,7 +219,7 @@
                 }
                 
                 try {
-                    const me = await apiClient.get('/api/v1/auth/me');
+                    const me = await apiClient.get('/api/v1/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
                     const userid = me?.data?.user?.userid || me?.data?.userid || '';
                     if (!userid) return;
                     const response = await apiClient.get(`/api/v1/logs/users/${encodeURIComponent(userid)}/activity?limit=20`).catch(() => null);

@@ -10,10 +10,16 @@
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
     <main class="main-content">
-        <div class="container" style="padding:2rem 0;">
-            <h1 class="page-title">랭킹</h1>
-            <div id="rankList">
-                <%- include('../partials/skeleton', { type: 'card', count: 10 }) %>
+        <div class="container">
+            <div class="page">
+                <div class="page-header">
+                    <h1 class="page-title">랭킹</h1>
+                </div>
+                <div class="section">
+                    <div id="rankList">
+                        <%- include('../partials/skeleton', { type: 'card', count: 10 }) %>
+                    </div>
+                </div>
             </div>
         </div>
     </main>

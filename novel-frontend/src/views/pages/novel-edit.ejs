@@ -11,8 +11,11 @@
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
     <main class="main-content">
-        <div class="container" style="max-width:720px;padding:2rem 0;">
-            <h1>소설 수정</h1>
+        <div class="container">
+            <div class="page" style="max-width:720px;margin:0 auto;">
+                <div class="page-header">
+                    <h1 class="page-title">소설 수정</h1>
+                </div>
             <form id="novelForm" class="form">
                 <div class="input-group input-style1">
                     <label for="title">제목</label>
@@ -58,7 +61,7 @@
                         <input id="thumbnailImage" name="thumbnailImage" type="url" placeholder="https://...">
                     </div>
                 </div>
-                <div class="form-actions" style="margin-top:1rem;display:flex;gap:0.5rem;justify-content:flex-end;">
+                <div class="form-actions stack-h" style="justify-content:flex-end;">
                     <button type="button" class="btn btn-secondary" onclick="history.back()">
                         <span class="material-symbols-outlined">arrow_back</span>
                         취소
@@ -69,6 +72,7 @@
                     </button>
                 </div>
             </form>
+            </div>
         </div>
     </main>
     <%- include('../partials/footer') %>
@@ -80,7 +84,7 @@
         async function loadInitial() {
             try {
                 const res = await apiClient.get(`/api/v1/novels/${novelId}`);
-                const n = res.data;
+                const n = res.data?.novel || res.data;
                 form.title.value = n.title || '';
                 form.description.value = n.description || '';
                 form.genre.value = n.genre || '';

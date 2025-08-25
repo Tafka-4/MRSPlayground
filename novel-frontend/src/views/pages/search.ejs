@@ -17,26 +17,30 @@
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
     <main class="main-content">
-        <div class="novels-page" style="padding: 2rem 0;">
-            <div class="page-header" style="margin-bottom: 1rem;">
-                <h1 class="page-title">검색</h1>
-            </div>
-            <div class="novels-controls" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-bottom:1rem;">
-                <div class="search-section" style="flex:1;max-width:700px;">
-                    <%- include('../partials/search-bar', { 
-                        placeholder: '제목, 작가, 태그로 검색',
-                        value: locals.query || '',
-                        action: '/search',
-                        showAdvanced: true,
-                        genre: locals.genre || '',
-                        tags: locals.tags || []
-                    }) %>
+        <div class="container">
+            <div class="page">
+                <div class="page-header">
+                    <h1 class="page-title">검색</h1>
+                </div>
+                <div class="page-controls">
+                    <div class="search-section" style="flex:1;max-width:700px;">
+                        <%- include('../partials/search-bar', { 
+                            placeholder: '제목, 작가, 태그로 검색',
+                            value: locals.query || '',
+                            action: '/search',
+                            showAdvanced: true,
+                            genre: locals.genre || '',
+                            tags: locals.tags || []
+                        }) %>
+                    </div>
+                </div>
+                <div class="section">
+                    <div id="searchResult" class="novel-list">
+                        <%- include('../partials/skeleton', { type: 'card', count: 10 }) %>
+                    </div>
+                    <div id="paginationContainer"></div>
                 </div>
             </div>
-            <div id="searchResult" class="novel-list">
-                <%- include('../partials/skeleton', { type: 'card', count: 10 }) %>
-            </div>
-            <div id="paginationContainer"></div>
         </div>
     </main>
     <%- include('../partials/footer') %>

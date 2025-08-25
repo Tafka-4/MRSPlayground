@@ -6,15 +6,24 @@
     <title><%= title %></title>
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/component/style/buttons.css">
+    <link rel="stylesheet" href="/component/style/cards.css">
+    <link rel="stylesheet" href="/component/style/badges.css">
+    <link rel="stylesheet" href="/component/style/navigation.css">
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
     <main class="main-content">
-        <div class="container" style="padding:2rem 0;">
-            <h1 class="page-title">에피소드</h1>
-            <div class="meta" style="margin-bottom:1rem;">Novel: <%= locals.novelId %> / Episode: <%= locals.episodeId %></div>
-            <div id="episodeDetail">
-                <%- include('../partials/skeleton', { type: 'card', count: 2 }) %>
+        <div class="container">
+            <div class="page">
+                <div class="page-header">
+                    <h1 class="page-title">에피소드</h1>
+                </div>
+                <div class="muted">Novel: <%= locals.novelId %> / Episode: <%= locals.episodeId %></div>
+                <div class="section">
+                    <div id="episodeDetail">
+                        <%- include('../partials/skeleton', { type: 'card', count: 2 }) %>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -30,13 +39,13 @@
             const res = await apiClient.get(`/api/v1/episodes/${episodeId}`);
             const e = res.data.episode || res.data;
             container.innerHTML = `
-                <article>
-                    <h2 style=\"margin:0 0 12px;\">${String(e.title||'Untitled').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h2>
+                <article class=\"card\">
+                    <h2 class=\"page-title\">${String(e.title||'Untitled').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h2>
                     <div class=\"content\" style=\"white-space:pre-wrap;\">${String(e.content||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
-                    ${e.authorComment ? `<hr/><div class=\"author-comment\">${String(e.authorComment).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>` : ''}
-                    <div style=\"margin-top:12px;display:flex;gap:8px;\">
-                        <button id=\"likeBtn\" class=\"btn btn-text\">👍 ${e.likeCount || 0}</button>
-                        <button id=\"dislikeBtn\" class=\"btn btn-text\">👎 ${e.dislikeCount || 0}</button>
+                    ${e.authorComment ? `<div class=\"section\"><div class=\"muted\">${String(e.authorComment).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div></div>` : ''}
+                    <div class=\"stack-h\">
+                        <button id=\"likeBtn\" class=\"btn btn-secondary\">👍 ${e.likeCount || 0}</button>
+                        <button id=\"dislikeBtn\" class=\"btn btn-secondary\">👎 ${e.dislikeCount || 0}</button>
                     </div>
                 </article>
             `;

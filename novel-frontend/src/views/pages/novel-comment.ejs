@@ -70,6 +70,24 @@
     const page = parseInt(urlParams.get('page') || '1');
     const size = parseInt(urlParams.get('size') || '20');
     const paginationEl = document.getElementById('commentsPagination');
+    function buildLoginUrlWithRedirect() {
+        const base = 'https://dev.magicresearches.com/login';
+        const url = new URL(base);
+        url.searchParams.set('redirect', window.location.href);
+        return url.toString();
+    }
+
+    async function ensureAccessToken() {
+        let token = localStorage.getItem('accessToken');
+        if (token) return token;
+        try {
+            const refreshed = await apiClient.post('/api/v1/auth/refresh');
+            const access = refreshed?.data?.accessToken || refreshed?.accessToken;
+            if (access) { localStorage.setItem('accessToken', access); return access; }
+        } catch {}
+        return null;
+    }
+
     async function load() {
         try {
             const epRes = await apiClient.get(`/api/v1/episodes/novel/${novelId}`);
@@ -89,6 +107,8 @@
             }).join('');
             list.querySelectorAll('[data-like]').forEach(btn => {
                 btn.addEventListener('click', async () => {
+                    const token = await ensureAccessToken();
+                    if (!token) { window.location.href = buildLoginUrlWithRedirect(); return; }
                     const id = btn.getAttribute('data-like');
                     try {
                         await apiClient.post(`/api/v1/comments/${id}/like`);
@@ -98,6 +118,8 @@
             });
             list.querySelectorAll('[data-dislike]').forEach(btn => {
                 btn.addEventListener('click', async () => {
+                    const token = await ensureAccessToken();
+                    if (!token) { window.location.href = buildLoginUrlWithRedirect(); return; }
                     const id = btn.getAttribute('data-dislike');
                     try {
                         await apiClient.post(`/api/v1/comments/${id}/dislike`);
@@ -121,6 +143,8 @@
             });
             list.querySelectorAll('[data-reply-submit]').forEach(btn => {
                 btn.addEventListener('click', async () => {
+                    const token = await ensureAccessToken();
+                    if (!token) { window.location.href = buildLoginUrlWithRedirect(); return; }
                     const id = btn.getAttribute('data-reply-submit');
                     const targetEpisodeId = btn.getAttribute('data-episode-target') || '';
                     const ta = document.getElementById(`rt-${id}`);
@@ -195,6 +219,8 @@
         } catch {}
     })();
     document.getElementById('commentSubmit')?.addEventListener('click', async () => {
+        const token = await ensureAccessToken();
+        if (!token) { window.location.href = buildLoginUrlWithRedirect(); return; }
         const textarea = document.getElementById('commentContent');
         const content = textarea && 'value' in textarea ? textarea.value.trim() : '';
         if (!content) return;
@@ -206,5 +232,19 @@
             location.reload();
         } catch {}
     });
+
+    // Hide comment form if not logged in
+    (async () => {
+        const token = await ensureAccessToken();
+        const formWrap = document.querySelector('.comment-form');
+        if (!token && formWrap) {
+            formWrap.innerHTML = `
+                <div class=\"empty-state compact\">
+                    <div class=\"empty-state-icon\"><span class=\"material-symbols-outlined\">login</span></div>
+                    <h3 class=\"empty-state-title\">로그인이 필요합니다</h3>
+                    <p class=\"empty-state-message\">댓글을 작성하려면 <a href=\"${buildLoginUrlWithRedirect()}\" style=\"text-decoration:underline;\">로그인</a>하세요.</p>
+                </div>`;
+        }
+    })();
 </script>
 

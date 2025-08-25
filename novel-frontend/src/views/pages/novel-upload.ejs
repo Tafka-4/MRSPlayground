@@ -9,8 +9,11 @@
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
     <main class="main-content">
-        <div class="container" style="max-width:720px;padding:2rem 0;">
-            <h1>소설 업로드</h1>
+        <div class="container">
+            <div class="page" style="max-width:720px;margin:0 auto;">
+                <div class="page-header">
+                    <h1 class="page-title">소설 업로드</h1>
+                </div>
             <link rel="stylesheet" href="/component/style/input.css">
             <link rel="stylesheet" href="/component/style/buttons.css">
             <form id="novelForm" class="form">
@@ -58,7 +61,7 @@
                         <input id="thumbnailImage" name="thumbnailImage" type="url" placeholder="https://...">
                     </div>
                 </div>
-                <div class="form-actions" style="margin-top:1rem;display:flex;gap:0.5rem;justify-content:flex-end;">
+                <div class="form-actions stack-h" style="justify-content:flex-end;">
                     <button type="button" class="btn btn-secondary" onclick="history.back()">
                         <span class="material-symbols-outlined">arrow_back</span>
                         취소
@@ -69,6 +72,7 @@
                     </button>
                 </div>
             </form>
+            </div>
         </div>
     </main>
     <%- include('../partials/footer') %>
