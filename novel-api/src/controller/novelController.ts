@@ -17,7 +17,7 @@ const callUserService = async (endpoint: string, options: RequestInit = {}) => {
 };
 
 export const createNovel = async (req: Request, res: Response) => {
-    const { title, description, thumbnailImage } = req.body;
+    const { title, description, thumbnailImage, visibility, accessCode } = req.body as any;
     const userId = req.user?.userid;
     if (!userId) throw new userError.UserNotLoginError('Login required to create novel');
     if (!title || !description) throw new novelError.NovelError('Title and description are required');
@@ -29,7 +29,9 @@ export const createNovel = async (req: Request, res: Response) => {
         description: escape(description),
         thumbnailImage: escape(thumbnailImage || ''),
         author: userId,
-        status: 'ongoing'
+        status: 'ongoing',
+        visibility: visibility === 'code' || visibility === 'private' ? visibility : 'public',
+        accessCodeHash: visibility === 'code' && accessCode ? crypto.createHash('sha256').update(String(accessCode)).digest('hex') : ''
     } as any);
 
     try {
@@ -46,19 +48,36 @@ export const getNovel = async (req: Request, res: Response) => {
     const repo = useNovelRepo();
     const novel = await repo.findById(novelId);
     if (!novel) throw new novelError.NovelNotFoundError('Novel not found');
+    // Access control for visibility
+    if (novel.visibility === 'private') {
+        const userId = req.user?.userid;
+        if (!userId || userId !== novel.author) throw new userError.UserForbiddenError('This novel is private');
+    } else if (novel.visibility === 'code') {
+        const code = (req.query.code as string | undefined) || (req.headers['x-access-code'] as string | undefined) || '';
+        if (!code) {
+            // allow author
+            const userId = req.user?.userid;
+            if (!userId || userId !== novel.author) throw new userError.UserForbiddenError('Access code required');
+        } else {
+            const ok = crypto.createHash('sha256').update(String(code)).digest('hex') === (novel as any).accessCodeHash;
+            if (!ok) throw new userError.UserForbiddenError('Invalid access code');
+        }
+    }
     await repo.increaseView(novelId);
     res.status(200).json({ success: true, novel });
 };
 
 export const updateNovel = async (req: Request, res: Response) => {
     const { novelId } = req.params as { novelId: string };
-    const { title, description } = req.body;
+    const { title, description, visibility, accessCode } = req.body as any;
     const userId = req.user?.userid;
     if (!userId) throw new userError.UserNotLoginError('Login required');
 
     const updateData: any = {};
     if (title) updateData.title = escape(title);
     if (description) updateData.description = escape(description);
+    if (visibility) updateData.visibility = visibility === 'code' || visibility === 'private' ? visibility : 'public';
+    if (typeof accessCode !== 'undefined') updateData.accessCodeHash = accessCode ? crypto.createHash('sha256').update(String(accessCode)).digest('hex') : '';
     if (Object.keys(updateData).length === 0) throw new novelError.NovelError('No fields provided for update');
     updateData.updatedAt = new Date();
 

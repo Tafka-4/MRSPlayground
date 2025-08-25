@@ -30,6 +30,8 @@ export interface INovel extends mongoose.Document {
     favoriteCount: number;
     author: string;
     status: string;
+    visibility: 'public' | 'code' | 'private';
+    accessCodeHash?: string;
     createdAt: Date;
     updatedAt: Date;
     like(userId: string): Promise<void>;
@@ -54,6 +56,8 @@ const novelSchema = new mongoose.Schema({
     favoriteCount: { type: Number, default: 0 },
     author: { type: String, required: true },
     status: { type: String, required: true },
+    visibility: { type: String, enum: ['public', 'code', 'private'], default: 'public', index: true },
+    accessCodeHash: { type: String, default: '' },
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

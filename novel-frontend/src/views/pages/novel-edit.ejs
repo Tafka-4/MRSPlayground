@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/component/style/input.css">
-    <link rel="stylesheet" href="/component/style/buttons.css">
+    <%- include('../partials/head-assets') %>
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
@@ -32,22 +30,6 @@
                     </div>
                 </div>
                 <div class="input-group input-style1">
-                    <label for="genre">장르</label>
-                    <div class="input-wrapper">
-                        <span class="material-symbols-outlined">category</span>
-                        <select id="genre" name="genre">
-                            <option value="">선택 없음</option>
-                            <option value="fantasy">판타지</option>
-                            <option value="romance">로맨스</option>
-                            <option value="action">액션</option>
-                            <option value="mystery">미스터리</option>
-                            <option value="sf">SF</option>
-                            <option value="horror">호러</option>
-                            <option value="comedy">코미디</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="input-group input-style1">
                     <label for="tags">태그</label>
                     <div class="input-wrapper">
                         <span class="material-symbols-outlined">sell</span>
@@ -55,10 +37,21 @@
                     </div>
                 </div>
                 <div class="input-group input-style1">
-                    <label for="thumbnailImage">썸네일 URL</label>
+                    <label for="visibility">공개 범위</label>
                     <div class="input-wrapper">
-                        <span class="material-symbols-outlined">image</span>
-                        <input id="thumbnailImage" name="thumbnailImage" type="url" placeholder="https://...">
+                        <span class="material-symbols-outlined">lock_open</span>
+                        <select id="visibility" name="visibility">
+                            <option value="public">공개</option>
+                            <option value="code">코드 소지자만</option>
+                            <option value="private">본인만</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group input-style1" id="accessCodeWrap" style="display:none;">
+                    <label for="accessCode">접근 코드</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">key</span>
+                        <input id="accessCode" name="accessCode" type="text" placeholder="코드 소지자만 선택 시 입력">
                     </div>
                 </div>
                 <div class="form-actions stack-h" style="justify-content:flex-end;">
@@ -80,6 +73,8 @@
         import apiClient from '/module/api.js';
         const novelId = '<%= novelId %>';
         const form = document.getElementById('novelForm');
+        const visibility = document.getElementById('visibility');
+        const accessCodeWrap = document.getElementById('accessCodeWrap');
 
         async function loadInitial() {
             try {
@@ -87,9 +82,9 @@
                 const n = res.data?.novel || res.data;
                 form.title.value = n.title || '';
                 form.description.value = n.description || '';
-                form.genre.value = n.genre || '';
                 form.tags.value = Array.isArray(n.tags) ? n.tags.join(',') : '';
-                form.thumbnailImage.value = n.thumbnailImage || '';
+                if (visibility) visibility.value = n.visibility || 'public';
+                if (accessCodeWrap) accessCodeWrap.style.display = (n.visibility === 'code') ? 'block' : 'none';
             } catch (e) {
                 console.error(e);
             }
@@ -101,9 +96,9 @@
             const body = {};
             if (data.get('title')) body.title = data.get('title');
             if (data.get('description')) body.description = data.get('description');
-            body.genre = data.get('genre') || '';
             body.tags = (data.get('tags') || '').toString().split(',').map(s => s.trim()).filter(Boolean);
-            if (data.get('thumbnailImage')) body.thumbnailImage = data.get('thumbnailImage');
+            if (data.get('visibility')) body.visibility = data.get('visibility');
+            if (data.get('accessCode')) body.accessCode = data.get('accessCode');
             try {
                 await apiClient.put(`/api/v1/novels/${novelId}`, body);
                 window.location.href = `/novel/${novelId}`;
@@ -112,6 +107,9 @@
             }
         });
 
+        visibility?.addEventListener('change', () => {
+            accessCodeWrap.style.display = (visibility.value === 'code') ? 'block' : 'none';
+        });
         loadInitial();
     </script>
 </body>

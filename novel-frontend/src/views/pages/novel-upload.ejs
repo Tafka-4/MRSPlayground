@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
-    <link rel="stylesheet" href="/css/main.css">
+    <%- include('../partials/head-assets') %>
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
@@ -14,42 +14,45 @@
                 <div class="page-header">
                     <h1 class="page-title">소설 업로드</h1>
                 </div>
-            <link rel="stylesheet" href="/component/style/input.css">
-            <link rel="stylesheet" href="/component/style/buttons.css">
             <form id="novelForm" class="form" enctype="multipart/form-data">
-                <div class="input-group input-style1">
+                <div class="input-group">
                     <label for="title">제목</label>
-                    <div class="input-wrapper">
-                        <span class="material-symbols-outlined">title</span>
-                        <input id="title" name="title" type="text" placeholder="제목을 입력하세요" required>
+                    <div class="search-input-wrapper">
+                        <span class="material-symbols-outlined search-icon">title</span>
+                        <input id="title" name="title" type="text" class="search-input" placeholder="제목을 입력하세요" required maxlength="100">
                     </div>
                 </div>
-                <div class="input-group input-style1">
+                <div class="input-group">
                     <label for="description">설명</label>
-                    <div class="input-wrapper">
-                        <span class="material-symbols-outlined">notes</span>
-                        <textarea id="description" name="description" rows="5" placeholder="작품 설명을 입력하세요" required></textarea>
+                    <div class="search-input-wrapper">
+                        <span class="material-symbols-outlined search-icon">notes</span>
+                        <textarea id="description" name="description" class="search-input" rows="5" placeholder="작품 설명을 입력하세요" required maxlength="500" style="resize:none;border-radius: var(--border-radius);"></textarea>
                     </div>
                 </div>
-                <div class="input-group input-style1">
+                <div class="input-group">
                     <label for="tags">태그</label>
-                    <div class="input-wrapper">
-                        <span class="material-symbols-outlined">sell</span>
-                        <input id="tags" name="tags" type="text" placeholder="쉼표로 구분 (예: 던전, 성장, 모험)">
+                    <div class="search-input-wrapper">
+                        <span class="material-symbols-outlined search-icon">sell</span>
+                        <input id="tags" name="tags" type="text" class="search-input" placeholder="쉼표로 구분 (예: 던전, 성장, 모험)">
                     </div>
                 </div>
-                <div class="input-group input-style1">
+                <div class="input-group">
                     <label for="thumbnailFile">썸네일 업로드</label>
-                    <div class="file-input">
-                        <input id="thumbnailFile" name="thumbnail" type="file" accept="image/*">
+                    <div class="stack-h" style="align-items:center;gap:0.5rem;">
+                        <input id="thumbnailFile" name="thumbnail" type="file" accept="image/*" style="display:none;">
+                        <button type="button" id="thumbnailPick" class="btn btn-secondary">
+                            <span class="material-symbols-outlined">upload</span>
+                            파일 선택
+                        </button>
+                        <span id="thumbnailName" class="muted">선택된 파일 없음</span>
                     </div>
                 </div>
 
-                <div class="input-group input-style1">
+                <div class="input-group">
                     <label for="visibility">공개 범위</label>
-                    <div class="input-wrapper">
-                        <span class="material-symbols-outlined">lock_open</span>
-                        <select id="visibility" name="visibility">
+                    <div class="search-input-wrapper">
+                        <span class="material-symbols-outlined search-icon">lock_open</span>
+                        <select id="visibility" name="visibility" class="search-input" style="padding-left:2.5rem;appearance:auto;">
                             <option value="public">공개</option>
                             <option value="code">코드 소지자만</option>
                             <option value="private">본인만</option>
@@ -57,11 +60,11 @@
                     </div>
                 </div>
 
-                <div class="input-group input-style1" id="accessCodeWrap" style="display:none;">
+                <div class="input-group" id="accessCodeWrap" style="display:none;">
                     <label for="accessCode">접근 코드</label>
-                    <div class="input-wrapper">
-                        <span class="material-symbols-outlined">key</span>
-                        <input id="accessCode" name="accessCode" type="text" placeholder="코드 소지자만 선택 시 입력">
+                    <div class="search-input-wrapper">
+                        <span class="material-symbols-outlined search-icon">key</span>
+                        <input id="accessCode" name="accessCode" type="text" class="search-input" placeholder="코드 소지자만 선택 시 입력">
                     </div>
                 </div>
                 <div class="form-actions stack-h" style="justify-content:flex-end;">
@@ -84,6 +87,11 @@
         const form = document.getElementById('novelForm');
         const visibility = document.getElementById('visibility');
         const accessCodeWrap = document.getElementById('accessCodeWrap');
+        const fileInput = document.getElementById('thumbnailFile');
+        const filePick = document.getElementById('thumbnailPick');
+        const fileName = document.getElementById('thumbnailName');
+        filePick?.addEventListener('click', ()=> fileInput?.click());
+        fileInput?.addEventListener('change', ()=> { fileName.textContent = fileInput.files?.[0]?.name || '선택된 파일 없음'; });
         visibility?.addEventListener('change', () => {
             accessCodeWrap.style.display = visibility.value === 'code' ? 'block' : 'none';
         });
