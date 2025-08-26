@@ -133,9 +133,8 @@ export const uploadThumbnailImage = async (req: Request, res: Response) => {
     const { novelId } = req.params as { novelId: string };
     const userId = req.user?.userid;
     const file = req.file as Express.Multer.File | undefined;
-    if (!file || !file.buffer) throw new novelError.NovelError('No file uploaded');
-    if (!userId) throw new userError.UserNotLoginError('Login required');
     if (!file) throw new novelError.NovelError('No file uploaded');
+    if (!userId) throw new userError.UserNotLoginError('Login required');
     const novel = await Novel.findOne({ novelId }).select('author thumbnailImage');
     if (!novel) throw new novelError.NovelNotFoundError('Novel not found');
     if (userId !== novel.author) throw new userError.UserForbiddenError('You are not allowed to upload thumbnail image for this novel');
@@ -168,11 +167,23 @@ export const getNovelList = async (req: Request, res: Response) => {
     if (status) filter.status = status;
 
     let sortOptions: any = { createdAt: -1 };
-    if (sort === 'views') sortOptions = { viewCount: -1 };
-    else if (sort === 'likes') sortOptions = { likeCount: -1 };
-    else if (sort === 'favorites') sortOptions = { favoriteCount: -1 };
-    else if (sort === 'episodes') sortOptions = { episodeCount: -1 };
-    else if (sort === 'recent') sortOptions = { updatedAt: -1 };
+    switch (sort) {
+        case 'views':
+            sortOptions = { viewCount: -1 };
+            break;
+        case 'likes':
+            sortOptions = { likeCount: -1 };
+            break;
+        case 'favorites':
+            sortOptions = { favoriteCount: -1 };
+            break;
+        case 'episodes':
+            sortOptions = { episodeCount: -1 };
+            break;
+        case 'recent':
+            sortOptions = { updatedAt: -1 };
+            break;
+    }
 
     const novels = await Novel.find(filter).sort(sortOptions).limit(limitNumber).skip((pageNumber - 1) * limitNumber);
     const totalNovels = await Novel.countDocuments(filter);
