@@ -62,7 +62,17 @@ const novelSchema = new mongoose.Schema({
     updatedAt: { type: Date, default: Date.now }
 });
 
-const Novel = mongoose.model<INovel>('Novel', novelSchema);
+novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>, file: Express.Multer.File): Promise<string> {
+    const extension = file.originalname.split('.').pop();
+    if (!extension) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
+    if (!['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'].includes(extension)) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
+    const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(this.novelId).digest('hex')}.${extension}`;
+    const filePath = `./uploads/novel/${filename}`;
+    fs.writeFileSync(filePath, file.buffer);
+    this.thumbnailImage = filePath;
+    await this.save();
+    return filePath;
+};
 
 novelSchema.pre('save', async function (this: mongoose.HydratedDocument<INovel>, next: (err?: any) => void) {
     this.updatedAt = new Date();
@@ -124,17 +134,7 @@ novelSchema.methods.decreaseEpisode = async function (this: mongoose.HydratedDoc
     await this.save();
 };
 
-novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>, file: Express.Multer.File): Promise<string> {
-    const extension = file.originalname.split('.').pop();
-    if (!extension) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
-    if (!['png', 'jpg', 'jpeg'].includes(extension)) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
-    const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(this.novelId).digest('hex')}.${extension}`;
-    const filePath = `./uploads/novel/${filename}`;
-    fs.writeFileSync(filePath, file.buffer);
-    this.thumbnailImage = filePath;
-    await this.save();
-    return filePath;
-};
+// removed duplicate uploadThumbnailImage with limited extensions
 
 novelSchema.methods.deleteThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
     if (!this.thumbnailImage) throw new novelError.NovelImageDeleteFailedError('Thumbnail image not found');
@@ -142,6 +142,8 @@ novelSchema.methods.deleteThumbnailImage = async function (this: mongoose.Hydrat
     this.thumbnailImage = '';
     await this.save();
 };
+
+const Novel = mongoose.model<INovel>('Novel', novelSchema);
 
 export default Novel;
 
