@@ -86,7 +86,7 @@
                 </div>
                 <div class="novel-preview-card">
                     <div class="novel-thumbnail" style="aspect-ratio:16/9;overflow:hidden;border-radius:var(--border-radius);background:var(--bg-soft);display:flex;align-items:center;justify-content:center;">
-                        <img id="previewImage" src="/images/default-novel-cover.jpg" alt="미리보기 썸네일" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/images/default-novel-cover.jpg'">
+                        <img id="previewImage" src="/images/default-novel-cover.svg" alt="미리보기 썸네일" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/images/default-novel-cover.svg'">
                     </div>
                     <div class="novel-info">
                         <div class="novel-header" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
@@ -128,7 +128,7 @@
                 const url = URL.createObjectURL(f);
                 previewImage.src = url;
             } else {
-                previewImage.src = '/images/default-novel-cover.jpg';
+                previewImage.src = '/images/default-novel-cover.svg';
             }
         });
         visibility?.addEventListener('change', () => {

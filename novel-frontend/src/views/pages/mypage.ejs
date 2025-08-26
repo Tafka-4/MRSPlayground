@@ -153,7 +153,7 @@
                         <div class="novel-preview-card horizontal" onclick="window.location.href='/novel/${novel.novelId || novel._id || novel.id}'" role="button" tabindex="0">
                             <div class="novel-thumbnail">
                                 ${novel.thumbnailImage ? 
-                                    `<img src="${novel.thumbnailImage}" alt="${escapeHtml(novel.title||'제목 없음')} 썸네일" loading="lazy" onerror="this.src='/images/default-novel-cover.jpg'">` :
+                                    `<img src="${novel.thumbnailImage}" alt="${escapeHtml(novel.title||'제목 없음')} 썸네일" loading="lazy" onerror="this.src='/images/default-novel-cover.svg'">` :
                                     `<div class="thumbnail-placeholder"><span class="material-symbols-outlined">menu_book</span></div>`}
                             </div>
                             <div class="novel-info">

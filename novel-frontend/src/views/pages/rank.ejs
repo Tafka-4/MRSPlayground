@@ -38,7 +38,7 @@
                     <div class="novel-preview-card" onclick="window.location.href='/novel/${novel.novelId || novel._id || novel.id}'" role="button" tabindex="0">
                         <div class="novel-thumbnail">
                             ${novel.thumbnailImage ? 
-                                `<img src="${novel.thumbnailImage}" alt="${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')} 썸네일" loading="lazy" onerror="this.src='/images/default-novel-cover.jpg'">` :
+                                `<img src="${novel.thumbnailImage}" alt="${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')} 썸네일" loading="lazy" onerror="this.src='/images/default-novel-cover.svg'">` :
                                 `<div class="thumbnail-placeholder"><span class="material-symbols-outlined">menu_book</span></div>`}
                         </div>
                         <div class="novel-info">
