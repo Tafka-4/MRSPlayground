@@ -5,6 +5,14 @@ import novelError from '../error/novelError.js';
 import episodeError from '../error/episodeError.js';
 
 const customErrorHandler: ErrorRequestHandler = (err: Error, req: Request, res: Response, next: NextFunction) => {
+    try {
+        console.error('Novel API error:', {
+            path: req.originalUrl,
+            method: req.method,
+            message: err?.message,
+            name: err?.name
+        });
+    } catch {}
     if (err instanceof authError.AuthError) {
         if (err instanceof authError.AuthEmailSendFailedError) return res.status(418).json({ message: err.message });
         if (err instanceof authError.AuthEmailVerifyFailedError || err instanceof authError.AuthUserAlreadyAdminError) return res.status(409).json({ message: err.message });
