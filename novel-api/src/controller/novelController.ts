@@ -133,6 +133,7 @@ export const uploadThumbnailImage = async (req: Request, res: Response) => {
     const { novelId } = req.params as { novelId: string };
     const userId = req.user?.userid;
     const file = req.file as Express.Multer.File | undefined;
+    if (!file || !file.buffer) throw new novelError.NovelError('No file uploaded');
     if (!userId) throw new userError.UserNotLoginError('Login required');
     if (!file) throw new novelError.NovelError('No file uploaded');
     const novel = await Novel.findOne({ novelId }).select('author thumbnailImage');

@@ -63,12 +63,13 @@ const novelSchema = new mongoose.Schema({
 });
 
 novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>, file: Express.Multer.File): Promise<string> {
-    const extension = file.originalname.split('.').pop();
+    const extension = (file.originalname || '').split('.').pop();
     if (!extension) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
     if (!['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'].includes(extension)) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
     const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(this.novelId).digest('hex')}.${extension}`;
     const filePath = `./uploads/novel/${filename}`;
-    fs.writeFileSync(filePath, file.buffer);
+    if (!file.buffer) throw new novelError.NovelImageUploadFailedError('Invalid file buffer');
+    fs.writeFileSync(filePath, file.buffer as any);
     this.thumbnailImage = filePath;
     await this.save();
     return filePath;

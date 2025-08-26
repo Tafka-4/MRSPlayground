@@ -7,11 +7,11 @@ const storage = multer.memoryStorage();
 
 function fileFilter(req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) {
     if (!file.mimetype.startsWith('image/')) {
-        return false;
+        return cb(null, false);
     }
 
     const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'];
-    const fileExtension = path.extname(file.originalname).toLowerCase();
+    const fileExtension = path.extname(file.originalname || '').toLowerCase();
 
     if (allowedExtensions.includes(fileExtension)) {
         cb(null, true);
