@@ -148,7 +148,7 @@ export const uploadThumbnailImage = async (req: Request, res: Response) => {
         throw new novelError.NovelError('No file uploaded');
     }
     if (!userId) throw new userError.UserNotLoginError('Login required');
-    const novel = await Novel.findOne({ novelId }).select('author thumbnailImage');
+    const novel = await Novel.findOne({ novelId }).select('novelId author thumbnailImage');
     if (!novel) throw new novelError.NovelNotFoundError('Novel not found');
     if (userId !== novel.author) throw new userError.UserForbiddenError('You are not allowed to upload thumbnail image for this novel');
     const uploadResult = await novel.uploadThumbnailImage(file);
