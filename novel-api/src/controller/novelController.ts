@@ -176,7 +176,7 @@ export const getNovelList = async (req: Request, res: Response) => {
     const pageNumber = parseInt(page || '') || 1;
     if (limitNumber < 1 || limitNumber > 100) throw new novelError.NovelError('Limit must be between 1 and 100');
 
-    const filter: any = {};
+    const filter: any = { visibility: 'public' };
     if (query) filter.title = { $regex: query, $options: 'i' };
     if (status) filter.status = status;
 

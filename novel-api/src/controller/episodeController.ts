@@ -1,7 +1,9 @@
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import { useEpisodeRepo } from '../repo/episodeRepo.js';
 import episodeError from '../utils/error/episodeError.js';
 import userError from '../utils/error/userError.js';
+import Novel from '../model/novelModel.js';
 
 export const createEpisode = async (req: Request, res: Response) => {
     const { novelId, title, content, authorComment } = req.body;
@@ -18,6 +20,21 @@ export const getEpisode = async (req: Request, res: Response) => {
     const repo = useEpisodeRepo();
     const episode = await repo.findById(episodeId);
     if (!episode) throw new episodeError.EpisodeNotFoundError('Episode not found');
+    const novel = await Novel.findOne({ novelId: episode.novelId }).select('author visibility accessCodeHash');
+    if (!novel) throw new episodeError.EpisodeNotFoundError('Episode not found');
+    if ((novel as any).visibility === 'private') {
+        const userId = (req as any).user?.userid;
+        if (!userId || userId !== (novel as any).author) throw new userError.UserForbiddenError('This novel is private');
+    } else if ((novel as any).visibility === 'code') {
+        const code = (req.query.code as string | undefined) || (req.headers['x-access-code'] as string | undefined) || '';
+        if (!code) {
+            const userId = (req as any).user?.userid;
+            if (!userId || userId !== (novel as any).author) throw new userError.UserForbiddenError('Access code required');
+        } else {
+            const ok = crypto.createHash('sha256').update(String(code)).digest('hex') === (novel as any).accessCodeHash;
+            if (!ok) throw new userError.UserForbiddenError('Invalid access code');
+        }
+    }
     await repo.increaseView(episodeId);
     res.status(200).json({ success: true, episode });
 };
@@ -25,6 +42,21 @@ export const getEpisode = async (req: Request, res: Response) => {
 export const listEpisodesByNovel = async (req: Request, res: Response) => {
     const { novelId } = req.params as { novelId: string };
     const repo = useEpisodeRepo();
+    const novel = await Novel.findOne({ novelId }).select('author visibility accessCodeHash');
+    if (!novel) throw new episodeError.EpisodeNotFoundError('Episode not found');
+    if ((novel as any).visibility === 'private') {
+        const userId = (req as any).user?.userid;
+        if (!userId || userId !== (novel as any).author) throw new userError.UserForbiddenError('This novel is private');
+    } else if ((novel as any).visibility === 'code') {
+        const code = (req.query.code as string | undefined) || (req.headers['x-access-code'] as string | undefined) || '';
+        if (!code) {
+            const userId = (req as any).user?.userid;
+            if (!userId || userId !== (novel as any).author) throw new userError.UserForbiddenError('Access code required');
+        } else {
+            const ok = crypto.createHash('sha256').update(String(code)).digest('hex') === (novel as any).accessCodeHash;
+            if (!ok) throw new userError.UserForbiddenError('Invalid access code');
+        }
+    }
     const episodes = await repo.findByNovelId(novelId);
     res.status(200).json({ success: true, episodes });
 };

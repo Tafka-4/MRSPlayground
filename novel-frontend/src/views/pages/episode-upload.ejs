@@ -57,16 +57,20 @@
 <script type="module">
     import apiClient from '/module/api.js';
     const novelId = '<%= locals.novelId %>';
+    function withAccessCode(payload) {
+        const saved = localStorage.getItem(`novel_code_${novelId}`) || '';
+        return saved ? { ...payload, code: saved } : payload;
+    }
     const form = document.getElementById('episodeForm');
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const data = new FormData(form);
-        const body = {
+        const body = withAccessCode({
             novelId,
             title: data.get('title'),
             content: data.get('content'),
             authorComment: data.get('authorComment') || ''
-        };
+        });
         try {
             const res = await apiClient.post('/api/v1/episodes', body);
             const ep = res.data.episode || res.data;

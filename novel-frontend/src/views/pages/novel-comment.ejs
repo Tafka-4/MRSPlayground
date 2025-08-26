@@ -68,6 +68,16 @@
     const page = parseInt(urlParams.get('page') || '1');
     const size = parseInt(urlParams.get('size') || '20');
     const paginationEl = document.getElementById('commentsPagination');
+    async function promptAccessCode() {
+        const code = window.prompt('접근 코드가 필요합니다. 코드를 입력하세요.');
+        return (code || '').trim();
+    }
+    function withAccessCode(url) {
+        const saved = localStorage.getItem(`novel_code_${novelId}`) || '';
+        if (!saved) return url;
+        const joiner = url.includes('?') ? '&' : '?';
+        return `${url}${joiner}code=${encodeURIComponent(saved)}`;
+    }
     function buildLoginUrlWithRedirect() {
         const base = 'https://dev.magicresearches.com/login';
         const url = new URL(base);
@@ -88,7 +98,7 @@
 
     async function load() {
         try {
-            const epRes = await apiClient.get(`/api/v1/episodes/novel/${novelId}`);
+            const epRes = await apiClient.get(withAccessCode(`/api/v1/episodes/novel/${novelId}`));
             const episodes = (epRes.data.episodes || []).reduce((acc, e) => { acc[e.episodeId] = e; return acc; }, {});
             const res = await apiClient.get(`/api/v1/comments?novelId=${encodeURIComponent(novelId)}&targetType=episode&page=${page}&limit=${size}&sort=${sort}`);
             const comments = res.data.comments || [];
@@ -165,6 +175,17 @@
             paginationEl.innerHTML = `
                 <nav class=\"pagination-container\"><ul class=\"pagination\">\n                    <li class=\"page-item ${page === 1 ? 'disabled' : ''}\"><a class=\"page-link\" href=\"${qp(1)}\">«</a></li>\n                    <li class=\"page-item ${page === 1 ? 'disabled' : ''}\"><a class=\"page-link\" href=\"${qp(Math.max(1, page-1))}\">‹</a></li>\n                    <li class=\"page-item\"><span class=\"page-link\">${page}/${inferredTotalPages}</span></li>\n                    <li class=\"page-item\"><a class=\"page-link\" href=\"${qp(page+1)}\">›</a></li>\n                </ul></nav>`;
         } catch (e) {
+            const status = e?.status || 0;
+            if (status === 403) {
+                const code = await promptAccessCode();
+                if (code) { localStorage.setItem(`novel_code_${novelId}`, code); return load(); }
+                list.innerHTML = `<div class=\"error\">접근이 제한된 작품입니다.</div>`;
+                return;
+            }
+            if (status === 401) {
+                list.innerHTML = `<div class=\"error\">로그인이 필요합니다.</div>`;
+                return;
+            }
             list.innerHTML = `<div class=\"error\">로딩 실패</div>`;
         }
     }
@@ -211,10 +232,15 @@
     });
     (async () => {
         try {
-            const epRes = await apiClient.get(`/api/v1/episodes/novel/${novelId}`);
+            const epRes = await apiClient.get(withAccessCode(`/api/v1/episodes/novel/${novelId}`));
             const episodes = epRes.data.episodes || [];
             epSelect.innerHTML = `<option value="">대상 에피소드 선택(선택 시 해당 에피소드에 대댓글)</option>` + episodes.map(e => `<option value="${e.episodeId}">@${e.episodeNumber} ${e.title}</option>`).join('');
-        } catch {}
+        } catch (e) {
+            if (e?.status === 403) {
+                const code = await promptAccessCode();
+                if (code) { localStorage.setItem(`novel_code_${novelId}`, code); return location.reload(); }
+            }
+        }
     })();
     document.getElementById('commentSubmit')?.addEventListener('click', async () => {
         const token = await ensureAccessToken();

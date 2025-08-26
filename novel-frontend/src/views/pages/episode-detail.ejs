@@ -30,9 +30,20 @@
     import apiClient from '/module/api.js';
     const container = document.getElementById('episodeDetail');
     const episodeId = '<%= locals.episodeId %>';
+    const novelId = '<%= locals.novelId %>';
+    async function promptAccessCode() {
+        const code = window.prompt('접근 코드가 필요합니다. 코드를 입력하세요.');
+        return (code || '').trim();
+    }
+    function withAccessCode(url) {
+        const saved = localStorage.getItem(`novel_code_${novelId}`) || '';
+        if (!saved) return url;
+        const joiner = url.includes('?') ? '&' : '?';
+        return `${url}${joiner}code=${encodeURIComponent(saved)}`;
+    }
     async function load() {
         try {
-            const res = await apiClient.get(`/api/v1/episodes/${episodeId}`);
+            const res = await apiClient.get(withAccessCode(`/api/v1/episodes/${episodeId}`));
             const e = res.data.episode || res.data;
             container.innerHTML = `
                 <article class=\"card\">
@@ -52,6 +63,20 @@
                 try { await apiClient.post(`/api/v1/episodes/${episodeId}/dislike`); location.reload(); } catch {}
             });
         } catch (err) {
+            const status = err?.status || 0;
+            if (status === 403) {
+                const code = await promptAccessCode();
+                if (code) {
+                    localStorage.setItem(`novel_code_${novelId}`, code);
+                    return load();
+                }
+                container.innerHTML = `<div class="error">접근이 제한된 작품입니다.</div>`;
+                return;
+            }
+            if (status === 401) {
+                container.innerHTML = `<div class="error">로그인이 필요합니다.</div>`;
+                return;
+            }
             container.innerHTML = `<div class="error">로딩 실패</div>`;
         }
     }

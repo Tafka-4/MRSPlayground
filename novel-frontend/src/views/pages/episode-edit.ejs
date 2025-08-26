@@ -58,9 +58,16 @@
     import apiClient from '/module/api.js';
     const form = document.getElementById('episodeForm');
     const episodeId = '<%= locals.episodeId %>';
+    const novelId = '<%= locals.novelId %>';
+    function withAccessCode(url) {
+        const saved = localStorage.getItem(`novel_code_${novelId}`) || '';
+        if (!saved) return url;
+        const joiner = url.includes('?') ? '&' : '?';
+        return `${url}${joiner}code=${encodeURIComponent(saved)}`;
+    }
     async function loadInitial() {
         try {
-            const res = await apiClient.get(`/api/v1/episodes/${episodeId}`);
+            const res = await apiClient.get(withAccessCode(`/api/v1/episodes/${episodeId}`));
             const e = res.data?.episode || res.data || {};
             form.title.value = e.title || '';
             form.content.value = e.content || '';

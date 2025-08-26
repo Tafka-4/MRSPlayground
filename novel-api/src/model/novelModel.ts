@@ -75,6 +75,10 @@ novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.Hydrat
     if (!['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'].includes(extension)) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
     const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(this.novelId).digest('hex')}.${extension}`;
     const filePath = `./uploads/novel/${filename}`;
+    const baseDomain = process.env.BASE_DOMAIN || 'magicresearches.com';
+    const publicBaseUrl = process.env.PUBLIC_API_BASE_URL || `https://api.${baseDomain}`;
+    const publicPath = `/uploads/novel/${filename}`;
+    const publicUrl = `${publicBaseUrl}${publicPath}`;
     let buffer: Buffer | undefined = file.buffer as any;
     if (!buffer) {
         const stream = (file as any).stream as NodeJS.ReadableStream | undefined;
@@ -93,10 +97,10 @@ novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.Hydrat
     try { fs.mkdirSync('./uploads/novel', { recursive: true }); } catch {}
     console.log('[model:uploadThumbnailImage] writing file', { path: filePath, length: buffer?.length });
     fs.writeFileSync(filePath, buffer as any);
-    this.thumbnailImage = filePath;
+    this.thumbnailImage = publicUrl;
     await this.save();
-    console.log('[model:uploadThumbnailImage] saved', { path: filePath });
-    return filePath;
+    console.log('[model:uploadThumbnailImage] saved', { url: publicUrl });
+    return publicUrl;
 };
 
 novelSchema.pre('save', async function (this: mongoose.HydratedDocument<INovel>, next: (err?: any) => void) {
@@ -106,7 +110,12 @@ novelSchema.pre('save', async function (this: mongoose.HydratedDocument<INovel>,
 
 novelSchema.pre('deleteOne', { document: true, query: false }, async function (this: mongoose.HydratedDocument<INovel>, next: (err?: any) => void) {
     if (this.thumbnailImage) {
-        try { fs.unlinkSync(this.thumbnailImage); } catch {}
+        try {
+            const diskPath = this.thumbnailImage
+                .replace(/^https?:\/\/[^/]+/i, '')
+                .replace(/^\/uploads\//, './uploads/');
+            fs.unlinkSync(diskPath);
+        } catch {}
     }
     await redisClient.del(`${this.novelId}:likes`);
     await redisClient.del(`${this.novelId}:dislikes`);
@@ -163,7 +172,10 @@ novelSchema.methods.decreaseEpisode = async function (this: mongoose.HydratedDoc
 
 novelSchema.methods.deleteThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
     if (!this.thumbnailImage) throw new novelError.NovelImageDeleteFailedError('Thumbnail image not found');
-    fs.unlinkSync(this.thumbnailImage);
+    const diskPath = this.thumbnailImage
+        .replace(/^https?:\/\/[^/]+/i, '')
+        .replace(/^\/uploads\//, './uploads/');
+    fs.unlinkSync(diskPath);
     this.thumbnailImage = '';
     await this.save();
 };
