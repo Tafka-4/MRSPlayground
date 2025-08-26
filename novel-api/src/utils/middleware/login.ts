@@ -18,7 +18,8 @@ export const loginRequired = async (req: Request, res: Response, next: NextFunct
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) return next(new userError.UserNotLoginError('Unauthorized'));
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string, { algorithms: ['HS256'] }) as jwt.JwtPayload;
-        const user = await callUserService(`/api/v1/users/${decoded.userid}`);
+        const userResponse = await callUserService(`/api/v1/users/${decoded.userid}`);
+        const user = userResponse?.user || userResponse;
         if (!user) return next(new userError.UserNotFoundError('User not found'));
         (req as any).user = user;
         next();
