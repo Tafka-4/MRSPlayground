@@ -157,8 +157,8 @@ export const deleteThumbnailImage = async (req: Request, res: Response) => {
 };
 
 export const getNovelList = async (req: Request, res: Response) => {
-    const { query, limit, page, sort, status } = req.query as Record<string, string | undefined>;
-    const limitNumber = parseInt(limit || '') || 10;
+    const { query, limit, page, sort, status, size } = req.query as Record<string, string | undefined>;
+    const limitNumber = parseInt(limit || size || '') || 10;
     const pageNumber = parseInt(page || '') || 1;
     if (limitNumber < 1 || limitNumber > 100) throw new novelError.NovelError('Limit must be between 1 and 100');
 

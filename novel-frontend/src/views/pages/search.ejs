@@ -53,7 +53,7 @@
 
             async function load() {
                 result.innerHTML = `<%- include('../partials/skeleton', { type: 'card', count: 10 }) %>`;
-                let apiUrl = `/api/v1/novels?sort=${sort}&page=${page}&size=${size}`;
+                let apiUrl = `/api/v1/novels?sort=${sort}&page=${page}&limit=${size}`;
                 if (query) apiUrl += `&query=${encodeURIComponent(query)}`;
                 if (genre) apiUrl += `&genre=${encodeURIComponent(genre)}`;
                 if (tags) apiUrl += `&tags=${encodeURIComponent(tags)}`;

@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import { connectRedis, checkRedisConnection, mongoose } from './utils/dbconnect/dbconnect.js';
 import novelRouter from './router/novelRouter.js';
 import episodeRouter from './router/episodeRouter.js';
+import noticeRouter from './router/noticeRouter.js';
 import customErrorHandler from './utils/middleware/customErrorHandler.js';
 import rateLimit from './utils/middleware/rateLimit.js';
 
@@ -77,6 +78,7 @@ app.use(rateLimit);
 
 app.use('/api/v1/novels', novelRouter);
 app.use('/api/v1/episodes', episodeRouter);
+app.use('/api/v1/notices', noticeRouter);
 
 app.get('/api/v1/health', async (req: express.Request, res: express.Response) => {
     try {

@@ -48,7 +48,7 @@ const novelSchema = new mongoose.Schema({
     novelId: { type: String, required: true, unique: true, default: uuidv4 },
     title: { type: String, required: true },
     description: { type: String, required: true },
-    thumbnailImage: { type: String, required: true },
+    thumbnailImage: { type: String, default: '' },
     episodeCount: { type: Number, default: 0 },
     viewCount: { type: Number, default: 0 },
     likeCount: { type: Number, default: 0 },
