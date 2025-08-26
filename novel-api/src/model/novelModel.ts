@@ -68,9 +68,19 @@ novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.Hydrat
     if (!['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'].includes(extension)) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
     const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(this.novelId).digest('hex')}.${extension}`;
     const filePath = `./uploads/novel/${filename}`;
-    if (!file.buffer) throw new novelError.NovelImageUploadFailedError('Invalid file buffer');
+    let buffer: Buffer | undefined = file.buffer as any;
+    if (!buffer) {
+        const stream = (file as any).stream as NodeJS.ReadableStream | undefined;
+        if (!stream) throw new novelError.NovelImageUploadFailedError('Invalid file buffer');
+        buffer = await new Promise<Buffer>((resolve, reject) => {
+            const chunks: Buffer[] = [];
+            stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+            stream.on('end', () => resolve(Buffer.concat(chunks)));
+            stream.on('error', (err: any) => reject(err));
+        });
+    }
     try { fs.mkdirSync('./uploads/novel', { recursive: true }); } catch {}
-    fs.writeFileSync(filePath, file.buffer as any);
+    fs.writeFileSync(filePath, buffer as any);
     this.thumbnailImage = filePath;
     await this.save();
     return filePath;
