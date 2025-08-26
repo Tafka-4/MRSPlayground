@@ -107,12 +107,15 @@
             };
             try {
                 let response = await apiClient.post('/api/v1/novels', body);
+                if (!response || !response.data) {
+                    throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.');
+                }
                 const novel = response.data.novel || response.data;
                 const file = data.get('thumbnail');
                 if (file && file instanceof File) {
                     const fd = new FormData();
                     fd.append('file', file);
-                    await apiClient.post(`/api/v1/novels/${novel.novelId || novel._id || novel.id}/thumbnail-image`, fd);
+                    await apiClient.put(`/api/v1/novels/${novel.novelId || novel._id || novel.id}/thumbnail-image`, fd);
                 }
                 window.location.href = `/novel/${novel.novelId || novel._id || novel.id}`;
             } catch (err) {

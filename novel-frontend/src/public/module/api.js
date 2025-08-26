@@ -114,15 +114,14 @@ class ApiClient {
                     error.status = response.status;
                     throw error;
                 }
-            } else {
-                this.processQueue(new Error('Token refresh failed'), null);
-                this.redirectToLogin();
-                return null;
             }
+            this.processQueue(new Error('Token refresh failed'), null);
+            this.redirectToLogin();
+            throw new Error('Token refresh failed');
         } catch (error) {
             this.processQueue(error, null);
             this.redirectToLogin();
-            return null;
+            throw error;
         } finally {
             this.isRefreshing = false;
         }
