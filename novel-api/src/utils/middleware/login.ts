@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import userError from '../error/userError.js';
 import authError from '../error/authError.js';
 
-const callUserService = async (endpoint: string, options: RequestInit = {}) => {
+const callUserService = async (endpoint: string, options: RequestInit = {}): Promise<any> => {
     const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-api:3001';
     const response = await fetch(`${userServiceUrl}${endpoint}`, {
         headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
@@ -18,8 +18,8 @@ export const loginRequired = async (req: Request, res: Response, next: NextFunct
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) return next(new userError.UserNotLoginError('Unauthorized'));
         const decoded = jwt.verify(token, process.env.JWT_SECRET as string, { algorithms: ['HS256'] }) as jwt.JwtPayload;
-        const userResponse = await callUserService(`/api/v1/users/${decoded.userid}`);
-        const user = userResponse?.user || userResponse;
+        const userResponse: any = await callUserService(`/api/v1/users/${decoded.userid}`);
+        const user = (userResponse && (userResponse as any).user) ? (userResponse as any).user : userResponse;
         if (!user) return next(new userError.UserNotFoundError('User not found'));
         (req as any).user = user;
         next();
