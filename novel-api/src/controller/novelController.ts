@@ -133,12 +133,26 @@ export const uploadThumbnailImage = async (req: Request, res: Response) => {
     const { novelId } = req.params as { novelId: string };
     const userId = req.user?.userid;
     const file = req.file as Express.Multer.File | undefined;
-    if (!file) throw new novelError.NovelError('No file uploaded');
+    console.log('[controller:uploadThumbnailImage] start', {
+        url: (req as any)?.originalUrl,
+        method: (req as any)?.method,
+        hasFile: !!file,
+        fieldname: file?.fieldname,
+        originalname: file?.originalname,
+        mimetype: file?.mimetype,
+        size: (file as any)?.size,
+        hasBuffer: !!file?.buffer
+    });
+    if (!file) {
+        console.log('[controller:uploadThumbnailImage] no file on req.file');
+        throw new novelError.NovelError('No file uploaded');
+    }
     if (!userId) throw new userError.UserNotLoginError('Login required');
     const novel = await Novel.findOne({ novelId }).select('author thumbnailImage');
     if (!novel) throw new novelError.NovelNotFoundError('Novel not found');
     if (userId !== novel.author) throw new userError.UserForbiddenError('You are not allowed to upload thumbnail image for this novel');
     const uploadResult = await novel.uploadThumbnailImage(file);
+    console.log('[controller:uploadThumbnailImage] upload done', { location: uploadResult });
     novel.thumbnailImage = uploadResult;
     await novel.save();
     res.status(200).json({ success: true, message: 'Thumbnail image uploaded successfully', location: uploadResult });

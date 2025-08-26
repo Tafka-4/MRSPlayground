@@ -63,6 +63,13 @@ const novelSchema = new mongoose.Schema({
 });
 
 novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>, file: Express.Multer.File): Promise<string> {
+    console.log('[model:uploadThumbnailImage] start', {
+        novelId: this.novelId,
+        originalname: file?.originalname,
+        mimetype: file?.mimetype,
+        hasBuffer: !!file?.buffer,
+        size: (file as any)?.size
+    });
     const extension = ((file.originalname || '').split('.').pop() || '').toLowerCase();
     if (!extension) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
     if (!['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'].includes(extension)) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
@@ -71,7 +78,11 @@ novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.Hydrat
     let buffer: Buffer | undefined = file.buffer as any;
     if (!buffer) {
         const stream = (file as any).stream as NodeJS.ReadableStream | undefined;
-        if (!stream) throw new novelError.NovelImageUploadFailedError('Invalid file buffer');
+        if (!stream) {
+            console.log('[model:uploadThumbnailImage] missing buffer and stream');
+            throw new novelError.NovelImageUploadFailedError('Invalid file buffer');
+        }
+        console.log('[model:uploadThumbnailImage] reading from stream');
         buffer = await new Promise<Buffer>((resolve, reject) => {
             const chunks: Buffer[] = [];
             stream.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -80,9 +91,11 @@ novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.Hydrat
         });
     }
     try { fs.mkdirSync('./uploads/novel', { recursive: true }); } catch {}
+    console.log('[model:uploadThumbnailImage] writing file', { path: filePath, length: buffer?.length });
     fs.writeFileSync(filePath, buffer as any);
     this.thumbnailImage = filePath;
     await this.save();
+    console.log('[model:uploadThumbnailImage] saved', { path: filePath });
     return filePath;
 };
 
