@@ -47,7 +47,7 @@
             </div>
             
             <div id="popularGrid" class="novel-grid">
-                <%- include('../partials/skeleton', { type: 'grid', count: 10, inline: true }) %>
+                <%- include('../partials/skeleton', { type: 'grid', count: 4, inline: true }) %>
             </div>
         </section>
         
@@ -94,15 +94,27 @@
             
             async function loadPopularNovels(range = 'now') {
                 try {
-                    popularGrid.innerHTML = `<%- include("../partials/skeleton", { type: "grid", count: 10 }) %>`;
-                    const response = await apiClient.get(`/api/v1/novels?sort=${range === 'week' ? 'likes' : 'views'}&limit=10`);
-                    const items = (response && response.data && Array.isArray(response.data.novels)) ? response.data.novels : (Array.isArray(response?.data) ? response.data : []);
+                    popularGrid.innerHTML = `<%- include("../partials/skeleton", { type: "grid", count: 4 }) %>`;
+                    const response = await apiClient.get(`/api/v1/novels?sort=${range === 'week' ? 'likes' : 'views'}&limit=4`);
+                    let items = (response && response.data && Array.isArray(response.data.novels)) ? response.data.novels : (Array.isArray(response?.data) ? response.data : []);
+                    items = Array.isArray(items) ? items.slice(0, 4) : [];
+
+                    const authorIds = [...new Set(items.map(n => n.author).filter(Boolean))];
+                    const authorMap = {};
+                    await Promise.all(authorIds.map(async (id) => {
+                        try {
+                            const u = await apiClient.get(`/api/v1/users/${encodeURIComponent(id)}`);
+                            const user = u?.data?.user || u?.data || {};
+                            authorMap[id] = user.nickname || user.username || id;
+                        } catch {}
+                    }));
+
                     if (items.length > 0) {
                         popularGrid.innerHTML = items.map(novel => `
                             <div class="novel-preview-card horizontal" onclick="window.location.href='/novel/${novel.novelId || novel._id || novel.id}'" role="button" tabindex="0">
                                 <div class="novel-thumbnail">
                                     ${novel.thumbnailImage ? 
-                                        `<img src="${novel.thumbnailImage}" alt="${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')} 썸네일" loading="lazy" onerror="this.src='/images/default-novel-cover.svg'">` :
+                                        `<img src="${novel.thumbnailImage}" alt="${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')} 썸네일" loading="lazy" onerror="this.closest('.novel-thumbnail').innerHTML=\`<div class=\\\"thumbnail-placeholder\\\"><span class=\\\"material-symbols-outlined\\\">menu_book</span></div>\`">` :
                                         `<div class="thumbnail-placeholder">
                                             <span class="material-symbols-outlined">menu_book</span>
                                         </div>`
@@ -113,7 +125,7 @@
                                         <h3 class="novel-title">${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}</h3>
                                         <p class="novel-author">
                                             <span class="material-symbols-outlined">person</span>
-                                            ${String(novel.authorName || novel.author || '작가 미상').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}
+                                            ${String(novel.authorName || authorMap[novel.author] || '작가 미상').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}
                                         </p>
                                     </div>
                                     <div class="novel-meta">
@@ -215,7 +227,7 @@
                     const userid = me?.data?.user?.userid || me?.data?.userid || '';
                     if (!userid) return;
                     const response = await apiClient.get(`/api/v1/logs/users/${encodeURIComponent(userid)}/activity?limit=20`).catch(() => null);
-                    const activities = (response && response.data && Array.isArray(response.data.activities)) ? response.data.activities : (Array.isArray(response?.data) ? response.data : []);
+                    const activities = Array.isArray(response?.data?.logs) ? response.data.logs : Array.isArray(response?.data?.activities) ? response.data.activities : Array.isArray(response?.data) ? response.data : [];
                     if (activities.length > 0) {
                         activityList.innerHTML = activities.map(activity => `
                             <div class="activity-item">

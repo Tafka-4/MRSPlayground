@@ -54,6 +54,7 @@
                         <button id=\"likeBtn\" class=\"btn btn-secondary\">👍 ${e.likeCount || 0}</button>
                         <button id=\"dislikeBtn\" class=\"btn btn-secondary\">👎 ${e.dislikeCount || 0}</button>
                     </div>
+                    <div class=\"section\"><div id=\"authorActions\" class=\"stack-h\" style=\"gap:.5rem;flex-wrap:wrap;\"></div></div>
                 </article>
             `;
             document.getElementById('likeBtn')?.addEventListener('click', async () => {
@@ -62,6 +63,24 @@
             document.getElementById('dislikeBtn')?.addEventListener('click', async () => {
                 try { await apiClient.post(`/api/v1/episodes/${episodeId}/dislike`); location.reload(); } catch {}
             });
+            try {
+                const me = await apiClient.get('/api/v1/auth/me');
+                const myId = me?.data?.user?.userid || me?.data?.userid;
+                if (myId && myId === e.author) {
+                    const actions = document.getElementById('authorActions');
+                    if (actions) {
+                        actions.innerHTML = `
+                            <a href="/novel/${novelId}/episode/${episodeId}/edit" class="btn btn-secondary"><span class="material-symbols-outlined">edit</span>수정</a>
+                            <button id="btnDeleteEpisode" class="btn btn-danger"><span class="material-symbols-outlined">delete</span>삭제</button>
+                        `;
+                        const del = document.getElementById('btnDeleteEpisode');
+                        if (del) del.addEventListener('click', async () => {
+                            if (!confirm('에피소드를 삭제하시겠습니까?')) return;
+                            try { await apiClient.delete(`/api/v1/episodes/${episodeId}`); window.location.href = `/novel/${novelId}`; } catch { alert('삭제 실패'); }
+                        });
+                    }
+                }
+            } catch {}
         } catch (err) {
             const status = err?.status || 0;
             if (status === 403) {

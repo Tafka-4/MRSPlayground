@@ -18,11 +18,11 @@ const truncateText = (text, maxLength) => {
 
 <div class="novel-preview-card" onclick="window.location.href='/novel/<%= novel.novelId || novel.id || novel._id %>'" role="button" tabindex="0">
     <div class="novel-thumbnail">
-        <% if (novel.thumbnail) { %>
-        <img src="<%= novel.thumbnail %>" 
+        <% if (novel.thumbnail || novel.thumbnailImage) { %>
+        <img src="<%= novel.thumbnail || novel.thumbnailImage %>" 
              alt="<%= novel.title %> 썸네일" 
              loading="lazy"
-             onerror="this.src='/images/default-novel-cover.svg'">
+             onerror="this.closest('.novel-thumbnail').innerHTML='\x3cdiv class=\x22thumbnail-placeholder\x22\x3e\x3cspan class=\x22material-symbols-outlined\x22\x3emenu_book\x3c/span\x3e\x3c/div\x3e'">
         <% } else { %>
         <div class="thumbnail-placeholder">
             <span class="material-symbols-outlined">menu_book</span>
@@ -35,7 +35,7 @@ const truncateText = (text, maxLength) => {
             <h3 class="novel-title"><%= novel.title || '제목 없음' %></h3>
             <p class="novel-author">
                 <span class="material-symbols-outlined">person</span>
-                <%= novel.author || novel.authorName || '작가 미상' %>
+                <%= novel.authorName || novel.author || '작가 미상' %>
             </p>
         </div>
         

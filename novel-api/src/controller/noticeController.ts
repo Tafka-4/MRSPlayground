@@ -45,4 +45,13 @@ export const listNoticesByNovel = async (req: Request, res: Response) => {
     res.status(200).json({ success: true, notices: items });
 };
 
+export const deleteNotice = async (req: Request, res: Response) => {
+    const { noticeId } = req.params as any;
+    const userId = req.user?.userid;
+    if (!userId) throw new userError.UserNotLoginError('Login required');
+    const result = await Notice.deleteOne({ noticeId, author: userId });
+    if (result.deletedCount !== 1) return res.status(403).json({ message: 'Forbidden' });
+    res.status(200).json({ success: true, message: 'Notice deleted successfully' });
+};
+
 

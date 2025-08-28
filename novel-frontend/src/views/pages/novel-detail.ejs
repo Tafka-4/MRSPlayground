@@ -49,13 +49,21 @@
         try {
             const res = await apiClient.get(withAccessCode(`/api/v1/novels/${novelId}`));
             const n = res.data.novel || res.data;
+            let authorName = '';
+            try {
+                if (n.author) {
+                    const u = await apiClient.get(`/api/v1/users/${encodeURIComponent(n.author)}`);
+                    const user = u?.data?.user || u?.data || {};
+                    authorName = String(user.nickname || user.username || n.author).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+                }
+            } catch {}
             container.innerHTML = `
                 <div class="card">
                     <div class="stack-h">
-                        ${n.thumbnailImage ? `<div class=\"novel-thumbnail\"><img src=\"${n.thumbnailImage}\" alt=\"${String(n.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}\"></div>` : ''}
+                        ${n.thumbnailImage ? `<div class=\"novel-thumbnail\"><img src=\"${n.thumbnailImage}\" alt=\"${String(n.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}\" onerror=\"this.closest('.novel-thumbnail').innerHTML=\\\`<div class=\\\\\\\"thumbnail-placeholder\\\\\\\"><span class=\\\\\\\"material-symbols-outlined\\\\\\\">menu_book<\\/span><\\/div>\\\`\"></div>` : `<div class=\"novel-thumbnail\"><div class=\"thumbnail-placeholder\"><span class=\"material-symbols-outlined\">menu_book</span></div></div>`}
                         <div class="stack-v" style="min-width:0;">
                             <h2 class="novel-title">${String(n.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h2>
-                            <div class="novel-author muted">${String(n.author||'Unknown').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                            <div class="novel-author muted">${authorName ? `<a href=\"https://dev.magicresearches.com/user/${encodeURIComponent(n.author)}\" class=\"link\">${authorName}<\/a>` : String(n.author||'Unknown').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
                             <div class="stack-h" style="flex-wrap:wrap;">
                                 ${n.genre ? `<span class=\"genre-tag\">${String(n.genre).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>` : ''}
                                 ${Array.isArray(n.tags) ? n.tags.slice(0,5).map(t=>`<span class=\"genre-tag\">${String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`).join('') : ''}
@@ -65,8 +73,38 @@
                     <div class="section">
                         <div class="novel-description">${String(n.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
                     </div>
+                    <div class="section">
+                        <div id="authorActions" class="stack-h" style="gap:.5rem;flex-wrap:wrap;"></div>
+                    </div>
                 </div>
             `;
+            try {
+                const me = await apiClient.get('/api/v1/auth/me');
+                const myId = me?.data?.user?.userid || me?.data?.userid;
+                if (myId && myId === n.author) {
+                    const actions = document.getElementById('authorActions');
+                    if (actions) {
+                        actions.innerHTML = `
+                            <a href="/novel/${novelId}/edit" class="btn btn-secondary"><span class="material-symbols-outlined">edit</span>수정</a>
+                            <a href="/novel/${novelId}/episode/upload" class="btn btn-primary"><span class="material-symbols-outlined">library_add</span>에피소드 업로드</a>
+                            <a href="/novel/${novelId}/notice/upload" class="btn"><span class="material-symbols-outlined">campaign</span>공지사항 작성</a>
+                            <button id="btnDeleteNovel" class="btn btn-danger"><span class="material-symbols-outlined">delete</span>삭제</button>
+                        `;
+                        const del = document.getElementById('btnDeleteNovel');
+                        if (del) {
+                            del.addEventListener('click', async () => {
+                                if (!confirm('소설을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+                                try {
+                                    await apiClient.delete(`/api/v1/novels/${novelId}`);
+                                    window.location.href = '/novels';
+                                } catch (e) {
+                                    alert('삭제 실패');
+                                }
+                            });
+                        }
+                    }
+                }
+            } catch {}
         } catch (e) {
             const status = e?.status || 0;
             if (status === 403) {

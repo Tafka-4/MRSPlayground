@@ -30,6 +30,7 @@
     import apiClient from '/module/api.js';
     const container = document.getElementById('noticeDetail');
     const noticeId = '<%= locals.noticeId %>';
+    const novelId = '<%= locals.novelId %>';
     async function load() {
         try {
             const res = await apiClient.get(`/api/v1/notices/${noticeId}`);
@@ -39,8 +40,27 @@
                     <h2 class="page-title">${String(n.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</h2>
                     <div class="muted">${new Date(n.createdAt || Date.now()).toLocaleString('ko-KR')}</div>
                     <div class="section" style="white-space:pre-wrap;">${String(n.content||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+                    <div class="section"><div id="authorActions" class="stack-h" style="gap:.5rem;flex-wrap:wrap;"></div></div>
                 </div>
             `;
+            try {
+                const me = await apiClient.get('/api/v1/auth/me');
+                const myId = me?.data?.user?.userid || me?.data?.userid;
+                if (myId && myId === n.author) {
+                    const actions = document.getElementById('authorActions');
+                    if (actions) {
+                        actions.innerHTML = `
+                            <a href="/novel/${novelId}/notice/${noticeId}/edit" class="btn btn-secondary"><span class="material-symbols-outlined">edit</span>수정</a>
+                            <button id="btnDeleteNotice" class="btn btn-danger"><span class="material-symbols-outlined">delete</span>삭제</button>
+                        `;
+                        const del = document.getElementById('btnDeleteNotice');
+                        if (del) del.addEventListener('click', async () => {
+                            if (!confirm('공지사항을 삭제하시겠습니까?')) return;
+                            try { await apiClient.delete(`/api/v1/notices/${noticeId}`); window.location.href = `/novel/${novelId}`; } catch { alert('삭제 실패'); }
+                        });
+                    }
+                }
+            } catch {}
         } catch (e) {
             container.innerHTML = `<div class="error">로딩 실패</div>`;
         }
