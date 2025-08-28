@@ -4,12 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= title %></title>
-    <link rel="stylesheet" href="/css/main.css">
-    <link rel="stylesheet" href="/component/style/buttons.css">
-    <link rel="stylesheet" href="/component/style/cards.css">
-    <link rel="stylesheet" href="/component/style/badges.css">
-    <link rel="stylesheet" href="/component/style/navigation.css">
-    <link rel="stylesheet" href="/css/novel-card.css">
+    <%- include('../partials/head-assets') %>
 </head>
 <body>
     <%- include('../partials/header', { currentSection: 'archive' }) %>
@@ -87,7 +82,7 @@
                         actions.innerHTML = `
                             <a href="/novel/${novelId}/edit" class="btn btn-secondary"><span class="material-symbols-outlined">edit</span>수정</a>
                             <a href="/novel/${novelId}/episode/upload" class="btn btn-primary"><span class="material-symbols-outlined">library_add</span>에피소드 업로드</a>
-                            <a href="/novel/${novelId}/notice/upload" class="btn"><span class="material-symbols-outlined">campaign</span>공지사항 작성</a>
+                            <a href="/novel/${novelId}/notice/upload" class="btn btn-warning"><span class="material-symbols-outlined">campaign</span>공지사항 작성</a>
                             <button id="btnDeleteNovel" class="btn btn-danger"><span class="material-symbols-outlined">delete</span>삭제</button>
                         `;
                         const del = document.getElementById('btnDeleteNovel');
