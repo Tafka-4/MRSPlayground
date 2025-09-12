@@ -16,7 +16,7 @@ router.get('/', (req: Request, res: Response) => {
 
 router.get('/ctf', (req: Request, res: Response) => {
     // if you DOS this endpoint, I'll kill you. Don't do it.
-    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Cache-Control', 'max-age=0');
     res.render('./ctf/payload');
 });
 
