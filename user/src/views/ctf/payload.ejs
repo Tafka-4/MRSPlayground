@@ -1,0 +1,10 @@
+<script>
+    const result = await fetch('http://127.0.0.1:4000/', {
+        method: 'POST',
+        body: JSON.stringify({
+            comment: 'test'
+        })
+    });
+    const data = await result.json();
+    console.log(data);
+</script>
