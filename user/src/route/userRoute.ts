@@ -14,6 +14,11 @@ router.get('/', (req: Request, res: Response) => {
     res.redirect('/mypage');
 });
 
+router.get('/ctf-cache', (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 'no-cache');
+    res.send('<script>alert(1)</script>');
+});
+
 router.get('/ctf', (req: Request, res: Response) => {
     // if you DOS this endpoint, I'll kill you. Don't do it.
     res.setHeader('Cache-Control', 'no-cache');
