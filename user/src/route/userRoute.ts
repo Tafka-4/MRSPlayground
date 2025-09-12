@@ -17,8 +17,7 @@ router.get('/', (req: Request, res: Response) => {
 router.get('/ctf', (req: Request, res: Response) => {
     // if you DOS this endpoint, I'll kill you. Don't do it.
     res.setHeader('Cache-Control', 'no-cache');
-
-    res.status(301).redirect('http://127.0.0.1:4000/');
+    res.render('./ctf/payload');
 });
 
 router.get('/login', loginLimiter, async (req: Request, res: Response) => {
