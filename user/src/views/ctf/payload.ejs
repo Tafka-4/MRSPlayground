@@ -1,14 +1,1 @@
-<script type="module">
-    const result = await fetch('https://tinyurl.com/ykp7xjwv', {
-        method: 'POST',
-        body: {
-            comment: 'test'
-        },
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-    });
-    const data = await result.json();
-    document.getElementById('result').innerHTML = data.comment;
-</script>
-<h1>Result: <span id="result"></span></h1>
+<p>Hello</p>
