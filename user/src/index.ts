@@ -3,7 +3,6 @@ import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
 import userRoute from './route/userRoute.js';
-import testRoute from './route/test.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import {
@@ -63,6 +62,15 @@ app.use(express.static(path.join(__dirname, 'public'), {
     }
 }));
 
+// Public runtime config for client scripts
+app.get('/config.js', (req: express.Request, res: express.Response) => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://api.magicresearches.com';
+    const wsUrl = process.env.NEXT_PUBLIC_WS_URL || apiUrl.replace(/^http/, 'ws');
+    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Cache-Control', 'no-store');
+    res.send(`window.__API_ORIGIN='${apiUrl}';window.__WS_ORIGIN='${wsUrl}';`);
+});
+
 app.get('/health', (req: express.Request, res: express.Response) => {
     res.status(200).json({
         status: 'healthy',
@@ -72,7 +80,6 @@ app.get('/health', (req: express.Request, res: express.Response) => {
 });
 
 app.use('/', userRoute);
-app.use('/test', testRoute);
 
 app.use('*', (req: express.Request, res: express.Response) => {
     console.log(req.originalUrl);

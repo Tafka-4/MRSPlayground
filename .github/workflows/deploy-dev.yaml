@@ -26,14 +26,14 @@ jobs:
 
       - name: nginx permission set
         run: |
-          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "sudo mkdir -p /opt/app/MRSPlayground/nginx/logs/ && sudo chown -R deploy:deploy /opt/app/MRSPlayground/nginx/logs/"
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "mkdir -p ~/MRSPlayground/nginx/logs/ && sudo chown -R deploy:deploy ~/MRSPlayground/nginx/logs/"
 
       - name: Create or Update SSL Certificates
         run: |
           ssh -T -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} 'bash -s' <<EOF
             set -e
             
-            cd /opt/app/MRSPlayground
+            cd ~/MRSPlayground
 
             sudo mkdir -p ./nginx/ssl/
             sudo chown -R ${{ secrets.DEV_TEST_USER }}:${{ secrets.DEV_TEST_USER }} ./nginx/ssl/
@@ -47,15 +47,15 @@ jobs:
 
       - name: Rsync manually
         run: |
-          rsync -avz --delete --exclude='.git' --exclude='.env' --exclude='nginx/ssl' -e "ssh -i /tmp/key" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:/opt/app/MRSPlayground/
+          rsync -avz --delete --exclude='.git' --exclude='.env' --exclude='nginx/ssl' -e "ssh -i /tmp/key" ./ ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }}:~/MRSPlayground/
 
       - name: Create .env file on remote
         run: |
-          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} 'echo "${{ secrets.ENV_FILE_DEV }}" | base64 -d > /opt/app/MRSPlayground/.env'
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} 'echo "${{ secrets.ENV_FILE_DEV }}" | base64 -d > ~/MRSPlayground/.env'
 
       - name: Run deploy.sh remotely
         run: |
-          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "chmod +x /opt/app/MRSPlayground/deploy.sh && cd /opt/app/MRSPlayground && sudo ./deploy.sh"
+          ssh -i /tmp/key ${{ secrets.DEV_TEST_USER }}@${{ secrets.DEV_TEST_HOST }} "chmod +x ~/MRSPlayground/deploy.sh && cd ~/MRSPlayground && ./deploy.sh"
 
       - name: Remove ssh key
         run: rm /tmp/key

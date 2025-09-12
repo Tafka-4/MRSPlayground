@@ -1,0 +1,81 @@
+<%
+const searchData = {
+    placeholder: locals.placeholder || '제목, 작가로 검색',
+    value: locals.value || '',
+    action: locals.action || '/search',
+    showAdvanced: locals.showAdvanced !== false,
+    ...locals
+};
+%>
+
+<div class="search-bar-container">
+    <div class="search-input-wrapper">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input type="text" 
+               name="query" 
+               class="search-input" 
+               placeholder="<%= searchData.placeholder %>"
+               value="<%= searchData.value %>"
+               autocomplete="off"
+               aria-label="검색어 입력"
+               onkeydown="if(event.key==='Enter'){event.preventDefault();window.location.href='<%= searchData.action %>?query='+encodeURIComponent(this.value)}">
+        <button type="button" class="search-submit" aria-label="검색" onclick="window.location.href='<%= searchData.action %>?query='+encodeURIComponent(this.previousElementSibling.value)">
+            <span class="material-symbols-outlined">arrow_forward</span>
+        </button>
+    </div>
+    <% if (searchData.showAdvanced) { %>
+    <div class="search-filters">
+        <button type="button" class="filter-toggle" id="filterToggle">
+            <span class="material-symbols-outlined">tune</span>
+            <span>상세 검색</span>
+        </button>
+        <div class="filter-options" id="filterOptions" style="display: none;">
+            <div class="filter-group">
+                <label>장르</label>
+                <select name="genre" class="filter-select">
+                    <option value="" <%= !searchData.genre ? 'selected' : '' %>>전체</option>
+                    <option value="fantasy" <%= searchData.genre === 'fantasy' ? 'selected' : '' %>>판타지</option>
+                    <option value="romance" <%= searchData.genre === 'romance' ? 'selected' : '' %>>로맨스</option>
+                    <option value="action" <%= searchData.genre === 'action' ? 'selected' : '' %>>액션</option>
+                    <option value="mystery" <%= searchData.genre === 'mystery' ? 'selected' : '' %>>미스터리</option>
+                    <option value="sf" <%= searchData.genre === 'sf' ? 'selected' : '' %>>SF</option>
+                    <option value="horror" <%= searchData.genre === 'horror' ? 'selected' : '' %>>호러</option>
+                    <option value="comedy" <%= searchData.genre === 'comedy' ? 'selected' : '' %>>코미디</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>정렬</label>
+                <select name="sort" class="filter-select">
+                    <option value="updated">최근 업데이트순</option>
+                    <option value="views">조회순</option>
+                    <option value="likes">추천순</option>
+                    <option value="title">제목순</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>태그</label>
+                <input type="text" 
+                       name="tags" 
+                       class="filter-input" 
+                       placeholder="태그 입력 (쉼표로 구분)"
+                       value="<%= Array.isArray(searchData.tags) ? searchData.tags.join(',') : (searchData.tags || '') %>">
+            </div>
+        </div>
+    </div>
+    <% } %>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterToggle = document.getElementById('filterToggle');
+    const filterOptions = document.getElementById('filterOptions');
+    
+    if (filterToggle && filterOptions) {
+        filterToggle.addEventListener('click', function() {
+            const isHidden = filterOptions.style.display === 'none';
+            filterOptions.style.display = isHidden ? 'flex' : 'none';
+            filterToggle.classList.toggle('active');
+        });
+    }
+});
+</script>

@@ -481,11 +481,6 @@
 }
 
 @media (max-width: 768px) {
-    .header-container {
-        padding: 0 1rem;
-        height: 56px;
-    }
-
     .brand-link {
         font-size: 0.95rem;
     }
@@ -572,4 +567,14 @@
     font-size: 1rem;
     color: var(--text-muted);
     transition: transform var(--transition);
+}
+
+@media (min-width: 1000px) {
+  .mypage-root .fixed-header {
+    position: static !important;
+    top: auto !important;
+    width: 100%;
+    box-shadow: none;
+    z-index: auto;
+  }
 }

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <%- include('../partials/head-assets') %>
+    <link rel="stylesheet" href="/component/style/modals.css">
+    <link rel="stylesheet" href="/css/index.css">
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    
+    <main class="main-content">
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">마법연구회 아카이브</h1>
+                <p class="hero-description">웹소설 연재!</p>
+                
+                <%- include('../partials/search-bar', { 
+                    placeholder: '제목, 작가로 검색',
+                    action: '/search',
+                    showAdvanced: false
+                }) %>
+                
+                <div class="hero-actions">
+                    <a href="/novels" class="btn btn-primary btn-lg">
+                        <span class="material-symbols-outlined">library_books</span>
+                        소설 전체 보기
+                    </a>
+                    <a href="/novel/upload" class="btn btn-secondary btn-lg">
+                        <span class="material-symbols-outlined">edit_note</span>
+                        새 소설 작성
+                    </a>
+                </div>
+            </div>
+        </section>
+        
+        <section class="popular-section">
+            <div class="section-header">
+                <h2 class="section-title"><span class="material-symbols-outlined">trophy</span>인기 작품</h2>
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-range="now">실시간</button>
+                    <button class="tab-btn" data-range="week">주간</button>
+                </div>
+            </div>
+            
+            <div id="popularGrid" class="novel-grid">
+                <%- include('../partials/skeleton', { type: 'grid', count: 4, inline: true }) %>
+            </div>
+        </section>
+        
+        <div class="content-columns">
+            <section class="news-section">
+                <div class="section-header">
+                    <h2 class="section-title news-header">
+                        <span class="news-icon"><span class="material-symbols-outlined">newspaper</span></span>
+                        최신 소식
+                    </h2>
+                </div>
+                
+                <div id="newsList" class="news-list">
+                    <%- include('../partials/skeleton', { type: 'list', count: 5 }) %>
+                </div>
+            </section>
+            
+            <section class="activity-section">
+                <div class="section-header">
+                    <h2 class="section-title activity-header">
+                        <span class="activity-icon"><span class="material-symbols-outlined">history</span></span>
+                        내 활동
+                    </h2>
+                </div>
+                
+                <div id="activityList" class="activity-list">
+                    <%- include('../partials/skeleton', { type: 'list', count: 5 }) %>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <%- include('../partials/footer') %>
+    
+    <script type="module">
+        import apiClient from '/module/api.js';
+        
+        async function init() {
+            const popularGrid = document.getElementById('popularGrid');
+            const newsList = document.getElementById('newsList');
+            const activityList = document.getElementById('activityList');
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            let currentRange = 'now';
+            
+            async function loadPopularNovels(range = 'now') {
+                try {
+                    popularGrid.innerHTML = `<%- include("../partials/skeleton", { type: "grid", count: 4 }) %>`;
+                    const response = await apiClient.get(`/api/v1/novels?sort=${range === 'week' ? 'likes' : 'views'}&limit=4`);
+                    let items = (response && response.data && Array.isArray(response.data.novels)) ? response.data.novels : (Array.isArray(response?.data) ? response.data : []);
+                    items = Array.isArray(items) ? items.slice(0, 4) : [];
+
+                    const authorIds = [...new Set(items.map(n => n.author).filter(Boolean))];
+                    const authorMap = {};
+                    await Promise.all(authorIds.map(async (id) => {
+                        try {
+                            const u = await apiClient.get(`/api/v1/users/${encodeURIComponent(id)}`);
+                            const user = u?.data?.user || u?.data || {};
+                            authorMap[id] = user.nickname || user.username || id;
+                        } catch {}
+                    }));
+
+                    if (items.length > 0) {
+                        popularGrid.innerHTML = items.map(novel => `
+                            <div class="novel-preview-card horizontal" onclick="window.location.href='/novel/${novel.novelId || novel._id || novel.id}'" role="button" tabindex="0">
+                                <div class="novel-thumbnail">
+                                    ${novel.thumbnailImage ? 
+                                        `<img src="${novel.thumbnailImage}" alt="${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')} 썸네일" loading="lazy" onerror="this.closest('.novel-thumbnail').innerHTML=\`<div class=\\\"thumbnail-placeholder\\\"><span class=\\\"material-symbols-outlined\\\">menu_book</span></div>\`">` :
+                                        `<div class="thumbnail-placeholder">
+                                            <span class="material-symbols-outlined">menu_book</span>
+                                        </div>`
+                                    }
+                                </div>
+                                <div class="novel-info">
+                                    <div class="novel-header">
+                                        <h3 class="novel-title">${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}</h3>
+                                        <p class="novel-author">
+                                            <span class="material-symbols-outlined">person</span>
+                                            ${String(novel.authorName || authorMap[novel.author] || '작가 미상').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}
+                                        </p>
+                                    </div>
+                                    <div class="novel-meta">
+                                        <span class="meta-item">
+                                            <span class="material-symbols-outlined">visibility</span>
+                                            ${formatNumber(novel.viewCount || novel.views || 0)}
+                                        </span>
+                                        <span class="meta-item">
+                                            <span class="material-symbols-outlined">favorite</span>
+                                            ${formatNumber(novel.likeCount || novel.likes || 0)}
+                                        </span>
+                                        ${Array.isArray(novel.tags) && novel.tags.length ? `<div class=\"novel-tags\">${novel.tags.slice(0,3).map(t=>`<span class=\"badge\">${String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`).join(' ')}</div>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        popularGrid.innerHTML = `
+                            <div class="card card-outlined popular-empty-card">
+                                <div class="card-body">
+                                    <div class="popular-empty-content">
+                                        <span class="empty-state-icon"><span class="material-symbols-outlined">trophy</span></span>
+                                        <h3 class="empty-state-title">인기 작품이 없어요</h3>
+                                        <p class="empty-state-message">조금만 기다려주세요. 작품들이 모이면 이곳에 보여드릴게요.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error loading popular novels:', error);
+                    popularGrid.innerHTML = `<%- include("../partials/error-banner", { message: "인기 작품을 불러오는 중 오류가 발생했습니다." }) %>`;
+                }
+            }
+            
+            async function loadNews() {
+                try {
+                    const response = await apiClient.get('/api/v1/novels?sort=recent&limit=20');
+                    const items = (response && response.data && Array.isArray(response.data.novels)) ? response.data.novels : [];
+                    if (items.length > 0) {
+                        newsList.innerHTML = items.map(item => `
+                            <div class="news-item">
+                                <div class="news-icon">
+                                    <span class="material-symbols-outlined">${getNewsIcon('update')}</span>
+                                </div>
+                                <div class="news-content">
+                                    <p class="news-text">새 소설: ${item.title}</p>
+                                    <span class="news-time">${formatTime(item.updatedAt || item.createdAt)}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        newsList.innerHTML = `
+                            <div class="empty-state compact">
+                                <div class="empty-state-icon">
+                                    <span class="material-symbols-outlined">newspaper</span>
+                                </div>
+                                <h3 class="empty-state-title">새 소식이 없어요</h3>
+                                <p class="empty-state-message">업데이트가 올라오면 곧바로 알려드릴게요.</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error loading news:', error);
+                    newsList.innerHTML = `<%- include("../partials/error-banner", { message: "새 소식 불러오기 실패" }) %>`;
+                }
+            }
+            
+            async function loadActivities() {
+                const activityListEl = document.getElementById('activityList');
+                let token = localStorage.getItem('accessToken');
+                if (!token) {
+                    try {
+                        const refreshed = await apiClient.post('/api/v1/auth/refresh');
+                        const access = refreshed?.data?.accessToken || refreshed?.accessToken;
+                        if (access) {
+                            localStorage.setItem('accessToken', access);
+                            token = access;
+                        }
+                    } catch (e) {}
+                }
+                if (!token) {
+                    activityListEl.innerHTML = `
+                        <div class="empty-state compact">
+                            <div class="empty-state-header">
+                                <div class="empty-state-icon">
+                                    <span class="material-symbols-outlined">login</span>
+                                </div>
+                                <h3 class="empty-state-title">로그인이 필요합니다</h3>
+                            </div>
+                            <p class="empty-state-message">활동 내역을 보려면 <a href="https://dev.magicresearches.com/login?redirect=${encodeURIComponent(window.location.href)}" style="text-decoration: underline;">로그인</a>하세요.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                try {
+                    const me = await apiClient.get('/api/v1/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+                    const userid = me?.data?.user?.userid || me?.data?.userid || '';
+                    if (!userid) return;
+                    const response = await apiClient.get(`/api/v1/logs/users/${encodeURIComponent(userid)}/activity?limit=20`).catch(() => null);
+                    const activities = Array.isArray(response?.data?.logs) ? response.data.logs : Array.isArray(response?.data?.activities) ? response.data.activities : Array.isArray(response?.data) ? response.data : [];
+                    if (activities.length > 0) {
+                        activityList.innerHTML = activities.map(activity => `
+                            <div class="activity-item">
+                                <div class="activity-icon">
+                                    <span class="material-symbols-outlined">${getActivityIcon(activity.type || 'history')}</span>
+                                </div>
+                                <div class="activity-content">
+                                    <p class="activity-text">${activity.description || activity.message || '활동 기록'}</p>
+                                    <span class="activity-time">${formatTime(activity.createdAt || activity.time || new Date().toISOString())}</span>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        activityList.innerHTML = `
+                            <div class="empty-state compact">
+                                <div class="empty-state-icon">
+                                    <span class="material-symbols-outlined">history</span>
+                                </div>
+                                <h3 class="empty-state-title">아직 활동이 없어요</h3>
+                                <p class="empty-state-message">소설 읽기나 추천, 북마크를 시작해보세요!</p>
+                            </div>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Error loading activities:', error);
+                    activityList.innerHTML = `<%- include("../partials/error-banner", { message: "활동 내역 불러오기 실패" }) %>`;
+                }
+            }
+            
+            function formatNumber(num) {
+                if (num >= 1000000) return Math.floor(num / 1000000) + 'M';
+                if (num >= 1000) return Math.floor(num / 1000) + 'K';
+                return num.toString();
+            }
+            
+            function formatTime(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diff = now - date;
+                
+                const minutes = Math.floor(diff / 60000);
+                if (minutes < 1) return '방금 전';
+                if (minutes < 60) return `${minutes}분 전`;
+                
+                const hours = Math.floor(minutes / 60);
+                if (hours < 24) return `${hours}시간 전`;
+                
+                const days = Math.floor(hours / 24);
+                if (days < 7) return `${days}일 전`;
+                
+                return date.toLocaleDateString('ko-KR');
+            }
+            
+            function getNewsIcon(type) {
+                const icons = {
+                    'new_novel': 'auto_stories',
+                    'new_episode': 'library_add',
+                    'popular_comment': 'trending_up',
+                    'update': 'update',
+                    'notice': 'campaign'
+                };
+                return icons[type] || 'newspaper';
+            }
+            
+            function getActivityIcon(type) {
+                const icons = {
+                    'upload': 'upload',
+                    'comment': 'comment',
+                    'like': 'favorite',
+                    'bookmark': 'bookmark',
+                    'read': 'visibility'
+                };
+                return icons[type] || 'history';
+            }
+            
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    currentRange = this.dataset.range;
+                    loadPopularNovels(currentRange);
+                });
+            });
+            
+            await Promise.all([
+                loadPopularNovels(),
+                loadNews(),
+                loadActivities()
+            ]);
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

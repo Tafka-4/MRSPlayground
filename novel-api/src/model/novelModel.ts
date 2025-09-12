@@ -1,0 +1,187 @@
+import dotenv from 'dotenv';
+import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import { createHmac } from 'crypto';
+import { mongoose, redisClient } from '../utils/dbconnect/dbconnect.js';
+import novelError from '../utils/error/novelError.js';
+import userError from '../utils/error/userError.js';
+
+dotenv.config();
+
+const callUserService = async (endpoint: string, options: RequestInit = {}) => {
+    const userServiceUrl = process.env.USER_SERVICE_URL || 'http://user-api:3001';
+    const response = await fetch(`${userServiceUrl}${endpoint}`, {
+      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+      ...options
+    });
+    if (!response.ok) throw new Error(`User Service error: ${response.status}`);
+    return response.json();
+};
+
+export interface INovel extends mongoose.Document {
+    novelId: string;
+    title: string;
+    description: string;
+    thumbnailImage: string;
+    episodeCount: number;
+    viewCount: number;
+    likeCount: number;
+    dislikeCount: number;
+    favoriteCount: number;
+    author: string;
+    status: string;
+    visibility: 'public' | 'code' | 'private';
+    accessCodeHash?: string;
+    createdAt: Date;
+    updatedAt: Date;
+    like(userId: string): Promise<void>;
+    dislike(userId: string): Promise<void>;
+    favorite(userId: string): Promise<void>;
+    increaseViewCount(): Promise<void>;
+    increaseEpisode(): Promise<void>;
+    decreaseEpisode(): Promise<void>;
+    uploadThumbnailImage(file: Express.Multer.File): Promise<string>;
+    deleteThumbnailImage(): Promise<void>;
+}
+
+const novelSchema = new mongoose.Schema({
+    novelId: { type: String, required: true, unique: true, default: uuidv4 },
+    title: { type: String, required: true },
+    description: { type: String, required: true },
+    thumbnailImage: { type: String, default: '' },
+    episodeCount: { type: Number, default: 0 },
+    viewCount: { type: Number, default: 0 },
+    likeCount: { type: Number, default: 0 },
+    dislikeCount: { type: Number, default: 0 },
+    favoriteCount: { type: Number, default: 0 },
+    author: { type: String, required: true },
+    status: { type: String, required: true },
+    visibility: { type: String, enum: ['public', 'code', 'private'], default: 'public', index: true },
+    accessCodeHash: { type: String, default: '' },
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
+});
+
+novelSchema.methods.uploadThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>, file: Express.Multer.File): Promise<string> {
+    console.log('[model:uploadThumbnailImage] start', {
+        novelId: this.novelId,
+        originalname: file?.originalname,
+        mimetype: file?.mimetype,
+        hasBuffer: !!file?.buffer,
+        size: (file as any)?.size
+    });
+    const extension = ((file.originalname || '').split('.').pop() || '').toLowerCase();
+    if (!extension) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
+    if (!['png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'].includes(extension)) throw new novelError.NovelImageUploadFailedError('Invalid file extension');
+    const filename = `${createHmac('sha256', process.env.JWT_SECRET as string).update(this.novelId).digest('hex')}.${extension}`;
+    const filePath = `./uploads/novel/${filename}`;
+    const baseDomain = process.env.BASE_DOMAIN || 'magicresearches.com';
+    const publicBaseUrl = process.env.PUBLIC_API_BASE_URL || `https://api.${baseDomain}`;
+    const publicPath = `/uploads/novel/${filename}`;
+    const publicUrl = `${publicBaseUrl}${publicPath}`;
+    let buffer: Buffer | undefined = file.buffer as any;
+    if (!buffer) {
+        const stream = (file as any).stream as NodeJS.ReadableStream | undefined;
+        if (!stream) {
+            console.log('[model:uploadThumbnailImage] missing buffer and stream');
+            throw new novelError.NovelImageUploadFailedError('Invalid file buffer');
+        }
+        console.log('[model:uploadThumbnailImage] reading from stream');
+        buffer = await new Promise<Buffer>((resolve, reject) => {
+            const chunks: Buffer[] = [];
+            stream.on('data', (chunk: Buffer) => chunks.push(chunk));
+            stream.on('end', () => resolve(Buffer.concat(chunks)));
+            stream.on('error', (err: any) => reject(err));
+        });
+    }
+    try { fs.mkdirSync('./uploads/novel', { recursive: true }); } catch {}
+    console.log('[model:uploadThumbnailImage] writing file', { path: filePath, length: buffer?.length });
+    fs.writeFileSync(filePath, buffer as any);
+    this.thumbnailImage = publicUrl;
+    await this.save();
+    console.log('[model:uploadThumbnailImage] saved', { url: publicUrl });
+    return publicUrl;
+};
+
+novelSchema.pre('save', async function (this: mongoose.HydratedDocument<INovel>, next: (err?: any) => void) {
+    this.updatedAt = new Date();
+    next();
+});
+
+novelSchema.pre('deleteOne', { document: true, query: false }, async function (this: mongoose.HydratedDocument<INovel>, next: (err?: any) => void) {
+    if (this.thumbnailImage) {
+        try {
+            const diskPath = this.thumbnailImage
+                .replace(/^https?:\/\/[^/]+/i, '')
+                .replace(/^\/uploads\//, './uploads/');
+            fs.unlinkSync(diskPath);
+        } catch {}
+    }
+    await redisClient.del(`${this.novelId}:likes`);
+    await redisClient.del(`${this.novelId}:dislikes`);
+    await redisClient.del(`${this.novelId}:favorites`);
+    next();
+});
+
+novelSchema.methods.like = async function (this: mongoose.HydratedDocument<INovel>, userId: string): Promise<void> {
+    const resultLike = await redisClient.sAdd(`${this.novelId}:likes`, userId);
+    const resultDislike = await redisClient.sRem(`${this.novelId}:dislikes`, userId);
+    if (resultDislike) this.dislikeCount--;
+    if (!resultLike) throw new novelError.NovelInteractionFailedError('Already liked');
+    this.likeCount++;
+    await this.save();
+};
+
+novelSchema.methods.dislike = async function (this: mongoose.HydratedDocument<INovel>, userId: string): Promise<void> {
+    const resultDislike = await redisClient.sAdd(`${this.novelId}:dislikes`, userId);
+    const resultLike = await redisClient.sRem(`${this.novelId}:likes`, userId);
+    if (resultLike) this.likeCount--;
+    if (!resultDislike) throw new novelError.NovelInteractionFailedError('Already disliked');
+    this.dislikeCount++;
+    await this.save();
+};
+
+novelSchema.methods.favorite = async function (this: mongoose.HydratedDocument<INovel>, userId: string): Promise<void> {
+    const resultFavorite = await redisClient.sAdd(`${this.novelId}:favorites`, userId);
+    if (!resultFavorite) throw new novelError.NovelInteractionFailedError('Already favorited');
+    this.favoriteCount++;
+    try {
+        await callUserService(`/api/users/add-favorite`, { method: 'PUT', body: JSON.stringify({ userid: userId, novelId: this.novelId }) });
+    } catch (e) {
+        // Ignore external user service failure for favorite operation
+    }
+    await this.save();
+};
+
+novelSchema.methods.increaseViewCount = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
+    this.viewCount++;
+    await this.save();
+};
+
+novelSchema.methods.increaseEpisode = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
+    this.episodeCount++;
+    await this.save();
+};
+
+novelSchema.methods.decreaseEpisode = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
+    this.episodeCount--;
+    await this.save();
+};
+
+// removed duplicate uploadThumbnailImage with limited extensions
+
+novelSchema.methods.deleteThumbnailImage = async function (this: mongoose.HydratedDocument<INovel>): Promise<void> {
+    if (!this.thumbnailImage) throw new novelError.NovelImageDeleteFailedError('Thumbnail image not found');
+    const diskPath = this.thumbnailImage
+        .replace(/^https?:\/\/[^/]+/i, '')
+        .replace(/^\/uploads\//, './uploads/');
+    fs.unlinkSync(diskPath);
+    this.thumbnailImage = '';
+    await this.save();
+};
+
+const Novel = mongoose.model<INovel>('Novel', novelSchema);
+
+export default Novel;
+
+

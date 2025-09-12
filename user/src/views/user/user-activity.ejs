@@ -43,15 +43,15 @@
                         </button>
                     </div>
                     <nav class="profile-nav">
-                        <a href="#" class="profile-nav-item" id="profile-nav-link">
+                        <a href="#" class="profile-nav-item" data-page="profile">
                             <span class="material-symbols-outlined">person</span>
                             <span>프로필</span>
                         </a>
-                        <a href="#" class="profile-nav-item active" id="activity-nav-link">
+                        <a href="#" class="profile-nav-item" data-page="activity">
                             <span class="material-symbols-outlined">history</span>
                             <span>활동</span>
                         </a>
-                        <a href="#" class="profile-nav-item" id="guestbook-nav-link">
+                        <a href="#" class="profile-nav-item" data-page="guestbook">
                             <span class="material-symbols-outlined">book</span>
                             <span>방명록</span>
                         </a>
@@ -77,7 +77,7 @@
                         <div class="tab-header">
                             <h2 class="tab-title">
                                 <span class="material-symbols-outlined">history</span>
-                                <span id="user-nickname">사용자</span>님의 활동 내역
+                                <span id="user-nickname-display">사용자님의 활동 내역</span>
                             </h2>
                         </div>
                         <div class="activity-content">
@@ -100,6 +100,6 @@
         <%- include('../partials/footer') %>
 
         <div class="notice-container"></div>
-        <script type="module" src="/user/user-activity.mjs"></script>
+        <script type="module" src="/user/user-activity.mjs" data-cfasync="false"></script>
     </body>
 </html> 

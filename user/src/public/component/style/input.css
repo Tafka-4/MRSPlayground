@@ -12,8 +12,9 @@
 
 .input-wrapper {
     position: relative;
-    display: flex;
-    align-items: center;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    display: block;
 }
 
 .input-group input {
@@ -69,7 +70,6 @@
 .input-wrapper {
     position: relative;
     width: 100%;
-    max-width: 250px;
     margin-bottom: 0.5rem;
     display: block;
 }
@@ -92,7 +92,6 @@
     box-sizing: border-box;
     position: relative;
     width: 100%;
-    max-width: 250px;
     height: 2.15rem;
     margin: 0;
     padding: 0.5rem 3rem 0.5rem 2.5rem;
@@ -160,4 +159,69 @@
 
 .visibility-container .material-symbols-outlined:hover {
     color: rgb(10, 10, 10);
+}
+
+.input-style1 .material-symbols-outlined {
+    position: absolute;
+    left: 0.65rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    z-index: 1;
+    font-size: 1.2rem;
+}
+.input-style1 input {
+    width: 100%;
+    padding-right: 3rem;
+}
+.input-style1 input,
+.input-style1 textarea {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 3.5rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.5rem;
+    background: var(--background-secondary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 400;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    font-family: 'ONE-Mobile-POP';
+}
+.input-style1 textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+.input-style1 input:focus,
+.input-style1 textarea:focus {
+    background: var(--background-tertiary);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.1);
+}
+.input-style1 input::placeholder,
+.input-style1 textarea::placeholder {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    font-weight: 300;
+}
+.input-style1 .visibility-container {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 10;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+}
+.input-style1 .visibility-container .material-symbols-outlined {
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    transition: color 0.2s ease;
+    left: -1rem
+}
+.input-style1 .visibility-container .material-symbols-outlined:hover {
+    color: var(--text-primary);
 }

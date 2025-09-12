@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>관리자 목록</title>
+        <title>사용자 관리</title>
         <link rel="stylesheet" href="/admin/admin-user.css" />
         <link
             rel="stylesheet"
@@ -28,12 +28,25 @@
         <main class="main-content">
             <div class="container">
                 <div class="admin-header">
-                    <h1 class="title">관리자 목록</h1>
+                    <h1 class="title">사용자 관리</h1>
+                </div>
+
+                <div class="search-section">
+                    <input
+                        type="text"
+                        class="search-input"
+                        id="search-input"
+                        placeholder="닉네임으로 사용자 검색..."
+                    />
+                    <button class="search-button" id="search-button">
+                        <span class="material-symbols-outlined">search</span>
+                        검색
+                    </button>
                 </div>
 
                 <div class="users-table">
                     <div class="table-header">
-                        <h3 class="table-title">관리자 사용자 목록</h3>
+                        <h3 class="table-title">사용자 목록</h3>
                         <button class="refresh-button" id="refresh-button">
                             <span class="material-symbols-outlined">refresh</span>
                             새로고침
@@ -41,14 +54,108 @@
                     </div>
 
                     <div class="table-content" id="table-content">
-                        <div class="loading">관리자 목록을 불러오는 중...</div>
+                        <div class="loading">사용자 목록을 불러오는 중...</div>
+                    </div>
+                </div>
+
+                <div class="pagination" id="pagination" style="display: none">
+                </div>
+            </div>
+
+            <div class="notice-container"></div>
+
+            <div
+                class="modal-overlay"
+                id="delete-modal-overlay"
+                style="display: none"
+            >
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3>사용자 삭제 확인</h3>
+                        <button class="modal-close" id="modal-close">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="delete-user-info">
+                            정말로 이 사용자를 삭제하시겠습니까?
+                        </p>
+                        <p class="warning">이 작업은 되돌릴 수 없습니다.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="cancel-button" id="cancel-delete">
+                            취소
+                        </button>
+                        <button class="confirm-delete-button" id="confirm-delete">
+                            삭제
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="modal-overlay"
+                id="admin-modal-overlay"
+                style="display: none"
+            >
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 id="admin-modal-title">권한 변경</h3>
+                        <button class="modal-close" id="admin-modal-close">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="admin-action-info">
+                            정말로 이 작업을 수행하시겠습니까?
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="cancel-button" id="cancel-admin-action">
+                            취소
+                        </button>
+                        <button
+                            class="confirm-delete-button"
+                            id="confirm-admin-action"
+                        >
+                            확인
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="modal-overlay"
+                id="verify-modal-overlay"
+                style="display: none"
+            >
+                <div class="modal">
+                    <div class="modal-header">
+                        <h3 id="verify-modal-title">사용자 인증</h3>
+                        <button class="modal-close" id="verify-modal-close">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="verify-action-info">
+                            정말로 이 작업을 수행하시겠습니까?
+                        </p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="cancel-button" id="cancel-verify-action">
+                            취소
+                        </button>
+                        <button
+                            class="confirm-delete-button"
+                            id="confirm-verify-action"
+                        >
+                            확인
+                        </button>
                     </div>
                 </div>
             </div>
         </main>
 
-        <div class="notice-container"></div>
-
-        <script type="module" src="/admin/admin-list.mjs"></script>
+        <script type="module" src="/admin/admin-user.mjs"></script>
     </body>
 </html>

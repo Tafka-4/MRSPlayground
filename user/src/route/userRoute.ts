@@ -24,7 +24,7 @@ router.get('/login', loginLimiter, async (req: Request, res: Response) => {
         const refreshToken = req.cookies.refreshToken;
         if (refreshToken) {
             const response = await fetch(
-                'http://user-service:3001/api/v1/auth/check-token',
+                'http://user-api:3001/api/v1/auth/check-token',
                 {
                     method: 'POST',
                     headers: {
@@ -39,7 +39,17 @@ router.get('/login', loginLimiter, async (req: Request, res: Response) => {
             }
         }
     } catch (error) {
-        res.clearCookie('refreshToken');
+        const forwardedProto = (req.headers['x-forwarded-proto'] as string) || '';
+        const isHttps = req.secure || forwardedProto === 'https';
+        const clearOptions: any = {
+            httpOnly: true,
+            secure: isHttps,
+            path: '/'
+        };
+        if (process.env.COOKIE_DOMAIN) {
+            clearOptions.domain = process.env.COOKIE_DOMAIN;
+        }
+        res.clearCookie('refreshToken', clearOptions);
     }
 
     res.render('./auth/login');
@@ -195,6 +205,20 @@ router.get(
 );
 
 router.get(
+    '/user/:userid([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/activity',
+    (req: Request, res: Response) => {
+        res.render('./user/user-activity');
+    }
+);
+
+router.get(
+    '/user/:userid([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/guestbook',
+    (req: Request, res: Response) => {
+        res.render('./user/user-guestbook');
+    }
+);
+
+router.get(
     '/user/:userid([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})/guestbook/write',
     (req: Request, res: Response) => {
         res.render('./user/guestbook-write');
@@ -219,6 +243,10 @@ router.get('/notice', generalLimiter, (req: Request, res: Response) => {
 
 router.get('/license', generalLimiter, (req: Request, res: Response) => {
     res.render('./legal/license');
+});
+
+router.get('/dev/api-test', generalLimiter, (req: Request, res: Response) => {
+    res.render('./dev/api-test');
 });
 
 export default router;

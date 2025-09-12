@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <%- include('../partials/head-assets') %>
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    <main class="main-content">
+        <div class="container" style="padding:2rem 0;">
+            <h1 class="page-title">에피소드 댓글</h1>
+            <div class="meta" style="margin-bottom:1rem;">Novel: <%= locals.novelId %> / Episode: <%= locals.episodeId %></div>
+            <div id="commentList">
+                <%- include('../partials/skeleton', { type: 'card', count: 5 }) %>
+            </div>
+            <div id="commentsPagination" style="margin-top:12px;"></div>
+            <div class="comment-form" style="margin-top:1rem;">
+                <div class="input-group input-style1">
+                    <label for="commentContent">댓글</label>
+                    <div class="input-wrapper" style="position:relative;">
+                        <span class="material-symbols-outlined">chat</span>
+                        <textarea id="commentContent" rows="3" placeholder="댓글을 입력하세요 (예: @user1 @user2)"></textarea>
+                        <div id="mentionSuggestions" style="position:absolute;left:0;right:0;top:100%;background:var(--card-background);border:1px solid var(--border-color);display:none;z-index:10;"></div>
+                    </div>
+                </div>
+                <div style="margin-top:8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                    <label style="display:flex;align-items:center;gap:6px;">
+                        정렬
+                        <select id="sortSelect" class="input" style="max-width:160px;">
+                            <option value="latest">최신순</option>
+                            <option value="oldest">오래된순</option>
+                            <option value="likes">좋아요순</option>
+                        </select>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:6px;"><input type="checkbox" id="isHidden"> 익명</label>
+                    <div class="input-group input-style1" style="max-width:260px;display:none;" id="anonPwWrap">
+                        <label for="tempPassword">익명 비밀번호</label>
+                        <div class="input-wrapper">
+                            <span class="material-symbols-outlined">password</span>
+                            <input type="password" id="tempPassword" placeholder="8+ 영숫자">
+                        </div>
+                    </div>
+                    <button id="commentSubmit" class="btn btn-primary">
+                        <span class="material-symbols-outlined">send</span>
+                        등록
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+    <%- include('../partials/footer') %>
+</body>
+</html>
+
+<script type="module">
+    import apiClient from '/module/api.js';
+    const list = document.getElementById('commentList');
+    const episodeId = '<%= locals.episodeId %>';
+    const novelId = '<%= locals.novelId %>';
+    const urlParams = new URLSearchParams(window.location.search);
+    const sort = urlParams.get('sort') || 'latest';
+    const page = parseInt(urlParams.get('page') || '1');
+    const size = parseInt(urlParams.get('size') || '20');
+    const paginationEl = document.getElementById('commentsPagination');
+    function buildLoginUrlWithRedirect() {
+        const base = 'https://dev.magicresearches.com/login';
+        const url = new URL(base);
+        url.searchParams.set('redirect', window.location.href);
+        return url.toString();
+    }
+
+    async function ensureAccessToken() {
+        let token = localStorage.getItem('accessToken');
+        if (token) return token;
+        try {
+            const refreshed = await apiClient.post('/api/v1/auth/refresh');
+            const access = refreshed?.data?.accessToken || refreshed?.accessToken;
+            if (access) {
+                localStorage.setItem('accessToken', access);
+                return access;
+            }
+        } catch {}
+        return null;
+    }
+
+    async function load() {
+        try {
+            const res = await apiClient.get(`/api/v1/comments?targetType=episode&targetId=${encodeURIComponent(episodeId)}&page=${page}&limit=${size}&sort=${sort}`);
+            const comments = res.data.comments || [];
+            if (!comments.length) {
+                list.innerHTML = `<div style=\"padding:1rem;color:var(--text-secondary);\">댓글이 없습니다.</div>`;
+                return;
+            }
+            const { default: escape } = await import('/module/escape.js');
+            const linkifyMentions = (text) => text.replace(/@([a-zA-Z0-9_\-]{3,})/g, '<a class=\"mention\" href=\"/user/$1\">@$1</a>');
+            list.innerHTML = comments.map(c => `
+                <div class=\"card\" style=\"padding:12px;\">\n                    <div style=\"display:flex;justify-content:space-between;align-items:center;\">\n                        <div style=\"font-weight:600;\">${escape(c.author || '익명')}</div>\n                        <div>\n                            <button class=\"btn btn-text\" data-like=\"${escape(c.commentId)}\">👍 ${escape(String(c.likeCount || 0))}</button>\n                            <button class=\"btn btn-text\" data-dislike=\"${escape(c.commentId)}\">👎 ${escape(String(c.dislikeCount || 0))}</button>\n                            <button class=\"btn btn-text danger\" data-delete=\"${escape(c.commentId)}\">🗑️</button>\n                            <button class=\"btn btn-text\" data-reply=\"${escape(c.commentId)}\">↩️</button>\n                        </div>\n                    </div>\n                    <div>${linkifyMentions(escape(c.content || ''))}</div>\n                    <div class=\"reply-box\" id=\"rb-${escape(c.commentId)}\" style=\"display:none;margin-top:8px;\">\n                        <textarea rows=\"2\" class=\"input\" id=\"rt-${escape(c.commentId)}\" placeholder=\"대댓글 입력 (@user)...\"></textarea>\n                        <div style=\"margin-top:6px;display:flex;gap:8px;\">\n                            <button class=\"btn btn-primary\" data-reply-submit=\"${escape(c.commentId)}\">등록</button>\n                            <button class=\"btn btn-text\" data-reply-cancel=\"${escape(c.commentId)}\">취소</button>\n                        </div>\n                    </div>\n                </div>
+            `).join('');
+            list.querySelectorAll('[data-like]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const token = await ensureAccessToken();
+                    if (!token) { window.location.href = buildLoginUrlWithRedirect(); return; }
+                    const id = btn.getAttribute('data-like');
+                    try { await apiClient.post(`/api/v1/comments/${id}/like`); location.reload(); } catch {}
+                });
+            });
+            list.querySelectorAll('[data-dislike]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const token = await ensureAccessToken();
+                    if (!token) { window.location.href = buildLoginUrlWithRedirect(); return; }
+                    const id = btn.getAttribute('data-dislike');
+                    try { await apiClient.post(`/api/v1/comments/${id}/dislike`); location.reload(); } catch {}
+                });
+            });
+            list.querySelectorAll('[data-delete]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const token = await ensureAccessToken();
+                    if (!token) { window.location.href = buildLoginUrlWithRedirect(); return; }
+                    const id = btn.getAttribute('data-delete');
+                    try { await apiClient.delete(`/api/v1/comments/${id}`); location.reload(); } catch {}
+                });
+            });
+            list.querySelectorAll('[data-reply]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-reply');
+                    const box = document.getElementById(`rb-${id}`);
+                    if (box) box.style.display = box.style.display === 'none' ? 'block' : 'none';
+                });
+            });
+            list.querySelectorAll('[data-reply-cancel]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = btn.getAttribute('data-reply-cancel');
+                    const box = document.getElementById(`rb-${id}`);
+                    if (box) box.style.display = 'none';
+                });
+            });
+            list.querySelectorAll('[data-reply-submit]').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const id = btn.getAttribute('data-reply-submit');
+                    const ta = document.getElementById(`rt-${id}`);
+                    const content = ta && 'value' in ta ? ta.value.trim() : '';
+                    if (!content) return;
+                    try {
+                        await apiClient.post('/api/v1/comments', { novelId, targetType: 'episode', targetId: episodeId, content, isHidden: false, parentId: id });
+                        location.reload();
+                    } catch {}
+                });
+            });
+
+            // pagination simple prev/next
+            const inferredTotalPages = comments.length < size ? page : page + 1;
+            const qp = (p) => {
+                const params = new URLSearchParams(window.location.search);
+                params.set('page', String(p));
+                return `?${params.toString()}`;
+            };
+            paginationEl.innerHTML = `
+                <nav class=\"pagination-container\"><ul class=\"pagination\">\n                    <li class=\"page-item ${page === 1 ? 'disabled' : ''}\"><a class=\"page-link\" href=\"${qp(1)}\">«</a></li>\n                    <li class=\"page-item ${page === 1 ? 'disabled' : ''}\"><a class=\"page-link\" href=\"${qp(Math.max(1, page-1))}\">‹</a></li>\n                    <li class=\"page-item\"><span class=\"page-link\">${page}/${inferredTotalPages}</span></li>\n                    <li class=\"page-item\"><a class=\"page-link\" href=\"${qp(page+1)}\">›</a></li>\n                </ul></nav>`;
+        } catch (e) {
+            list.innerHTML = `<div class=\"error\">로딩 실패</div>`;
+        }
+    }
+    load();
+    // mentions autocomplete
+    const suggestions = document.getElementById('mentionSuggestions');
+    const commentInput = document.getElementById('commentContent');
+    const sortSelect = document.getElementById('sortSelect');
+    sortSelect?.addEventListener('change', () => {
+        const params = new URLSearchParams(window.location.search);
+        params.set('sort', sortSelect.value);
+        window.location.search = params.toString();
+    });
+    let mentionTimer;
+    commentInput?.addEventListener('input', async (e) => {
+        clearTimeout(mentionTimer);
+        const val = e.target.value;
+        const match = /@([a-zA-Z0-9_\-]{2,})$/.exec((val.split(/\s/).pop() || ''));
+        if (!match) { suggestions.style.display = 'none'; return; }
+        mentionTimer = setTimeout(async () => {
+            try {
+                let resp = await apiClient.get(`/api/v1/users/search?q=${encodeURIComponent(match[1])}&limit=5`).catch(() => null);
+                if (!resp) resp = await apiClient.get(`/api/v1/users/admin/search?q=${encodeURIComponent(match[1])}&limit=5`).catch(() => null);
+                const items = (resp && (resp.data.users || resp.data || [])).slice(0,5);
+                if (!items.length) { suggestions.style.display = 'none'; return; }
+                const { default: escape } = await import('/module/escape.js');
+                suggestions.innerHTML = items.map(u => `<div class=\"suggest-item\" data-name=\"${escape(u.nickname || u.userid || '')}\" style=\"padding:6px;cursor:pointer;\">${escape(u.nickname || u.userid || '')}</div>`).join('');
+                suggestions.style.display = 'block';
+                suggestions.querySelectorAll('.suggest-item').forEach(it => {
+                    it.addEventListener('click', () => {
+                        const name = it.getAttribute('data-name');
+                        const before = commentInput.value;
+                        commentInput.value = before.replace(/@([a-zA-Z0-9_\-]{2,})$/, `@${name} `);
+                        suggestions.style.display = 'none';
+                        commentInput.focus();
+                    });
+                });
+            } catch { suggestions.style.display = 'none'; }
+        }, 250);
+    });
+    const isHiddenEl = document.getElementById('isHidden');
+    const pwEl = document.getElementById('tempPassword');
+    isHiddenEl?.addEventListener('change', () => {
+        if (isHiddenEl.checked) pwEl.style.display = 'block'; else pwEl.style.display = 'none';
+    });
+    document.getElementById('commentSubmit')?.addEventListener('click', async () => {
+        const token = await ensureAccessToken();
+        if (!token) { window.location.href = buildLoginUrlWithRedirect(); return; }
+        const textarea = document.getElementById('commentContent');
+        const content = textarea && 'value' in textarea ? textarea.value.trim() : '';
+        if (!content) return;
+        const isHidden = !!(isHiddenEl && 'checked' in isHiddenEl ? isHiddenEl.checked : false);
+        const tempPassword = pwEl && 'value' in pwEl ? pwEl.value.trim() : '';
+        try {
+            await apiClient.post('/api/v1/comments', { novelId, targetType: 'episode', targetId: episodeId, content, isHidden, ...(isHidden && tempPassword ? { tempPassword } : {}) });
+            location.reload();
+        } catch {}
+    });
+
+    // Hide comment form if not logged in
+    (async () => {
+        const token = await ensureAccessToken();
+        const formWrap = document.querySelector('.comment-form');
+        if (!token && formWrap) {
+            formWrap.innerHTML = `
+                <div class=\"empty-state compact\">
+                    <div class=\"empty-state-icon\"><span class=\"material-symbols-outlined\">login</span></div>
+                    <h3 class=\"empty-state-title\">로그인이 필요합니다</h3>
+                    <p class=\"empty-state-message\">댓글을 작성하려면 <a href=\"${buildLoginUrlWithRedirect()}\" style=\"text-decoration:underline;\">로그인</a>하세요.</p>
+                </div>`;
+        }
+    })();
+    </script>

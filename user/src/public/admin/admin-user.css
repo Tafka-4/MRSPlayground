@@ -262,10 +262,28 @@ body.has-header {
     min-width: 0;
 }
 
-.user-name {
+.user-front-info-container {
+    display: inline-flex;
+    gap: 0.3rem;
+    margin-bottom: 0.2rem;
+    flex-shrink: 1;
+    max-width: 50%;
+}
+
+.user-nickname {
+    font-size: 1.2rem;
     font-weight: 500;
     color: var(--text-primary);
-    margin-bottom: 0.2rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-badges-container {
+    display: inline-flex;
+    flex-direction: row;
+    margin-left: 0.8rem;
+    column-gap: 0.3rem;
 }
 
 .user-details {

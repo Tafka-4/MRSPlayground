@@ -1,6 +1,6 @@
-import NoticeBox from '../module/notice.js';
-import apiClient from '../module/api.js';
-import escape from '../module/escape.js';
+import NoticeBox from '/module/notice.js';
+import apiClient from '/module/api.js';
+import escape from '/module/escape.js';
 
 let currentAdmins = [];
 

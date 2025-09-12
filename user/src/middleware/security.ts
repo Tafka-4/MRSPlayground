@@ -152,9 +152,10 @@ export const securityHeaders = (
             "fonts.googleapis.com fonts.gstatic.com " +
             "static.cloudflareinsights.com *.cloudflare.com fastly.jsdelivr.net; " +
             
-        "connect-src 'self' ws: wss: " +
+        "connect-src 'self' ws: wss: http: https: " +
             "static.cloudflareinsights.com *.cloudflare.com " +
-            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net; " +
+            "fonts.googleapis.com fonts.gstatic.com fastly.jsdelivr.net " +
+            "*.magicresearches.com; " +
             
         "worker-src 'self' blob:; " +
         "object-src 'none'; " +

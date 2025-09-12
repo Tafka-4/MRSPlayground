@@ -8,11 +8,23 @@ services:
       - ./nginx/ssl:/etc/nginx/ssl:ro
       - ./nginx/logs:/var/log/nginx
     depends_on:
-      api:
+      gallery-api:
         condition: service_started
-      user-service:
+      post-api:
+        condition: service_started
+      comment-api:
+        condition: service_started
+      emoji-api:
+        condition: service_started
+      novel-api:
+        condition: service_started
+      user-api:
         condition: service_started
       user:
+        condition: service_started
+      research-frontend:
+        condition: service_started
+      research-api:
         condition: service_started
     restart: unless-stopped
     ports:
@@ -27,13 +39,13 @@ services:
       retries: 5
       start_period: 90s
 
-  # API Gateway / Main API Service
-  api:
+  # Gallery Microservice
+  gallery-api:
     build:
-      context: ./api
+      context: ./gallery-api
       dockerfile: Dockerfile
     expose:
-      - '5000'
+      - '5001'
     cpuset: "1"
     environment:
       - NODE_ENV=${NODE_ENV}
@@ -45,7 +57,134 @@ services:
       - REDIS_URL=${REDIS_URL}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
     depends_on:
-      user-service:
+      user-api:
+        condition: service_started
+      redis:
+        condition: service_started
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    volumes:
+      - novel_uploads:/app/uploads
+
+  # Post Microservice
+  post-api:
+    build:
+      context: ./post-api
+      dockerfile: Dockerfile
+    expose:
+      - '5003'
+    cpuset: "1"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - GALLERY_API_URL=http://gallery-api:5001
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PW=${MONGO_PW}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      gallery-api:
+        condition: service_started
+      redis:
+        condition: service_started
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    volumes:
+      - novel_uploads:/app/uploads
+
+  # Comment Microservice
+  comment-api:
+    build:
+      context: ./comment-api
+      dockerfile: Dockerfile
+    expose:
+      - '5004'
+    cpuset: "1"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - GALLERY_API_URL=http://gallery-api:5001
+      - POST_API_URL=http://post-api:5003
+      - NOVEL_API_URL=http://novel-api:5002
+      - EMOJI_API_URL=http://emoji-api:5005
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PW=${MONGO_PW}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      gallery-api:
+        condition: service_started
+      post-api:
+        condition: service_started
+      novel-api:
+        condition: service_started
+      emoji-api:
+        condition: service_started
+      redis:
+        condition: service_started
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  # Emoji Microservice
+  emoji-api:
+    build:
+      context: ./emoji-api
+      dockerfile: Dockerfile
+    expose:
+      - '5005'
+    cpuset: "1"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - MONGO_URI=${MONGO_URI}
+      - MONGO_USER=${MONGO_USER}
+      - MONGO_PW=${MONGO_PW}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      user-api:
+        condition: service_started
+      redis:
+        condition: service_started
+      mongodb:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-network
+    volumes:
+      - novel_uploads:/app/uploads
+  # Novel/Episode Microservice
+  novel-api:
+    build:
+      context: ./novel-api
+      dockerfile: Dockerfile
+    expose:
+      - '5002'
+    cpuset: "1"
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - USER_SERVICE_URL=${USER_SERVICE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - MONGO_URL=${MONGO_URI}
+      - MONGO_DB=novelapi
+    depends_on:
+      user-api:
         condition: service_started
       redis:
         condition: service_started
@@ -55,16 +194,16 @@ services:
     networks:
       - app-network
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://127.0.0.1:5000/health || exit 1"]
-      interval: 60s
-      timeout: 20s
-      retries: 5
-      start_period: 120s
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://127.0.0.1:5002/api/v1/health || exit 1"]
+    volumes:
+      - novel_uploads:/app/uploads
+
+  
 
   # User & Auth Microservice
-  user-service:
+  user-api:
     build:
-      context: ./user-service
+      context: ./user-api
       dockerfile: Dockerfile
     expose:
       - '3001'
@@ -73,6 +212,7 @@ services:
     cpuset: "1"
     environment:
       - NODE_ENV=${NODE_ENV}
+      - COOKIE_DOMAIN=.magicresearches.com
       - DB_HOST=${DB_HOST}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
@@ -125,6 +265,7 @@ services:
     cpuset: "1"
     environment:
       - NODE_ENV=${NODE_ENV}
+      - COOKIE_DOMAIN=.magicresearches.com
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
       - REDIS_URL=${REDIS_URL}
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -134,8 +275,81 @@ services:
     restart: unless-stopped
     networks:
       - app-network
+  novel-frontend:
+    build:
+      context: ./novel-frontend
+      dockerfile: Dockerfile
+    expose:
+      - '3002'
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+      - REDIS_URL=${REDIS_URL}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  community-frontend:
+    build:
+      context: ./community-frontend
+      dockerfile: Dockerfile
+    expose:
+      - '3200'
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  emoji-frontend:
+    build:
+      context: ./emoji-frontend
+      dockerfile: Dockerfile
+    expose:
+      - '3300'
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+    restart: unless-stopped
+    networks:
+      - app-network
+  research-api:
+    build:
+      context: ./research-api
+      dockerfile: Dockerfile
+    expose:
+      - '5100'
+    environment:
+      - NODE_ENV=${NODE_ENV}
+    restart: unless-stopped
+    networks:
+      - app-network
     healthcheck:
-      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/health || exit 1"]
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://127.0.0.1:5100/api/v1/health || exit 1"]
+      interval: 60s
+      timeout: 15s
+      retries: 5
+      start_period: 90s
+  research-frontend:
+    build:
+      context: ./research-frontend
+      dockerfile: Dockerfile
+    expose:
+      - '3400'
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+      - NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
+    restart: unless-stopped
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3400/health || exit 1"]
       interval: 60s
       timeout: 15s
       retries: 5
@@ -182,7 +396,7 @@ services:
       - BOT_PW=${BOT_PW}
       - BOT_NICKNAME=${BOT_NICKNAME}
     depends_on:
-      user-service:
+      user-api:
         condition: service_healthy
     restart: unless-stopped
     networks:
@@ -271,6 +485,8 @@ volumes:
     driver: local
   requestdb_data:
     driver: local
+  noveldb_data:
+    driver: local
   redis_data:
     driver: local
   mongodb_data:
@@ -278,6 +494,8 @@ volumes:
   mongodb_config:
     driver: local
   user_uploads:
+    driver: local
+  novel_uploads:
     driver: local
 
 networks:

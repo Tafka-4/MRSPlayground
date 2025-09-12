@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <%- include('../partials/head-assets') %>
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    <main class="main-content">
+        <div class="container">
+            <div class="page" style="max-width:720px;margin:0 auto;">
+                <div class="page-header">
+                    <h1 class="page-title">공지사항 수정</h1>
+                </div>
+                <div class="muted">Novel: <%= locals.novelId %> / Notice: <%= locals.noticeId %></div>
+                <form id="noticeForm" class="form">
+                    <div class="input-group input-style1">
+                        <label for="title">제목</label>
+                        <div class="input-wrapper">
+                            <span class="material-symbols-outlined">title</span>
+                            <input id="title" name="title" type="text" placeholder="공지 제목" required>
+                        </div>
+                    </div>
+                    <div class="input-group input-style1">
+                        <label for="content">내용</label>
+                        <div class="input-wrapper">
+                            <span class="material-symbols-outlined">description</span>
+                            <textarea id="content" name="content" rows="8" placeholder="공지 내용" required></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions stack-h" style="justify-content:flex-end;">
+                        <button type="button" class="btn btn-secondary" onclick="history.back()">
+                            <span class="material-symbols-outlined">arrow_back</span>
+                            취소
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <span class="material-symbols-outlined">save</span>
+                            저장
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    <%- include('../partials/footer') %>
+</body>
+</html>
+<script type="module">
+    import apiClient from '/module/api.js';
+    const form = document.getElementById('noticeForm');
+    const noticeId = '<%= locals.noticeId %>';
+    async function loadInitial() {
+        try {
+            const res = await apiClient.get(`/api/v1/notices/${noticeId}`);
+            const n = res.data?.notice || res.data || {};
+            form.title.value = n.title || '';
+            form.content.value = n.content || '';
+        } catch {}
+    }
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = new FormData(form);
+        const body = { title: data.get('title'), content: data.get('content') };
+        try {
+            await apiClient.put(`/api/v1/notices/${noticeId}`, body);
+            window.location.href = `/notice/${noticeId}`;
+        } catch (err) {
+            alert('수정 실패: ' + (err?.data?.message || err.message));
+        }
+    });
+    loadInitial();
+</script>
+

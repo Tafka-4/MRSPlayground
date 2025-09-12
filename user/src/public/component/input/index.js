@@ -5,7 +5,8 @@ function createInput({
     placeholder = '',
     icon,
     validation,
-    isTextarea = false
+    isTextarea = false,
+    wrapperClass = ''
 }) {
     const inputGroup = document.createElement('div');
     inputGroup.className = 'input-group';
@@ -19,7 +20,7 @@ function createInput({
     }
 
     const inputWrapper = document.createElement('div');
-    inputWrapper.className = 'input-wrapper';
+    inputWrapper.className = 'input-wrapper' + (wrapperClass ? ` ${wrapperClass}` : '');
 
     if (icon && !isTextarea) {
         const iconEl = document.createElement('span');

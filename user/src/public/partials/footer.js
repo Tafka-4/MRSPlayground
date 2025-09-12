@@ -35,13 +35,48 @@ if (!window.footerEventsSetup) {
         });
     }
 
+    function renderServiceFeatures() {
+        const container = document.getElementById('service-features');
+        if (!container) return;
+
+        const features = Array.isArray(window.__FOOTER_FEATURES)
+            ? window.__FOOTER_FEATURES
+            : ['아카이브', '커뮤니티', '마연회콘', '마법연구소'];
+
+        container.innerHTML = '';
+        const urlMap = {
+            '아카이브': 'https://novel.magicresearches.com',
+            '커뮤니티': 'https://community.magicresearches.com',
+            '마연회콘': 'https://emoji.magicresearches.com',
+            '마법연구소': 'https://research.magicresearches.com'
+        };
+
+        for (const feature of features) {
+            const href = urlMap[feature];
+            if (href) {
+                const a = document.createElement('a');
+                a.className = 'feature-tag';
+                a.href = href;
+                a.textContent = feature;
+                container.appendChild(a);
+            } else {
+                const span = document.createElement('span');
+                span.className = 'feature-tag';
+                span.textContent = feature;
+                container.appendChild(span);
+            }
+        }
+    }
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             setupScrollToTop();
             setupExternalLinks();
+            renderServiceFeatures();
         });
     } else {
         setupScrollToTop();
         setupExternalLinks();
+        renderServiceFeatures();
     }
 } 

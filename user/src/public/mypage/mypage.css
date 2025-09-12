@@ -1,0 +1,106 @@
+.user-profile-header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.user-profile-header .title {
+    font-size: 2.5rem;
+}
+
+.profile-section {
+    display: flex;
+    gap: 2rem;
+}
+.profile-image-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+.profile-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background-color: var(--background-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 3px solid var(--border-color);
+    background-size: cover;
+    background-position: center;
+}
+.profile-image-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+}
+.profile-info {
+    flex: 1;
+}
+.info-item {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--light-border-color);
+}
+.info-item:last-child {
+    border-bottom: none;
+}
+.info-item label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.username-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.badge-container {
+    display: flex;
+    gap: 0rem;
+}
+#uid {
+    font-family: inherit;
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 1000px) {
+    .profile-image-container {
+        align-items: center;
+    }
+
+    .profile-image-actions {
+        flex-direction: row;
+        width: auto;
+        justify-content: center;
+        gap: 1rem;
+    }
+    .profile-section {
+        flex-direction: column;
+    }
+}
+
+.profile-image-actions .btn.btn-danger-outline {
+    --btn-bg: transparent;
+    --btn-color: var(--danger-color);
+    --btn-border-color: var(--danger-color);
+}
+.profile-image-actions .btn.btn-danger-outline:hover {
+    --btn-bg: var(--danger-color);
+    --btn-color: white;
+}
+.profile-image-actions .btn.btn-dark {
+    --btn-bg: #333;
+    --btn-color: white;
+    --btn-border-color: #333;
+}
+.profile-image-actions .btn.btn-dark:hover {
+    --btn-bg: #555;
+}

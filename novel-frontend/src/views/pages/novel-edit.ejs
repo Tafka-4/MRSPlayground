@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <%- include('../partials/head-assets') %>
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    <main class="main-content">
+        <div class="container">
+            <div class="page" style="max-width:720px;margin:0 auto;">
+                <div class="page-header">
+                    <h1 class="page-title">소설 수정</h1>
+                </div>
+            <form id="novelForm" class="form">
+                <div class="input-group input-style1">
+                    <label for="title">제목</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">title</span>
+                        <input id="title" name="title" type="text" placeholder="제목을 입력하세요">
+                    </div>
+                </div>
+                <div class="input-group input-style1">
+                    <label for="description">설명</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">notes</span>
+                        <textarea id="description" name="description" rows="5" placeholder="작품 설명을 입력하세요"></textarea>
+                    </div>
+                </div>
+                <div class="input-group input-style1">
+                    <label for="tags">태그</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">sell</span>
+                        <input id="tags" name="tags" type="text" placeholder="쉼표로 구분 (예: 던전, 성장, 모험)">
+                    </div>
+                </div>
+                <div class="input-group input-style1">
+                    <label for="visibility">공개 범위</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">lock_open</span>
+                        <select id="visibility" name="visibility">
+                            <option value="public">공개</option>
+                            <option value="code">코드 소지자만</option>
+                            <option value="private">본인만</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="input-group input-style1" id="accessCodeWrap" style="display:none;">
+                    <label for="accessCode">접근 코드</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">key</span>
+                        <input id="accessCode" name="accessCode" type="text" placeholder="코드 소지자만 선택 시 입력">
+                    </div>
+                </div>
+                <div class="form-actions stack-h" style="justify-content:flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="history.back()">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        취소
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-symbols-outlined">save</span>
+                        저장
+                    </button>
+                </div>
+            </form>
+            </div>
+        </div>
+    </main>
+    <%- include('../partials/footer') %>
+    <script type="module">
+        import apiClient from '/module/api.js';
+        const novelId = '<%= novelId %>';
+        const form = document.getElementById('novelForm');
+        const visibility = document.getElementById('visibility');
+        const accessCodeWrap = document.getElementById('accessCodeWrap');
+
+        async function loadInitial() {
+            try {
+                const code = localStorage.getItem(`novel_code_${novelId}`) || '';
+                const joiner = `/api/v1/novels/${novelId}`.includes('?') ? '&' : '?';
+                const url = code ? `/api/v1/novels/${novelId}${joiner}code=${encodeURIComponent(code)}` : `/api/v1/novels/${novelId}`;
+                const res = await apiClient.get(url);
+                const n = res.data?.novel || res.data;
+                form.title.value = n.title || '';
+                form.description.value = n.description || '';
+                form.tags.value = Array.isArray(n.tags) ? n.tags.join(',') : '';
+                if (visibility) visibility.value = n.visibility || 'public';
+                if (accessCodeWrap) accessCodeWrap.style.display = (n.visibility === 'code') ? 'block' : 'none';
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = new FormData(form);
+            const body = {};
+            if (data.get('title')) body.title = data.get('title');
+            if (data.get('description')) body.description = data.get('description');
+            body.tags = (data.get('tags') || '').toString().split(',').map(s => s.trim()).filter(Boolean);
+            if (data.get('visibility')) body.visibility = data.get('visibility');
+            if (data.get('accessCode')) body.accessCode = data.get('accessCode');
+            try {
+                await apiClient.put(`/api/v1/novels/${novelId}`, body);
+                window.location.href = `/novel/${novelId}`;
+            } catch (err) {
+                alert('수정 실패: ' + (err?.data?.message || err.message));
+            }
+        });
+
+        visibility?.addEventListener('change', () => {
+            accessCodeWrap.style.display = (visibility.value === 'code') ? 'block' : 'none';
+        });
+        loadInitial();
+    </script>
+</body>
+</html>
+

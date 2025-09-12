@@ -14,8 +14,8 @@
         <link rel="stylesheet" href="/component/style/badges.css" />
         <link rel="stylesheet" href="/component/style/buttons.css" />
         <link rel="stylesheet" href="/component/style/modals.css" />
-        <link rel="stylesheet" href="/user/mypage.css" />
-        <link rel="stylesheet" href="/user/edit-profile.css" />
+        <link rel="stylesheet" href="/mypage/mypage-common.css" />
+        <link rel="stylesheet" href="/mypage/edit-profile.css" />
     </head>
     <body>
         <script>
@@ -24,8 +24,8 @@
                 document.documentElement.setAttribute('data-theme', savedTheme);
             })();
         </script>
-        <div id="root">
-            <%- include('../partials/header') %>
+        <div id="root" class="mypage-root">
+            <%- include('../partials/header', { fixedHeader: false }) %>
 
             <main class="main-content">
                 <div class="mobile-profile-header">
@@ -51,11 +51,11 @@
                             <span class="material-symbols-outlined">edit</span>
                             <span>프로필 수정</span>
                         </a>
-                        <a href="#activity" class="profile-nav-item">
+                        <a href="/mypage/activity" class="profile-nav-item">
                             <span class="material-symbols-outlined">history</span>
                             <span>활동</span>
                         </a>
-                        <a href="#guestbook" class="profile-nav-item">
+                        <a href="/mypage/guestbook" class="profile-nav-item">
                             <span class="material-symbols-outlined">book</span>
                             <span>방명록</span>
                         </a>
@@ -74,9 +74,8 @@
                 <div class="profile-nav-overlay" id="profileNavOverlay"></div>
 
                 <div class="container">
-                    <div class="mypage-header">
+                    <div class="edit-header">
                         <h1 class="title">프로필 수정</h1>
-                        <div id="admin-button-container"></div>
                     </div>
 
                     <div class="profile-section">
@@ -84,39 +83,36 @@
                             <div id="profile-image" class="profile-image">
                                 <span class="material-symbols-outlined">person</span>
                             </div>
-                            <div class="profile-image-actions" id="profile-image-actions">
-                                <input
-                                    type="file"
-                                    id="profile-image-input"
-                                    hidden
-                                    accept="image/*"
-                                />
-                            </div>
+                            <div class="profile-image-actions" id="profile-image-actions"></div>
+                            <input
+                                type="file"
+                                id="profile-image-input"
+                                hidden
+                                accept="image/*"
+                            />
                         </div>
 
-                        <div class="profile-info">
+                        <div class="profile-form">
                             <div class="form-inputs" id="profile-form-container"></div>
-                        </div>
-                    </div>
-                    <div class="only-read-info">
-                        <div class="readonly-info">
-                            <h3>읽기 전용 정보</h3>
-                            <div class="info-item">
-                                <label>아이디</label>
-                                <div id="user-id" class="info-value">...</div>
-                            </div>
-                            <div class="info-item">
-                                <label>이메일</label>
-                                <div id="user-email" class="info-value">...</div>
-                            </div>
-                            <div class="info-item">
-                                <label>UID</label>
-                                <div id="uid" class="info-value">...</div>
-                            </div>
+                            <div class="action-buttons" id="form-actions"></div>
                         </div>
                     </div>
 
-                    <div class="action-buttons" id="form-actions"></div>
+                    <div class="readonly-info">
+                        <h3>읽기 전용 정보</h3>
+                        <div class="info-item">
+                            <label>아이디</label>
+                            <div id="user-id" class="info-value">...</div>
+                        </div>
+                        <div class="info-item">
+                            <label>이메일</label>
+                            <div id="user-email" class="info-value">...</div>
+                        </div>
+                        <div class="info-item">
+                            <label>UID</label>
+                            <div id="uid" class="info-value">...</div>
+                        </div>
+                    </div>
                 </div>
             </main>
         </div>
@@ -124,6 +120,6 @@
         <%- include('../partials/footer') %>
 
         <div class="notice-container"></div>
-        <script type="module" src="/user/edit-profile.mjs"></script>
+        <script type="module" src="/mypage/edit-profile.mjs"></script>
     </body>
 </html>

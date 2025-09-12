@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 const AUTH_SERVER_URL =
     process.env.AUTH_SERVER_URL ||
-    'http://user-service:3001/api/v1/auth/check-token';
+    'http://user-api:3001/api/v1/auth/check-token';
 
 interface UserPayload {
     userid: string;
@@ -34,6 +34,10 @@ export const authMiddleware = async (
         if (!refreshToken) {
             console.warn('리프레시 토큰이 없습니다');
             
+            if (req.path === '/login') {
+                return next();
+            }
+
             const authHeader = req.headers.authorization;
             if (authHeader && authHeader.startsWith('Bearer ')) {
                 return res.redirect('/login?force_logout=true');
@@ -68,8 +72,17 @@ export const authMiddleware = async (
             } catch (e) {
                 console.warn('에러 응답 내용을 읽을 수 없음');
             }
-
-            res.clearCookie('refreshToken');
+            const forwardedProto = (req.headers['x-forwarded-proto'] as string) || '';
+            const isHttps = req.secure || forwardedProto === 'https';
+            const clearOptions: any = {
+                httpOnly: true,
+                secure: isHttps,
+                path: '/'
+            };
+            if (process.env.COOKIE_DOMAIN) {
+                clearOptions.domain = process.env.COOKIE_DOMAIN;
+            }
+            res.clearCookie('refreshToken', clearOptions);
             return res.redirect('/login');
         }
 
@@ -78,7 +91,17 @@ export const authMiddleware = async (
 
         if (!data.success) {
             console.warn('토큰 검증 실패:', data.error);
-            res.clearCookie('refreshToken');
+            const forwardedProto = (req.headers['x-forwarded-proto'] as string) || '';
+            const isHttps = req.secure || forwardedProto === 'https';
+            const clearOptions: any = {
+                httpOnly: true,
+                secure: isHttps,
+                path: '/'
+            };
+            if (process.env.COOKIE_DOMAIN) {
+                clearOptions.domain = process.env.COOKIE_DOMAIN;
+            }
+            res.clearCookie('refreshToken', clearOptions);
             return res.redirect('/login');
         }
 

@@ -26,7 +26,7 @@ class AuthTokenManager {
 
     constructor() {
         this.userServiceUrl =
-            process.env.USER_SERVICE_URL || 'http://user-service:3001';
+            process.env.USER_SERVICE_URL || 'http://user-api:3001';
         this.tokensFilePath = path.join(
             process.cwd(),
             'data',

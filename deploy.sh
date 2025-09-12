@@ -13,4 +13,5 @@ docker image prune -f
 echo "[INFO] Starting new containers"
 docker compose up --build -d --remove-orphans
 
-rm /opt/app/MRSPlayground/.env
+echo "[INFO] Cleaning up .env file"
+rm -f ~/MRSPlayground/.env

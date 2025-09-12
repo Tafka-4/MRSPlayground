@@ -10,8 +10,17 @@
         />
         <script type="module">
             import apiClient from '/module/api.js';
-            const data = await apiClient.get('/api/v1/auth/me');
-            data.user.authority === 'admin' ? window.location.href = '/admin' : window.location.href = '/';
+            try {
+                const data = await apiClient.get('/api/v1/auth/me');
+                if (data.user && data.user.authority === 'admin') {
+                    window.location.href = '/admin';
+                } else {
+                    window.location.href = '/';
+                }
+            } catch (error) {
+                console.error('Admin check failed:', error);
+                window.location.href = '/';
+            }
         </script>
         <style>
             @font-face {

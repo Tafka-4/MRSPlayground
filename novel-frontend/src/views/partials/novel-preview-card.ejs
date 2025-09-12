@@ -1,0 +1,84 @@
+<%
+const novel = locals.novel || {};
+const showDescription = locals.showDescription !== false;
+const maxDescLength = locals.maxDescLength || 30;
+
+const formatNumber = (num) => {
+    if (num >= 1000000) return Math.floor(num / 1000000) + 'M';
+    if (num >= 1000) return Math.floor(num / 1000) + 'K';
+    return num;
+};
+
+const truncateText = (text, maxLength) => {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+};
+%>
+
+<div class="novel-preview-card" onclick="window.location.href='/novel/<%= novel.novelId || novel.id || novel._id %>'" role="button" tabindex="0">
+    <div class="novel-thumbnail">
+        <% if (novel.thumbnail || novel.thumbnailImage) { %>
+        <img src="<%= novel.thumbnail || novel.thumbnailImage %>" 
+             alt="<%= novel.title %> 썸네일" 
+             loading="lazy"
+             onerror="this.closest('.novel-thumbnail').innerHTML='\x3cdiv class=\x22thumbnail-placeholder\x22\x3e\x3cspan class=\x22material-symbols-outlined\x22\x3emenu_book\x3c/span\x3e\x3c/div\x3e'">
+        <% } else { %>
+        <div class="thumbnail-placeholder">
+            <span class="material-symbols-outlined">menu_book</span>
+        </div>
+        <% } %>
+    </div>
+    
+    <div class="novel-info">
+        <div class="novel-header">
+            <h3 class="novel-title"><%= novel.title || '제목 없음' %></h3>
+            <p class="novel-author">
+                <span class="material-symbols-outlined">person</span>
+                <%= novel.authorName || novel.author || '작가 미상' %>
+            </p>
+        </div>
+        
+        <% if (showDescription && novel.description) { %>
+        <div class="novel-description">
+            <%= truncateText(novel.description, maxDescLength) %>
+        </div>
+        <% } %>
+        
+        <div class="novel-meta">
+            <span class="meta-item">
+                <span class="material-symbols-outlined">visibility</span>
+                <%= formatNumber(novel.views || 0) %>
+            </span>
+            <span class="meta-item">
+                <span class="material-symbols-outlined">favorite</span>
+                <%= formatNumber(novel.likes || 0) %>
+            </span>
+            <% if (novel.genre) { %>
+            <span class="meta-item genre-tag">
+                <%= novel.genre %>
+            </span>
+            <% } %>
+            <% if (Array.isArray(novel.tags) && novel.tags.length) { %>
+                <% novel.tags.slice(0, 3).forEach(function(tag) { %>
+                <span class="meta-item genre-tag">
+                    <%= tag %>
+                </span>
+                <% }) %>
+            <% } %>
+            <% if (novel.episodeCount) { %>
+            <span class="meta-item">
+                <span class="material-symbols-outlined">library_books</span>
+                <%= novel.episodeCount %>화
+            </span>
+            <% } %>
+        </div>
+        
+        <% if (novel.updatedAt) { %>
+        <div class="novel-date">
+            <span class="date-label">최근 업데이트:</span>
+            <span class="date-value"><%= new Date(novel.updatedAt).toLocaleDateString('ko-KR') %></span>
+        </div>
+        <% } %>
+    </div>
+</div>

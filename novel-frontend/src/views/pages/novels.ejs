@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <%- include('../partials/head-assets') %>
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    
+    <main class="main-content">
+        <div class="container">
+            <div class="page">
+                <div class="page-header">
+                    <h1 class="page-title">소설 목록</h1>
+                </div>
+
+                <div class="page-controls">
+                    <div class="search-section" style="flex:1;max-width:600px;">
+                        <%- include('../partials/search-bar', { 
+                            placeholder: '제목, 작가로 검색',
+                            value: locals.query || '',
+                            action: '/novels',
+                            showAdvanced: false
+                        }) %>
+                    </div>
+                    <div class="action-section">
+                        <a href="/novel/upload" class="btn btn-primary">
+                            <span class="material-symbols-outlined">add</span>
+                            새 소설 작성
+                        </a>
+                    </div>
+                </div>
+            
+                <%- include('../partials/sort-tabs', { 
+                    current: locals.sort || 'updated',
+                    baseUrl: '/novels'
+                }) %>
+
+                <div class="section">
+                    <div id="novelList" class="novel-list">
+                        <%- include('../partials/skeleton', { type: 'card', count: 10 }) %>
+                    </div>
+                    <div id="paginationContainer"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <%- include('../partials/footer') %>
+    
+    <script type="module">
+        import apiClient from '/module/api.js';
+        
+        async function init() {
+            const novelList = document.getElementById('novelList');
+            const paginationContainer = document.getElementById('paginationContainer');
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const sort = urlParams.get('sort') || 'updated';
+            const query = urlParams.get('query') || urlParams.get('q') || '';
+            const genre = urlParams.get('genre') || '';
+            const tags = urlParams.get('tags') || '';
+            const page = parseInt(urlParams.get('page') || '1');
+            const size = parseInt(urlParams.get('size') || '10');
+            
+            async function loadNovels() {
+                try {
+                    novelList.innerHTML = `<%- include("../partials/skeleton", { type: "card", count: 10 }) %>`;
+                    
+                    let apiUrl = `/api/v1/novels?sort=${sort}&page=${page}&limit=${size}`;
+                    if (query) {
+                        apiUrl += `&query=${encodeURIComponent(query)}`;
+                    }
+                    if (genre) {
+                        apiUrl += `&genre=${encodeURIComponent(genre)}`;
+                    }
+                    if (tags) {
+                        apiUrl += `&tags=${encodeURIComponent(tags)}`;
+                    }
+                    
+                    const response = await apiClient.get(apiUrl);
+                    let items = (response && response.data && Array.isArray(response.data.novels)) ? response.data.novels : (Array.isArray(response?.data) ? response.data : []);
+                    const authorIds = [...new Set(items.map(n => n.author).filter(Boolean))];
+                    const authorMap = {};
+                    await Promise.all(authorIds.map(async (id) => {
+                        try {
+                            const u = await apiClient.get(`/api/v1/users/${encodeURIComponent(id)}`);
+                            const user = u?.data?.user || u?.data || {};
+                            authorMap[id] = user.nickname || user.username || id;
+                        } catch {}
+                    }));
+                    
+                    if (items.length > 0) {
+                        novelList.innerHTML = items.map(novel => `
+                            <div class="novel-preview-card" onclick="window.location.href='/novel/${novel.novelId || novel._id || novel.id}'" role="button" tabindex="0">
+                                <div class="novel-thumbnail">
+                                    ${novel.thumbnailImage ? 
+                                        `<img src="${novel.thumbnailImage}" alt="${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')} 썸네일" loading="lazy" onerror="this.closest('.novel-thumbnail').innerHTML=\`<div class=\\\"thumbnail-placeholder\\\"><span class=\\\"material-symbols-outlined\\\">menu_book</span></div>\`">` :
+                                        `<div class="thumbnail-placeholder">
+                                            <span class="material-symbols-outlined">menu_book</span>
+                                        </div>`
+                                    }
+                                </div>
+                                
+                                <div class="novel-info">
+                                    <div class="novel-header">
+                                        <h3 class="novel-title">${String(novel.title||'제목 없음').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}</h3>
+                                        <p class="novel-author">
+                                            <span class="material-symbols-outlined">person</span>
+                                            ${String(novel.authorName || authorMap[novel.author] || '작가 미상').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;')}
+                                        </p>
+                                    </div>
+                                    
+                                    ${novel.description ? `
+                                    <div class="novel-description">
+                                        ${String(novel.description).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').slice(0,30)}${novel.description.length>30?'...':''}
+                                    </div>
+                                    ` : ''}
+                                    
+                                    <div class="novel-meta">
+                                        <span class="meta-item">
+                                            <span class="material-symbols-outlined">visibility</span>
+                                            ${formatNumber(novel.viewCount || 0)}
+                                        </span>
+                                        <span class="meta-item">
+                                            <span class="material-symbols-outlined">favorite</span>
+                                            ${formatNumber(novel.likeCount || 0)}
+                                        </span>
+                                        ${novel.genre ? `
+                                        <span class="meta-item genre-tag">
+                                            ${String(novel.genre).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+                                        </span>
+                                        ` : ''}
+                                        ${Array.isArray(novel.tags) && novel.tags.length ? `
+                                        ${novel.tags.slice(0, 3).map(t => `<span class=\"meta-item genre-tag\">${String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</span>`).join('')}
+                                        ` : ''}
+                                        ${novel.episodeCount ? `
+                                        <span class="meta-item">
+                                            <span class="material-symbols-outlined">library_books</span>
+                                            ${novel.episodeCount}화
+                                        </span>
+                                        ` : ''}
+                                    </div>
+                                    
+                                    ${novel.updatedAt ? `
+                                    <div class="novel-date">
+                                        <span class="date-label">최근 업데이트:</span>
+                                        <span class="date-value">${new Date(novel.updatedAt).toLocaleDateString('ko-KR')}</span>
+                                    </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `).join('');
+                        
+                        const totalPages = response.data?.totalPages || Math.ceil((response.data?.total || 0) / size);
+                        if (totalPages > 1) {
+                            paginationContainer.innerHTML = `<%- include('../partials/pagination', { 
+                                currentPage: page, 
+                                totalPages: 1,
+                                baseUrl: '/novels'
+                            }) %>`;
+                            
+                            paginationContainer.innerHTML = getPaginationHTML(page, totalPages);
+                        }
+                    } else {
+                        novelList.innerHTML = `<%- include('../partials/empty-state', {
+                            icon: 'menu_book',
+                            title: '소설이 없습니다',
+                            message: query ? '검색 결과가 없습니다. 다른 검색어를 시도해보세요.' : '아직 등록된 소설이 없습니다.',
+                            showAction: true,
+                            actionText: '첫 소설 작성하기',
+                            actionUrl: '/novel/upload',
+                            actionIcon: 'add'
+                        }) %>`;
+                        paginationContainer.innerHTML = '';
+                    }
+                } catch (error) {
+                    console.error('Error loading novels:', error);
+                    novelList.innerHTML = `<%- include('../partials/error-banner', { 
+                        message: '소설 목록을 불러오는 중 오류가 발생했습니다.',
+                        showRetry: true
+                    }) %>`;
+                }
+            }
+            
+            function formatNumber(num) {
+                if (num >= 1000000) return Math.floor(num / 1000000) + 'M';
+                if (num >= 1000) return Math.floor(num / 1000) + 'K';
+                return num.toString();
+            }
+            
+            function getPaginationHTML(currentPage, totalPages) {
+                const maxVisible = 5;
+                const pages = [];
+                
+                if (totalPages <= maxVisible) {
+                    for (let i = 1; i <= totalPages; i++) {
+                        pages.push(i);
+                    }
+                } else {
+                    const halfVisible = Math.floor(maxVisible / 2);
+                    let start = Math.max(1, currentPage - halfVisible);
+                    let end = Math.min(totalPages, start + maxVisible - 1);
+                    
+                    if (end - start < maxVisible - 1) {
+                        start = Math.max(1, end - maxVisible + 1);
+                    }
+                    
+                    if (start > 1) {
+                        pages.push(1);
+                        if (start > 2) pages.push('...');
+                    }
+                    
+                    for (let i = start; i <= end; i++) {
+                        if (i !== 1 && i !== totalPages) {
+                            pages.push(i);
+                        }
+                    }
+                    
+                    if (end < totalPages) {
+                        if (end < totalPages - 1) pages.push('...');
+                        pages.push(totalPages);
+                    }
+                }
+                
+                let html = '<nav class="pagination-container"><ul class="pagination">';
+                
+                html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a href="?page=1&sort=${sort}${query ? '&query=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
+                        <span class="material-symbols-outlined">first_page</span>
+                    </a>
+                </li>`;
+                
+                html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a href="?page=${Math.max(1, currentPage - 1)}&sort=${sort}${query ? '&query=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </a>
+                </li>`;
+                
+                pages.forEach(page => {
+                    if (page === '...') {
+                        html += '<li class="page-item ellipsis"><span class="page-link">...</span></li>';
+                    } else {
+                        html += `<li class="page-item ${page === currentPage ? 'active' : ''}">
+                            <a href="?page=${page}&sort=${sort}${query ? '&query=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">${page}</a>
+                        </li>`;
+                    }
+                });
+                
+                html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a href="?page=${Math.min(totalPages, currentPage + 1)}&sort=${sort}${query ? '&query=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </a>
+                </li>`;
+                
+                html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a href="?page=${totalPages}&sort=${sort}${query ? '&query=' + encodeURIComponent(query) : ''}${genre ? '&genre=' + encodeURIComponent(genre) : ''}${tags ? '&tags=' + encodeURIComponent(tags) : ''}" class="page-link">
+                        <span class="material-symbols-outlined">last_page</span>
+                    </a>
+                </li>`;
+                
+                html += '</ul></nav>';
+                
+                return html;
+            }
+            
+            await loadNovels();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>

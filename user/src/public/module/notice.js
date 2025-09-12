@@ -1,5 +1,6 @@
 import Animation from './animation.js';
 import escape from './escape.js';
+import { translateError } from './error-ko.js';
 
 class NoticeBox {
     static activeNotices = [];
@@ -137,7 +138,8 @@ class NoticeBox {
     }
 
     static error(message, displayImage = null) {
-        const notice = new NoticeBox(message, 'error', displayImage);
+        const translatedMessage = translateError(message);
+        const notice = new NoticeBox(translatedMessage, 'error', displayImage);
         notice.show();
         return notice;
     }

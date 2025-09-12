@@ -1,0 +1,155 @@
+<% const headerData = { 
+    brandText: locals.brandText || '마법연구회', 
+    brandHref: locals.brandHref || '/', 
+    userName: locals.userName || 'User', 
+    userRole: locals.userRole || '사용자', 
+    notificationCount: locals.notificationCount || 0,
+    currentSection: locals.currentSection || '',
+    ...locals 
+};
+const fixedHeader = typeof locals.fixedHeader === 'undefined' ? true : locals.fixedHeader; %>
+
+<link rel="stylesheet" href="/css/header.css" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+
+<header class="main-header<%= fixedHeader ? ' fixed-header' : '' %>">
+    <div class="header-container">
+        <div class="header-brand">
+            <a href="<%= headerData.brandHref %>" class="brand-link">
+                <span class="brand-icon">🔮</span>
+                <span class="brand-text"><%= headerData.brandText %></span>
+            </a>
+        </div>
+
+        <nav class="header-nav">
+            <ul class="nav-list desktop-nav">
+                <li class="nav-item">
+                    <a href="https://novel.magicresearches.com" class="nav-link <%= headerData.currentSection === 'archive' ? 'active' : '' %>">
+                        <span class="material-symbols-outlined">library_books</span>
+                        <span>아카이브</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="https://community.magicresearches.com" class="nav-link <%= headerData.currentSection === 'community' ? 'active' : '' %>">
+                        <span class="material-symbols-outlined">groups</span>
+                        <span>커뮤니티</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="https://emoji.magicresearches.com" class="nav-link <%= headerData.currentSection === 'emojis' ? 'active' : '' %>">
+                        <span class="material-symbols-outlined">Glyphs</span>
+                        <span>마연회콘</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="https://research.magicresearches.com" class="nav-link <%= headerData.currentSection === 'research' ? 'active' : '' %>">
+                        <span class="material-symbols-outlined">science</span>
+                        <span>마법연구소</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="mobile-nav dropdown">
+                <button class="nav-toggle dropdown-toggle" id="mobileNavToggle">
+                    <span class="material-symbols-outlined">apps</span>
+                    <span>서비스</span>
+                    <span class="material-symbols-outlined dropdown-arrow">expand_more</span>
+                </button>
+                <ul class="dropdown-menu mobile-nav-menu" id="mobileNavMenu">
+                    <li>
+                        <a href="https://novel.magicresearches.com" class="dropdown-link <%= headerData.currentSection === 'archive' ? 'active' : '' %>">
+                            <span class="material-symbols-outlined">library_books</span>
+                            <span>아카이브</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://community.magicresearches.com" class="dropdown-link <%= headerData.currentSection === 'community' ? 'active' : '' %>">
+                            <span class="material-symbols-outlined">groups</span>
+                            <span>커뮤니티</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://emoji.magicresearches.com" class="dropdown-link <%= headerData.currentSection === 'emojis' ? 'active' : '' %>">
+                            <span class="material-symbols-outlined">Glyphs</span>
+                            <span>마연회콘</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="https://research.magicresearches.com" class="dropdown-link <%= headerData.currentSection === 'research' ? 'active' : '' %>">
+                            <span class="material-symbols-outlined">science</span>
+                            <span>마법연구소</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="header-actions">
+            <button class="action-btn notification-btn" id="notificationBtn">
+                <span class="material-symbols-outlined">notifications</span>
+                <% if (headerData.notificationCount > 0) { %>
+                <span class="notification-badge"><%= headerData.notificationCount %></span>
+                <% } %>
+            </button>
+
+            <div class="user-menu dropdown">
+                <button class="user-menu-toggle dropdown-toggle" id="userMenuToggle">
+                    <div class="user-avatar">
+                        <img id="headerAvatarImage" class="avatar-image" alt="avatar" style="display:none;width:28px;height:28px;border-radius:50%;object-fit:cover;">
+                        <span class="material-symbols-outlined">person</span>
+                    </div>
+                    <div class="header-user-info">
+                        <span class="user-name"><%= headerData.userName %></span>
+                        <span class="user-role"><%= headerData.userRole %></span>
+                    </div>
+                    <span class="material-symbols-outlined dropdown-arrow">expand_more</span>
+                </button>
+                <ul class="dropdown-menu user-dropdown" id="userMenu">
+                    <li>
+                        <a href="/mypage" class="dropdown-link">
+                            <span class="material-symbols-outlined">person</span>
+                            <span>마이페이지</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/library" class="dropdown-link">
+                            <span class="material-symbols-outlined">bookmarks</span>
+                            <span>내 서재</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/settings" class="dropdown-link">
+                            <span class="material-symbols-outlined">settings</span>
+                            <span>설정</span>
+                        </a>
+                    </li>
+                    <li id="admin-menu-item" style="display: none;">
+                        <a href="/admin" class="dropdown-link admin-dropdown-link">
+                            <span class="material-symbols-outlined">admin_panel_settings</span>
+                            <span>관리자 메뉴</span>
+                        </a>
+                    </li>
+                    <li>
+                        <button class="dropdown-link mobile-theme-toggle" id="mobileThemeToggle">
+                            <span class="material-symbols-outlined">dark_mode</span>
+                            <span>다크모드</span>
+                        </button>
+                    </li>
+                    <li class="dropdown-divider"></li>
+                    <li>
+                        <button class="dropdown-link logout-link" id="logoutBtn">
+                            <span class="material-symbols-outlined">logout</span>
+                            <span>로그아웃</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <button class="action-btn theme-toggle" id="themeToggle">
+                <span class="material-symbols-outlined">dark_mode</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<script type="module" src="/js/header.js"></script>

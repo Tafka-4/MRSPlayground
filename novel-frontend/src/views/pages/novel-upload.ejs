@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <%- include('../partials/head-assets') %>
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    <main class="main-content">
+        <div class="container">
+            <div class="page" style="max-width:960px;margin:0 auto;">
+                <div class="page-header">
+                    <h1 class="page-title">소설 업로드</h1>
+                </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start;">
+            <form id="novelForm" class="form" enctype="multipart/form-data">
+                <div class="input-group">
+                    <label for="title">제목</label>
+                    <div class="search-input-wrapper">
+                        <span class="material-symbols-outlined search-icon">title</span>
+                        <input id="title" name="title" type="text" class="search-input" placeholder="제목을 입력하세요" required maxlength="100">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="description">설명</label>
+                    <div class="search-input-wrapper">
+                        <span class="material-symbols-outlined search-icon">notes</span>
+                        <textarea id="description" name="description" class="search-input" rows="5" placeholder="작품 설명을 입력하세요" required maxlength="500" style="resize:none;border-radius: var(--border-radius);"></textarea>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="tags">태그</label>
+                    <div class="search-input-wrapper">
+                        <span class="material-symbols-outlined search-icon">sell</span>
+                        <input id="tags" name="tags" type="text" class="search-input" placeholder="쉼표로 구분 (예: 던전, 성장, 모험)">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="thumbnailFile">썸네일 업로드</label>
+                    <div class="stack-h" style="align-items:center;gap:0.5rem;">
+                        <input id="thumbnailFile" name="thumbnail" type="file" accept="image/*" style="display:none;">
+                        <button type="button" id="thumbnailPick" class="btn btn-secondary">
+                            <span class="material-symbols-outlined">upload</span>
+                            파일 선택
+                        </button>
+                        <span id="thumbnailName" class="muted">선택된 파일 없음</span>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="visibility">공개 범위</label>
+                    <div class="search-input-wrapper">
+                        <span class="material-symbols-outlined search-icon">lock_open</span>
+                        <select id="visibility" name="visibility" class="search-input" style="padding-left:2.5rem;appearance:auto;">
+                            <option value="public">공개</option>
+                            <option value="code">코드 소지자만</option>
+                            <option value="private">본인만</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group" id="accessCodeWrap" style="display:none;">
+                    <label for="accessCode">접근 코드</label>
+                    <div class="search-input-wrapper">
+                        <span class="material-symbols-outlined search-icon">key</span>
+                        <input id="accessCode" name="accessCode" type="text" class="search-input" placeholder="코드 소지자만 선택 시 입력">
+                    </div>
+                </div>
+                <div class="form-actions stack-h" style="justify-content:flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="history.back()">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        취소
+                    </button>
+                    <button id="submitBtn" type="submit" class="btn btn-primary" disabled>
+                        <span class="material-symbols-outlined">save</span>
+                        등록
+                    </button>
+                    <span id="uploadStatus" class="muted" style="margin-left:0.5rem;"></span>
+                </div>
+            </form>
+            <div>
+                <div class="page-header">
+                    <h2 class="page-title" style="font-size:1.1rem">미리보기</h2>
+                </div>
+                <div class="novel-preview-card">
+                    <div class="novel-thumbnail" style="aspect-ratio:16/9;overflow:hidden;border-radius:var(--border-radius);background:var(--bg-soft);display:flex;align-items:center;justify-content:center;">
+                        <img id="previewImage" src="/images/default-novel-cover.svg" alt="미리보기 썸네일" style="width:100%;height:100%;object-fit:cover;" onerror="this.src='/images/default-novel-cover.svg'">
+                    </div>
+                    <div class="novel-info">
+                        <div class="novel-header" style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+                            <h3 id="previewTitle" class="novel-title" style="margin:0;">제목 없음</h3>
+                            <p class="novel-author" style="display:flex;align-items:center;gap:0.25rem;margin:0;">
+                                <span class="material-symbols-outlined">person</span>
+                                나
+                            </p>
+                        </div>
+                        <div id="previewDescription" class="novel-description" style="margin-top:0.25rem;color:var(--text-muted);"></div>
+                        <div id="previewTags" class="novel-meta" style="display:flex;gap:0.25rem;flex-wrap:wrap;margin-top:0.5rem;"></div>
+                    </div>
+                </div>
+            </div>
+            </div>
+            </div>
+        </div>
+    </main>
+    <%- include('../partials/footer') %>
+    <script type="module">
+        import apiClient from '/module/api.js';
+        const form = document.getElementById('novelForm');
+        const visibility = document.getElementById('visibility');
+        const accessCodeWrap = document.getElementById('accessCodeWrap');
+        const fileInput = document.getElementById('thumbnailFile');
+        const filePick = document.getElementById('thumbnailPick');
+        const fileName = document.getElementById('thumbnailName');
+        const previewImage = document.getElementById('previewImage');
+        const previewTitle = document.getElementById('previewTitle');
+        const previewDescription = document.getElementById('previewDescription');
+        const previewTags = document.getElementById('previewTags');
+        const submitBtn = document.getElementById('submitBtn');
+        const uploadStatus = document.getElementById('uploadStatus');
+        filePick?.addEventListener('click', ()=> fileInput?.click());
+        fileInput?.addEventListener('change', ()=> { 
+            const f = fileInput.files?.[0];
+            fileName.textContent = f?.name || '선택된 파일 없음';
+            if (f) {
+                const url = URL.createObjectURL(f);
+                previewImage.src = url;
+            } else {
+                previewImage.src = '/images/default-novel-cover.svg';
+            }
+        });
+        visibility?.addEventListener('change', () => {
+            accessCodeWrap.style.display = visibility.value === 'code' ? 'block' : 'none';
+        });
+        const titleInput = document.getElementById('title');
+        const descInput = document.getElementById('description');
+        const tagsInput = document.getElementById('tags');
+        const updatePreview = () => {
+            const t = titleInput.value.trim();
+            const d = descInput.value.trim();
+            const tags = (tagsInput.value || '').toString().split(',').map(s => s.trim()).filter(Boolean);
+            previewTitle.textContent = t || '제목 없음';
+            previewDescription.textContent = d;
+            previewTags.innerHTML = '';
+            tags.slice(0, 5).forEach(tag => {
+                const span = document.createElement('span');
+                span.className = 'meta-item genre-tag';
+                span.textContent = tag;
+                previewTags.appendChild(span);
+            });
+        };
+        const updateSubmitState = () => {
+            const ok = titleInput.value.trim().length > 0 && descInput.value.trim().length > 0;
+            submitBtn.disabled = !ok;
+        };
+        ['input','change'].forEach(evt => {
+            titleInput.addEventListener(evt, () => { updatePreview(); updateSubmitState(); });
+            descInput.addEventListener(evt, () => { updatePreview(); updateSubmitState(); });
+            tagsInput.addEventListener(evt, () => { updatePreview(); });
+        });
+        updatePreview();
+        updateSubmitState();
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = new FormData(form);
+            const body = {
+                title: data.get('title'),
+                description: data.get('description'),
+                tags: (data.get('tags') || '').toString().split(',').map(s => s.trim()).filter(Boolean),
+                visibility: data.get('visibility') || 'public',
+                accessCode: data.get('accessCode') || ''
+            };
+            try {
+                submitBtn.disabled = true;
+                let response = await apiClient.post('/api/v1/novels', body);
+                if (!response || !response.data) {
+                    throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.');
+                }
+                const novel = response.data.novel || response.data;
+                const file = data.get('thumbnail');
+                if (file && file instanceof File) {
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    uploadStatus.textContent = '이미지 업로드 중...';
+                    await apiClient.put(`/api/v1/novels/${novel.novelId || novel._id || novel.id}/thumbnail-image`, fd);
+                    uploadStatus.textContent = '이미지 업로드 완료';
+                }
+                window.location.href = `/novel/${novel.novelId || novel._id || novel.id}`;
+            } catch (err) {
+                alert('업로드 실패: ' + (err?.data?.message || err.message));
+                submitBtn.disabled = false;
+                uploadStatus.textContent = '';
+            }
+        });
+    </script>
+</body>
+</html>
+

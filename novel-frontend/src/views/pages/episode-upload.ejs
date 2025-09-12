@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <%- include('../partials/head-assets') %>
+</head>
+<body>
+    <%- include('../partials/header', { currentSection: 'archive' }) %>
+    <main class="main-content">
+        <div class="container">
+            <div class="page" style="max-width:720px;margin:0 auto;">
+                <div class="page-header">
+                    <h1 class="page-title">에피소드 업로드</h1>
+                </div>
+                <div class="muted">Novel: <%= locals.novelId %></div>
+                <form id="episodeForm" class="form">
+                <div class="input-group input-style1">
+                    <label for="title">제목</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">title</span>
+                        <input id="title" name="title" type="text" placeholder="에피소드 제목" required>
+                    </div>
+                </div>
+                <div class="input-group input-style1">
+                    <label for="content">본문</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">description</span>
+                        <textarea id="content" name="content" rows="10" placeholder="에피소드 본문" required></textarea>
+                    </div>
+                </div>
+                <div class="input-group input-style1">
+                    <label for="authorComment">작가의 말</label>
+                    <div class="input-wrapper">
+                        <span class="material-symbols-outlined">comment</span>
+                        <textarea id="authorComment" name="authorComment" rows="3" placeholder="선택 사항"></textarea>
+                    </div>
+                </div>
+                <div class="form-actions stack-h" style="justify-content:flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="history.back()">
+                        <span class="material-symbols-outlined">arrow_back</span>
+                        취소
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="material-symbols-outlined">upload</span>
+                        등록
+                    </button>
+                </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    <%- include('../partials/footer') %>
+</body>
+</html>
+<script type="module">
+    import apiClient from '/module/api.js';
+    const novelId = '<%= locals.novelId %>';
+    function withAccessCode(payload) {
+        const saved = localStorage.getItem(`novel_code_${novelId}`) || '';
+        return saved ? { ...payload, code: saved } : payload;
+    }
+    const form = document.getElementById('episodeForm');
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = new FormData(form);
+        const body = withAccessCode({
+            novelId,
+            title: data.get('title'),
+            content: data.get('content'),
+            authorComment: data.get('authorComment') || ''
+        });
+        try {
+            const res = await apiClient.post('/api/v1/episodes', body);
+            const ep = res.data.episode || res.data;
+            window.location.href = `/novel/${novelId}/episode/${ep.episodeId || ep._id || ep.id}`;
+        } catch (err) {
+            alert('업로드 실패: ' + (err?.data?.message || err.message));
+        }
+    });
+</script>
+

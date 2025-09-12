@@ -1,11 +1,13 @@
 <% const headerData = { brandText: locals.brandText || '마법연구회', brandHref:
 locals.brandHref || '/', userName: locals.userName || 'User', userRole:
 locals.userRole || '사용자', notificationCount: locals.notificationCount || 0,
-...locals }; %>
+...locals };
+const fixedHeader = typeof locals.fixedHeader === 'undefined' ? true : locals.fixedHeader;
+%>
 
 <link rel="stylesheet" href="/partials/header.css" />
 
-<header class="main-header">
+<header class="main-header<%= fixedHeader ? ' fixed-header' : '' %>">
     <div class="header-container">
         <div class="header-brand">
             <a href="<%= headerData.brandHref %>" class="brand-link">
@@ -18,7 +20,7 @@ locals.userRole || '사용자', notificationCount: locals.notificationCount || 0
             <!-- Desktop Navigation -->
             <ul class="nav-list desktop-nav">
                 <li class="nav-item">
-                    <a href="/novel" class="nav-link">
+                    <a href="https://novel.magicresearches.com" class="nav-link">
                         <span class="material-symbols-outlined"
                             >library_books</span
                         >
@@ -26,19 +28,19 @@ locals.userRole || '사용자', notificationCount: locals.notificationCount || 0
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/community" class="nav-link">
+                    <a href="https://community.magicresearches.com" class="nav-link">
                         <span class="material-symbols-outlined">groups</span>
                         <span>커뮤니티</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/emojis" class="nav-link">
+                    <a href="https://emoji.magicresearches.com" class="nav-link">
                         <span class="material-symbols-outlined">Glyphs</span>
                         <span>마연회콘</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a href="/research" class="nav-link">
+                    <a href="https://research.magicresearches.com" class="nav-link">
                         <span class="material-symbols-outlined">science</span>
                         <span>마법연구소</span>
                     </a>
@@ -57,7 +59,7 @@ locals.userRole || '사용자', notificationCount: locals.notificationCount || 0
                 </button>
                 <ul class="dropdown-menu mobile-nav-menu" id="mobileNavMenu">
                     <li>
-                        <a href="/novel" class="dropdown-link">
+                        <a href="https://novel.magicresearches.com" class="dropdown-link">
                             <span class="material-symbols-outlined"
                                 >library_books</span
                             >
@@ -65,7 +67,7 @@ locals.userRole || '사용자', notificationCount: locals.notificationCount || 0
                         </a>
                     </li>
                     <li>
-                        <a href="/community" class="dropdown-link">
+                        <a href="https://community.magicresearches.com" class="dropdown-link">
                             <span class="material-symbols-outlined"
                                 >groups</span
                             >
@@ -73,7 +75,7 @@ locals.userRole || '사용자', notificationCount: locals.notificationCount || 0
                         </a>
                     </li>
                     <li>
-                        <a href="/emojis" class="dropdown-link">
+                        <a href="https://emoji.magicresearches.com" class="dropdown-link">
                             <span class="material-symbols-outlined"
                                 >Glyphs</span
                             >
@@ -81,7 +83,7 @@ locals.userRole || '사용자', notificationCount: locals.notificationCount || 0
                         </a>
                     </li>
                     <li>
-                        <a href="/research" class="dropdown-link">
+                        <a href="https://research.magicresearches.com" class="dropdown-link">
                             <span class="material-symbols-outlined"
                                 >science</span
                             >
@@ -182,4 +184,5 @@ locals.userRole || '사용자', notificationCount: locals.notificationCount || 0
 </header>
 
 
+<script src="/config.js"></script>
 <script src="/partials/header.js"></script>
