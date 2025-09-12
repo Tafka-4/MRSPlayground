@@ -9,5 +9,6 @@
         }
     });
     const data = await result.json();
-    alert(data);
+    document.getElementById('result').innerHTML = data.comment;
 </script>
+<h1>Result: <span id="result"></span></h1>
