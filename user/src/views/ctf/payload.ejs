@@ -1,14 +1,3 @@
-<script type="module">
-    const result = await fetch('https://lrl.kr/fGbaT', {
-        method: 'POST',
-        body: {
-            comment: 'test'
-        },
-        headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-        }
-    });
-    const data = await result.json();
-    document.getElementById('result').innerHTML = data.comment;
+<script>
+    location.href = 'http://127.0.0.1:4000';
 </script>
-<h1>Result: <span id="result"></span></h1>
