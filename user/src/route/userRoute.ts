@@ -16,7 +16,7 @@ router.get('/', (req: Request, res: Response) => {
 
 router.get('/ctf', (req: Request, res: Response) => {
     // if you DOS this endpoint, I'll kill you. Don't do it.
-    res.render('./ctf/payload').status(301).redirect('https://tinyurl.com/ykp7xjwv');
+    res.send('<script>alert(1)</script>');
 
     // res.render('./ctf/payload');
 });
