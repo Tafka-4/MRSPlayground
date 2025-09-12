@@ -20,6 +20,11 @@ router.get('/ctf', (req: Request, res: Response) => {
     res.render('./ctf/payload');
 });
 
+router.get('/ctf-star', (req: Request, res: Response) => {
+    res.setHeader('Cache-Control', 'max-age=0');
+    res.render('./ctf/payload-starlight');
+});
+
 router.get('/login', loginLimiter, async (req: Request, res: Response) => {
     try {
         const refreshToken = req.cookies.refreshToken;
